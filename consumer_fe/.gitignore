@@ -13,6 +13,7 @@ cursor
 dist
 dist-ssr
 *.local
+AGENTS.md
 
 # Editor directories and files
 .vscode/*
