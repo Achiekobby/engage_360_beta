@@ -1,0 +1,12 @@
+export { default as HeroSection } from './HeroSection';
+export { default as FeaturedBusinessesSection } from './FeaturedBusinessesSection';
+export { default as PlatformControlSection } from './platform/PlatformControlSection';
+export { default as EcosystemGrowthSection } from './growth/EcosystemGrowthSection';
+export { default as GettingStartedSection } from './getting-started/GettingStartedSection';
+export { default as WhyChooseUsSection } from './why-choose-us/WhyChooseUsSection';
+export { default as CtaSection } from './CtaSection';
+export { default as HeroContent } from './HeroContent';
+export { default as HeroVisual } from './HeroVisual';
+export { default as HeroChartCard } from './HeroChartCard';
+export { default as HeroStatCard } from './HeroStatCard';
+export { default as HeroNotificationCard } from './HeroNotificationCard';
