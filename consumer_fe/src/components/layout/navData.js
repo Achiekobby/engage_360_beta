@@ -2,6 +2,7 @@ import {
   CalendarClock,
   ClipboardList,
   FileText,
+  GraduationCap,
   HelpCircle,
   Inbox,
   LayoutGrid,
@@ -136,7 +137,7 @@ export const RESOURCE_ITEMS = [
   { label: 'About us', path: '/about', icon: FileText },
   { label: 'Blogs', path: '/blogs', icon: Mail },
   { label: 'Success Stories', path: '/success-stories', icon: Users },
-  { label: 'Academy', path: '/academy', icon: Monitor },
+  { label: 'Academy', path: '/academy', icon: GraduationCap },
   { label: 'Webinars', path: '/webinars', icon: CalendarClock },
 ];
 

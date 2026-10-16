@@ -1,7 +1,11 @@
 export const ABOUT_HERO = {
+  eyebrow: 'About Engage 360',
   title: 'One Platform for Engagement, Operations, and Growth!',
   description:
     'Engage 360 is an all-in-one customer engagement and business operations platform that enables organizations to manage communication, customer data, campaigns, surveys, and workflows from a single unified system. It integrates SMS, WhatsApp, Email, and USSD to deliver seamless, data-driven engagement while improving operational efficiency and decision-making.',
+  primaryCta: 'Get started',
+  secondaryCta: 'Contact us',
+  highlights: ['SMS', 'WhatsApp', 'Email', 'USSD'],
 };
 
 export const WHO_WE_ARE = {

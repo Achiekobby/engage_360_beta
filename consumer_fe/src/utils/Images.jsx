@@ -1,6 +1,12 @@
 const Images = {
   logo: '/images/logo.png',
   logoWhite: '/images/logo_white.png',
+  auth:{
+    company_details:"/images/signup_img.png",
+    additional_details:"/images/additional_info.png",
+    password_setup:"/images/password_img.png",
+    login_img:"/images/login_img.png",
+  },
   hero: {
     hero_img: '/images/hero_img.png',
     icon_hero: '/images/icon_hero.png',
@@ -28,6 +34,10 @@ const Images = {
     about_section:"/images/about.jpg",
     about_hero:"/images/about_hero.png",
   },
+  academy:{
+    academy_hero:"/images/academy_hero.png",
+  },
+
   contact_us:{
     telephone:"/images/telephone.png",
     email:"/images/email.png",

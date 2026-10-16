@@ -32,7 +32,7 @@ export default function SignInLeftPanel() {
         />
       </AnimatePresence>
       <div
-        className="absolute inset-0 bg-gradient-to-br from-[#3A10CD]/75 via-[#0B1354]/70 to-[#3A10CD]/60"
+        className="absolute inset-0 bg-gradient-to-br from-[#3A10CD]/45 via-[#0B1354]/40 to-[#3A10CD]/30"
         aria-hidden="true"
       />
 

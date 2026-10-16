@@ -13,6 +13,7 @@ import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import ContactPage from './pages/ContactPage';
 import HelpCenterPage from './pages/HelpCenterPage';
 import AboutPage from './pages/AboutPage';
+import AcademyPage from './pages/AcademyPage';
 import BlogsPage from './pages/BlogsPage';
 import BlogDetailPage from './pages/BlogDetailPage';
 import SuccessStoriesPage from './pages/SuccessStoriesPage';
@@ -137,7 +138,7 @@ function AppShell() {
             <Route path="/blogs/:slug" element={<BlogDetailPage />} />
             <Route path="/success-stories" element={<SuccessStoriesPage />} />
             <Route path="/success-stories/:slug" element={<SuccessStoryDetailPage />} />
-            <Route path="/academy" element={<Untitled />} />
+            <Route path="/academy" element={<AcademyPage />} />
             <Route path="/webinars" element={<WebinarsPage />} />
             <Route path="/ads-hub" element={<Untitled />} />
             <Route path="/jobs" element={<Untitled />} />
