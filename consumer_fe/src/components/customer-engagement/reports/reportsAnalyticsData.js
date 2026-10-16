@@ -41,6 +41,12 @@ export const REPORT_TABS = [
     title: 'Churn & Retention',
     subtitle: 'Active, at-risk, and churned customers with retention metrics',
   },
+  {
+    id: 'automations',
+    label: 'Automations',
+    title: 'Automation Reports',
+    subtitle: 'Birthday automation overview and engagement performance',
+  },
 ];
 
 export const REPORT_FILTER_OPTIONS = {

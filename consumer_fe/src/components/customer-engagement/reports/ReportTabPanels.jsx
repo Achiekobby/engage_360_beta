@@ -2,6 +2,7 @@ import {
   Activity,
   BarChart3,
   Database,
+  Gift,
   PieChart,
   Radio,
   RefreshCw,
@@ -9,6 +10,7 @@ import {
 } from 'lucide-react';
 import { Reveal, StaggerItem, StaggerReveal } from '../../motion';
 import MetricCard from '../dashboard/MetricCard';
+import BirthdayInsightsSection from '../automations/BirthdayInsightsSection';
 import ReportSectionHeader from './ReportSectionHeader';
 import {
   ReportBarChart,
@@ -54,6 +56,7 @@ const TAB_ICONS = {
   'data-quality': Database,
   distribution: Users,
   'churn-retention': RefreshCw,
+  automations: Gift,
 };
 
 function CustomerReportTab() {
@@ -292,6 +295,19 @@ function ChurnRetentionReportTab() {
   );
 }
 
+function AutomationsReportTab() {
+  return (
+    <div className="space-y-6">
+      <ReportSectionHeader
+        icon={TAB_ICONS.automations}
+        title="Automation Reports"
+        subtitle="Birthday automation overview and engagement & conversions performance"
+      />
+      <BirthdayInsightsSection />
+    </div>
+  );
+}
+
 const TAB_PANELS = {
   customer: CustomerReportTab,
   demographics: DemographicsReportTab,
@@ -300,6 +316,7 @@ const TAB_PANELS = {
   'data-quality': DataQualityReportTab,
   distribution: DistributionReportTab,
   'churn-retention': ChurnRetentionReportTab,
+  automations: AutomationsReportTab,
 };
 
 export default function ReportTabPanels({ activeTab }) {
