@@ -49,7 +49,7 @@ function Menu({ label, icon: Icon, open, onToggle, children, active }) {
         <ChevronDown className={clsx('h-3.5 w-3.5 transition-transform', open && 'rotate-180')} aria-hidden="true" />
       </button>
       {open ? (
-        <div className="absolute right-0 z-20 mt-2 w-56 rounded-2xl border border-[#EEF0F4] bg-white p-3 shadow-[0_16px_40px_rgba(11,19,84,0.12)]">
+        <div className="absolute right-0 z-20 mt-2 w-56 admin-card rounded-2xl border border-[#EEF0F4] bg-white p-3 shadow-[0_16px_40px_rgba(11,19,84,0.12)]">
           {children}
         </div>
       ) : null}
@@ -83,7 +83,7 @@ function MetricCard({ metric, rangeLabel }) {
   const display = metric.unit === '%' ? `${metric.value}%` : formatCount(metric.value);
 
   return (
-    <article className="rounded-2xl border border-[#EEF0F4] bg-white px-4 py-4">
+    <article className="admin-card rounded-2xl border border-[#EEF0F4] bg-white px-4 py-4">
       <p className="flex items-center gap-1.5 text-sm font-medium text-[#717171]">
         {metric.label}
         <span className="text-[#C4C4CC]" title={metric.hint}>
@@ -134,7 +134,7 @@ function GenderGauge({ rows }) {
   };
 
   return (
-    <article className="h-full rounded-2xl border border-[#EEF0F4] bg-white p-4 sm:p-5">
+    <article className="admin-card h-full rounded-2xl border border-[#EEF0F4] bg-white p-4 sm:p-5">
       <h3 className="text-base font-bold text-[#0B1354]">Gender Distribution</h3>
       <p className="text-xs text-[#717171]">Breakdown of customers by gender</p>
       <div className="mt-4 flex flex-col items-center">
@@ -231,7 +231,7 @@ function AgeDonut({ rows }) {
   };
 
   return (
-    <article className="h-full rounded-2xl border border-[#EEF0F4] bg-white p-4 sm:p-5">
+    <article className="admin-card h-full rounded-2xl border border-[#EEF0F4] bg-white p-4 sm:p-5">
       <h3 className="text-base font-bold text-[#0B1354]">Average Age</h3>
       <p className="text-xs text-[#717171]">Largest age group in this customer base</p>
       <div className="mt-4 flex items-center justify-center gap-6">
@@ -326,7 +326,7 @@ function TrendChart({
   const activeIndex = focus.active == null ? null : Number(focus.active);
 
   return (
-    <article className={clsx('rounded-2xl border border-[#EEF0F4] bg-white p-4 sm:p-5', focus.active && 'relative z-20')}>
+    <article className={clsx('admin-card rounded-2xl border border-[#EEF0F4] bg-white p-4 sm:p-5', focus.active && 'relative z-20')}>
       <div className="flex items-start justify-between gap-3">
         <div>
           <h3 className="text-base font-bold text-[#0B1354]">{title}</h3>
@@ -465,7 +465,7 @@ function PieCard({ title, subtitle, rows, colors }) {
   };
 
   return (
-    <article className={clsx('h-full rounded-2xl border border-[#EEF0F4] bg-white p-4 sm:p-5', focus.active && 'relative z-20')}>
+    <article className={clsx('admin-card h-full rounded-2xl border border-[#EEF0F4] bg-white p-4 sm:p-5', focus.active && 'relative z-20')}>
       <h3 className="text-base font-bold text-[#0B1354]">{title}</h3>
       <p className="text-xs text-[#717171]">{subtitle}</p>
       <div className="mt-5 flex items-center gap-5">
@@ -539,7 +539,7 @@ const AGE_COLORS = ['#2563EB', '#111827', '#F59E0B', '#E11D48', '#0F766E', '#A8A
 
 function FilterBar({ title, subtitle, data, range, setRange, category, setCategory, collection, setCollection, openMenu, toggleMenu }) {
   return (
-    <section className="mt-4 rounded-2xl border border-[#EEF0F4] bg-white p-4 sm:p-5">
+    <section className="admin-card mt-4 rounded-2xl border border-[#EEF0F4] bg-white p-4 sm:p-5">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <h2 className="text-xl font-bold text-[#0B1354]">{title}</h2>
@@ -608,7 +608,7 @@ function GroupedTrendChart({ title, subtitle, growth }) {
   const activeSeries = focus.active == null ? null : String(focus.active).split(':')[1] ?? null;
 
   return (
-    <article className={clsx('rounded-2xl border border-[#EEF0F4] bg-white p-4 sm:p-5', focus.active && 'relative z-20')}>
+    <article className={clsx('admin-card rounded-2xl border border-[#EEF0F4] bg-white p-4 sm:p-5', focus.active && 'relative z-20')}>
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h3 className="text-base font-bold text-[#0B1354]">{title}</h3>
@@ -759,7 +759,7 @@ function ValidityRing({ title, subtitle, total, validLabel, invalidLabel, validS
   };
 
   return (
-    <article className="h-full rounded-2xl border border-[#EEF0F4] bg-white p-4 sm:p-5">
+    <article className="admin-card h-full rounded-2xl border border-[#EEF0F4] bg-white p-4 sm:p-5">
       <h3 className="text-base font-bold text-[#0B1354]">{title}</h3>
       <p className="text-xs text-[#717171]">{subtitle}</p>
       <div className="mt-5 flex items-center gap-6">
@@ -865,7 +865,7 @@ function QualityRing({ title, subtitle, total, count, share, color, track }) {
   };
 
   return (
-    <article className="h-full rounded-2xl border border-[#EEF0F4] bg-white p-4 sm:p-5">
+    <article className="admin-card h-full rounded-2xl border border-[#EEF0F4] bg-white p-4 sm:p-5">
       <h3 className="text-base font-bold text-[#0B1354]">{title}</h3>
       <p className="text-xs text-[#717171]">{subtitle}</p>
       <div className="mt-5 flex items-center gap-5">
@@ -936,7 +936,7 @@ function RateRing({ title, subtitle, caption, display, share, color, track, item
   };
 
   return (
-    <article className="h-full rounded-2xl border border-[#EEF0F4] bg-white p-4 sm:p-5">
+    <article className="admin-card h-full rounded-2xl border border-[#EEF0F4] bg-white p-4 sm:p-5">
       <h3 className="text-base font-bold text-[#0B1354]">{title}</h3>
       <p className="text-xs text-[#717171]">{subtitle}</p>
       <div className="mt-6 flex justify-center">
@@ -1012,7 +1012,7 @@ export default function BusinessDataAnalyticsPage() {
         backLabel="Business management"
       />
 
-      <div className="mt-3 overflow-x-auto rounded-2xl border border-[#EEF0F4] bg-white p-1.5">
+      <div className="mt-3 overflow-x-auto admin-card rounded-2xl border border-[#EEF0F4] bg-white p-1.5">
         <div role="tablist" aria-label="Analytics sections" className="flex min-w-max gap-1">
           {ANALYTICS_TABS.map((item) => {
             const selected = tab === item.id;

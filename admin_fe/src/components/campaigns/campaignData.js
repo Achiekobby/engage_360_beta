@@ -3,7 +3,7 @@ export const CAMPAIGN_CATEGORIES = [
   { id: 'lead-generation', label: 'Lead Generation', blurb: 'Manage all lead generation campaigns in one place' },
   { id: 'advertisement', label: 'Advertisement', blurb: 'Manage all advertisement campaigns in one place' },
   { id: 'service-alerts', label: 'Service Alerts', blurb: 'Manage all service-alert campaigns in one place' },
-  { id: 'sales', label: 'Sales', blurb: 'Manage all sales campaigns in one place', comingSoon: true },
+  { id: 'sales', label: 'Sales', blurb: 'Manage all sales campaigns in one place.' },
   { id: 'events-activations', label: 'Events & Activations', blurb: 'Manage all event and activation campaigns in one place' },
 ];
 
@@ -559,7 +559,196 @@ const SEED_CAMPAIGNS = [
     clicked: 980,
     scheduledAt: '2026-09-22T07:15:00.000Z',
     createdAt: '2026-06-12T07:15:00.000Z',
+    imageUrl: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=160&h=160&q=80',
     message: 'Weekday fleet rate is 12% off through Friday. Quote FLEET12 at booking.',
+  },
+  {
+    id: 'cmp-sales-clearance-1',
+    name: 'Clearance Sales',
+    businessId: 'biz-accra-fresh',
+    category: 'sales',
+    channel: 'sms',
+    senderId: 'sid-accra',
+    status: 'active',
+    audience: 9800,
+    sent: 9400,
+    delivered: 9100,
+    opened: 0,
+    clicked: 1420,
+    scheduledAt: '2026-09-12T08:00:00.000Z',
+    createdAt: '2026-06-12T08:20:00.000Z',
+    imageUrl: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=160&h=160&q=80',
+    message:
+      'Trust is built over time. Choose brands that are transparent, reliable, and committed to serving you better.',
+    brief: {
+      title: 'Clear Offer',
+      productName: 'Enterprise Lead Acceleration Engine',
+      callToAction: 'Get It Now',
+      description:
+        'Trust is built over time. Choose brands that are transparent, reliable, and committed to serving you better.',
+      highlightPhrase: 'transparent',
+      promoVisual: 'Image',
+      price: 5599,
+      discountedPrice: 1499,
+      expiryDate: '2026-06-12T00:00:00.000Z',
+      customerCategory: 'DealBoxx Promotion',
+      collection: 'New Customers',
+      newCustomers: true,
+      gender: 'Male',
+      region: 'Greater Accra',
+      location: 'Accra',
+      age: '18-20',
+      estimatedReach: 1500,
+      preferredReach: 500,
+      screens: [
+        {
+          id: 'insights',
+          label: 'Insights',
+          src: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=1200&h=900&q=80',
+        },
+        {
+          id: 'pipeline',
+          label: 'Pipeline',
+          src: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=1200&h=900&q=80',
+        },
+        {
+          id: 'checkout',
+          label: 'Checkout',
+          src: 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?auto=format&fit=crop&w=1200&h=900&q=80',
+        },
+        {
+          id: 'catalog',
+          label: 'Catalog',
+          src: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=1200&h=900&q=80',
+        },
+      ],
+    },
+  },
+  {
+    id: 'cmp-sales-clearance-2',
+    name: 'Clearance Sales',
+    businessId: 'biz-oneflow',
+    category: 'sales',
+    channel: 'email',
+    senderId: 'sid-oneflow',
+    status: 'expired',
+    audience: 7200,
+    sent: 7200,
+    delivered: 6900,
+    opened: 2100,
+    clicked: 640,
+    scheduledAt: '2026-08-04T09:00:00.000Z',
+    createdAt: '2026-06-12T09:10:00.000Z',
+    imageUrl: 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?auto=format&fit=crop&w=160&h=160&q=80',
+    message: 'End-of-season tools clearance. Final markdowns through Sunday.',
+  },
+  {
+    id: 'cmp-sales-summer',
+    name: 'Summer bundle sale',
+    businessId: 'biz-petcom',
+    category: 'sales',
+    channel: 'whatsapp',
+    senderId: 'sid-petcom',
+    status: 'active',
+    audience: 5400,
+    sent: 5100,
+    delivered: 4920,
+    opened: 0,
+    clicked: 880,
+    scheduledAt: '2026-09-18T11:00:00.000Z',
+    createdAt: '2026-06-12T11:00:00.000Z',
+    imageUrl: 'https://images.unsplash.com/photo-1607083206869-4c7672e72a8a?auto=format&fit=crop&w=160&h=160&q=80',
+    message: 'Summer bundle is 18% off this week. Reply YES for the catalog.',
+  },
+  {
+    id: 'cmp-sales-flash',
+    name: 'Friday flash sale',
+    businessId: 'biz-kente',
+    category: 'sales',
+    channel: 'sms',
+    senderId: 'sid-kente',
+    status: 'active',
+    audience: 4100,
+    sent: 3980,
+    delivered: 3820,
+    opened: 0,
+    clicked: 720,
+    scheduledAt: '2026-09-19T07:30:00.000Z',
+    createdAt: '2026-06-12T07:45:00.000Z',
+    imageUrl: 'https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=160&h=160&q=80',
+    message: 'Flash sale Friday only. Quote FLASH26 at checkout.',
+  },
+  {
+    id: 'cmp-sales-member',
+    name: 'Member exclusive sale',
+    businessId: 'biz-harbor',
+    category: 'sales',
+    channel: 'email',
+    senderId: 'sid-harbor',
+    status: 'expired',
+    audience: 2900,
+    sent: 2900,
+    delivered: 2740,
+    opened: 1180,
+    clicked: 410,
+    scheduledAt: '2026-07-28T10:00:00.000Z',
+    createdAt: '2026-06-12T10:20:00.000Z',
+    imageUrl: 'https://images.unsplash.com/photo-1472851294608-062f824d29cc?auto=format&fit=crop&w=160&h=160&q=80',
+    message: 'Members get early access to marina shop markdowns this weekend.',
+  },
+  {
+    id: 'cmp-sales-outlet',
+    name: 'Outlet weekend sale',
+    businessId: 'biz-accra-fresh',
+    category: 'sales',
+    channel: 'sms',
+    senderId: 'sid-accra',
+    status: 'active',
+    audience: 8600,
+    sent: 8200,
+    delivered: 7900,
+    opened: 0,
+    clicked: 1310,
+    scheduledAt: '2026-09-20T08:00:00.000Z',
+    createdAt: '2026-06-12T08:05:00.000Z',
+    imageUrl: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=160&h=160&q=80',
+    message: 'Outlet prices this weekend only. Stock is limited.',
+  },
+  {
+    id: 'cmp-sales-inventory',
+    name: 'Inventory reset sale',
+    businessId: 'biz-goldline',
+    category: 'sales',
+    channel: 'sms',
+    senderId: 'sid-oneflow',
+    status: 'expired',
+    audience: 4700,
+    sent: 4700,
+    delivered: 4510,
+    opened: 0,
+    clicked: 590,
+    scheduledAt: '2026-08-10T07:00:00.000Z',
+    createdAt: '2026-06-12T07:00:00.000Z',
+    imageUrl: 'https://images.unsplash.com/photo-1556740758-90de374c12ad?auto=format&fit=crop&w=160&h=160&q=80',
+    message: 'Inventory reset sale has ended. Watch for next week’s rates.',
+  },
+  {
+    id: 'cmp-sales-vip',
+    name: 'VIP early access sale',
+    businessId: 'biz-oneflow',
+    category: 'sales',
+    channel: 'email',
+    senderId: 'sid-oneflow',
+    status: 'scheduled',
+    audience: 1800,
+    sent: 0,
+    delivered: 0,
+    opened: 0,
+    clicked: 0,
+    scheduledAt: '2026-10-02T09:00:00.000Z',
+    createdAt: '2026-06-12T09:40:00.000Z',
+    imageUrl: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=160&h=160&q=80',
+    message: 'VIP list gets 24-hour early access before the public sale.',
   },
   {
     id: 'cmp-harbor-activation',
@@ -892,8 +1081,11 @@ export function formatInvoiceWhen(value) {
   const day = String(date.getDate()).padStart(2, '0');
   const month = String(date.getMonth() + 1).padStart(2, '0');
   const year = date.getFullYear();
+  let hours = date.getHours();
   const minutes = String(date.getMinutes()).padStart(2, '0');
-  return `${day}/${month}/${year}, ${date.getHours()}:${minutes}`;
+  const meridiem = hours >= 12 ? 'PM' : 'AM';
+  hours = hours % 12 || 12;
+  return `${day}/${month}/${year}, ${hours}:${minutes}${meridiem}`;
 }
 
 export const CAMPAIGN_PAGE_SIZE = 5;
@@ -936,31 +1128,43 @@ export function formatCedi(value) {
 
 export function campaignBrief(campaign) {
   const extra = campaign.brief ?? {};
+  const isSales = campaign.category === 'sales';
   return {
     channel: campaign.channel,
     message: campaign.message,
     title: extra.title ?? campaign.name,
-    callToAction: extra.callToAction ?? (campaign.channel === 'sms' ? 'Reply YES' : 'Shop now'),
+    productName: extra.productName ?? null,
+    callToAction:
+      extra.callToAction ?? (isSales ? 'Get It Now' : campaign.channel === 'sms' ? 'Buy Now' : 'Shop now'),
     offer: extra.offer ?? null,
     description: extra.description ?? campaign.message,
+    highlightPhrase: extra.highlightPhrase ?? null,
+    screens: extra.screens ?? null,
     bannerUrl: campaign.imageUrl ?? null,
     attachment: extra.attachment ?? null,
+    attachmentUrl: extra.attachmentUrl ?? campaign.imageUrl ?? null,
+    promoVisual: extra.promoVisual ?? 'Image',
     voucher: extra.voucher ?? null,
     promoImageRef: extra.promoImageRef ?? null,
     promoDate: extra.promoDate ?? campaign.createdAt,
     expiryDate: extra.expiryDate ?? campaign.scheduledAt,
-    price: extra.price ?? null,
-    discountedPrice: extra.discountedPrice ?? null,
-    source: extra.source ?? 'Customer Management (internal)',
-    collection: extra.collection ?? null,
-    customerCategory: extra.customerCategory ?? labelFor(CAMPAIGN_CATEGORIES, campaign.category),
-    newCustomers: extra.newCustomers ?? false,
-    gender: extra.gender ?? 'All',
+    price: extra.price ?? (isSales ? 5599 : null),
+    discountedPrice: extra.discountedPrice ?? (isSales ? 1499 : null),
+    source: extra.source ?? 'Customer Management (Internal)',
+    collection: extra.collection ?? (isSales || extra.newCustomers ? 'New Customers' : 'Active Campaign'),
+    customerCategory:
+      extra.customerCategory ??
+      (isSales ? 'DealBoxx Promotion' : labelFor(CAMPAIGN_CATEGORIES, campaign.category)),
+    newCustomers: extra.newCustomers ?? isSales,
+    gender: extra.gender ?? (isSales ? 'Male' : 'All'),
     region: extra.region ?? 'Greater Accra',
     location: extra.location ?? 'Accra',
-    age: extra.age ?? '18–35',
+    age: extra.age ?? (isSales ? '18-20' : '18–35'),
     estimatedReach: extra.estimatedReach ?? campaign.audience,
-    preferredReach: extra.preferredReach ?? Math.round((campaign.audience || 0) * 0.65),
+    preferredReach:
+      extra.preferredReach != null && extra.preferredReach > 100
+        ? extra.preferredReach
+        : Math.round((campaign.audience || 0) * 0.35),
   };
 }
 
@@ -981,56 +1185,144 @@ export function campaignAnalytics(campaign) {
   const audience = campaign.audience || 0;
   const pending = Math.max(audience - sent, 0);
   const failed = Math.max(sent - delivered, 0);
-  const conversions = getPurchaseLogs(campaign).filter((item) => item.status === 'Paid').length;
+  const purchases = getPurchaseLogs(campaign);
+  const paid = purchases.filter((item) => item.status === 'Paid');
+  const pendingPay = purchases.filter((item) => item.status === 'Pending');
+  const failedPay = purchases.filter((item) => item.status === 'Failed');
+  const conversions = paid.length;
+  const revenue = paid.reduce((sum, item) => sum + (Number(item.amount) || 0), 0);
   const rate = (num, den) => (den ? Math.round((num / den) * 100) : 0);
   const channel = labelFor(CAMPAIGN_CHANNELS, campaign.channel);
+  const clickRate = rate(clicked, delivered);
+  const ctr = rate(clicked, sent);
+  const engagementRate = rate(opened + clicked, delivered);
+  const openRate = campaign.channel === 'sms' ? 0 : rate(opened, delivered);
+  const conversionRate = rate(conversions, clicked || delivered);
+
+  const dayLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  const scale = (values) =>
+    values.map((value) => Math.max(0, Math.round(value * (sent ? Math.max(sent / 9000, 0.35) : 0.4))));
 
   return {
     delivery: [
-      { id: 'launch', label: `${channel} Launch`, value: sent, display: formatCompact(sent), count: formatNumber(sent), detail: 'Messages launched', tone: 'good' },
-      { id: 'reached', label: 'Customer Reached', value: delivered, display: formatCompact(delivered), count: formatNumber(delivered), detail: `${formatNumber(delivered)} of ${formatNumber(audience)} in the audience`, tone: 'alert' },
-      { id: 'pending', label: 'Pending', value: pending, display: formatCompact(pending), count: formatNumber(pending), detail: 'Not sent yet', tone: 'warn' },
-      { id: 'delivered', label: 'Delivered', value: delivered, display: `${rate(delivered, sent)}%`, count: formatNumber(delivered), detail: `Of ${formatNumber(sent)} sent`, tone: 'good' },
-      { id: 'failed', label: 'Failed', value: failed, display: formatCompact(failed), count: formatNumber(failed), detail: 'Did not deliver', tone: 'bad' },
+      { id: 'launch', label: `${channel} Launch`, display: formatCompact(sent), cardTone: 'rocket' },
+      { id: 'reached', label: 'Customer Reached', display: formatCompact(delivered), cardTone: 'ticket' },
+      { id: 'pending', label: 'Pending', display: formatCompact(pending), cardTone: 'rocket' },
+      { id: 'delivered', label: 'Delivered', display: formatCompact(delivered), cardTone: 'ticket' },
+      { id: 'failed', label: 'Failed', display: formatCompact(failed), cardTone: 'ticket' },
     ],
     engagement: [
-      { id: 'clicks', label: 'Clicks', value: clicked, display: `${rate(clicked, delivered)}%`, count: formatNumber(clicked), detail: 'Of delivered messages', tone: 'good' },
-      { id: 'ctr', label: 'Click-Through-Rate', value: rate(clicked, sent), display: `${rate(clicked, sent)}%`, count: formatNumber(clicked), detail: `Of ${formatNumber(sent)} sent`, tone: 'good' },
-      { id: 'engagement', label: 'Engagement Rate', value: rate(opened + clicked, delivered), display: `${rate(opened + clicked, delivered)}%`, count: formatNumber(opened + clicked), detail: 'Opens and clicks over delivered', tone: 'good' },
-      { id: 'open', label: 'Open Rate', value: rate(opened, delivered), display: campaign.channel === 'sms' ? '—' : `${rate(opened, delivered)}%`, count: formatNumber(opened), detail: campaign.channel === 'sms' ? 'SMS does not report opens' : `${formatNumber(opened)} opened`, tone: 'good' },
-      { id: 'conversions', label: 'Conversions', value: conversions, display: formatCompact(conversions), count: formatNumber(conversions), detail: `${rate(conversions, clicked)}% of clicks`, tone: 'good' },
+      { id: 'clicks', label: 'Clicks', display: `${clickRate}%`, cardTone: 'rocket' },
+      { id: 'ctr', label: 'Click-Through-Rate', display: `${ctr}%`, cardTone: 'ticket' },
+      { id: 'engagement', label: 'Engagement Rate', display: `${engagementRate}%`, cardTone: 'rocket' },
+      {
+        id: 'open',
+        label: 'Open Rate',
+        display: campaign.channel === 'sms' ? '—' : `${openRate}%`,
+        cardTone: 'rocket',
+      },
+      { id: 'conversions', label: 'Conversions', display: `${conversionRate}%`, cardTone: 'rocket' },
     ],
+    charts: {
+      deliveryMix: {
+        title: 'Delivery outcome mix',
+        subtitle: 'How launched sales messages resolved across the audience',
+        labels: ['Delivered', 'Pending', 'Failed'],
+        values: [delivered, pending, failed],
+        colors: ['#16A34A', '#EAB308', '#EF4444'],
+      },
+      paymentMix: {
+        title: 'Purchase payment status',
+        subtitle: 'Paid, pending, and failed checkouts from this sales campaign',
+        labels: ['Paid', 'Pending', 'Failed'],
+        values: [paid.length, pendingPay.length, failedPay.length],
+        colors: ['#16A34A', '#F59E0B', '#DC2626'],
+      },
+      funnel: {
+        title: 'Sales conversion funnel',
+        subtitle: 'From launch through paid purchase',
+        steps: [
+          { label: 'Launched', value: sent || 1, color: '#0B1354' },
+          { label: 'Delivered', value: delivered || 1, color: '#2563EB' },
+          { label: 'Clicked', value: clicked || 1, color: '#7C3AED' },
+          { label: 'Checkout started', value: purchases.length || 1, color: '#DB2777' },
+          { label: 'Paid', value: conversions || 1, color: '#16A34A' },
+        ],
+      },
+      rates: {
+        title: 'Engagement rate breakdown',
+        subtitle: 'Key rates that influence sales conversion',
+        labels: ['Clicks', 'CTR', 'Engagement', 'Open rate', 'Conversions'],
+        values: [
+          clickRate,
+          ctr,
+          engagementRate,
+          campaign.channel === 'sms' ? Math.max(clickRate - 8, 8) : openRate,
+          conversionRate,
+        ],
+        color: '#3A10CD',
+      },
+      trend: {
+        title: 'Clicks vs paid conversions over time',
+        subtitle: 'Daily engagement against completed sales',
+        labels: dayLabels,
+        series: [
+          {
+            label: 'Clicks',
+            color: '#7C3AED',
+            data: scale([42, 55, 48, 70, 62, 80, 74]),
+          },
+          {
+            label: 'Paid conversions',
+            color: '#16A34A',
+            data: scale([12, 18, 15, 24, 20, 28, 25]),
+          },
+        ],
+      },
+      revenue: {
+        title: 'Sales revenue by day',
+        subtitle: `Estimated paid revenue · ${formatCedi(revenue)} total`,
+        labels: dayLabels,
+        values: scale([180, 240, 210, 320, 280, 360, 340]).map((value) =>
+          Math.max(value, revenue ? Math.round(revenue / 7) : value),
+        ),
+        color: '#EA580C',
+      },
+    },
   };
 }
 
 export function getPurchaseLogs(campaign) {
   if (!campaign?.sent) return [];
   const people = [
-    { name: 'George Arthur', email: 'info@beatbox.com' },
-    { name: 'Ama Mensah', email: 'ama.mensah@accrafresh.com' },
-    { name: 'Kwame Boateng', email: 'kwame.boateng@accrafresh.com' },
-    { name: 'Efua Nyarko', email: 'efua.nyarko@accrafresh.com' },
-    { name: 'Yaw Asante', email: 'yaw.asante@accrafresh.com' },
-    { name: 'Akosua Darko', email: 'akosua.darko@accrafresh.com' },
-    { name: 'Kojo Appiah', email: 'kojo.appiah@accrafresh.com' },
-    { name: 'Abena Owusu', email: 'abena.owusu@accrafresh.com' },
-    { name: 'Kofi Mensah', email: 'kofi.mensah@accrafresh.com' },
-    { name: 'Adwoa Sarpong', email: 'adwoa.sarpong@accrafresh.com' },
-    { name: 'Nana Yeboah', email: 'nana.yeboah@accrafresh.com' },
-    { name: 'Esi Lamptey', email: 'esi.lamptey@accrafresh.com' },
+    { name: 'George Arthur', phone: '233546477448', email: 'info@dealboxx.com' },
+    { name: 'Ama Mensah', phone: '233540112233', email: 'ama.mensah@accrafresh.com' },
+    { name: 'Kwame Boateng', phone: '233551998877', email: 'kwame.boateng@accrafresh.com' },
+    { name: 'Efua Nyarko', phone: '233557334455', email: 'efua.nyarko@accrafresh.com' },
+    { name: 'Yaw Asante', phone: '233244778899', email: 'yaw.asante@accrafresh.com' },
+    { name: 'Akosua Darko', phone: '233209445566', email: 'akosua.darko@accrafresh.com' },
+    { name: 'Kojo Appiah', phone: '233200998877', email: 'kojo.appiah@accrafresh.com' },
+    { name: 'Abena Owusu', phone: '233244556677', email: 'abena.owusu@accrafresh.com' },
+    { name: 'Kofi Mensah', phone: '233555667788', email: 'kofi.mensah@accrafresh.com' },
+    { name: 'Adwoa Sarpong', phone: '233276554433', email: 'adwoa.sarpong@accrafresh.com' },
+    { name: 'Nana Yeboah', phone: '233501122334', email: 'nana.yeboah@accrafresh.com' },
+    { name: 'Esi Lamptey', phone: '233302445566', email: 'esi.lamptey@accrafresh.com' },
   ];
-  const productType = campaign.brief?.title ?? campaign.name;
+  const productTitle = campaign.brief?.title ?? campaign.name;
   const amounts = [150, 150, 180, 180, 190, 150];
+  const statuses = ['Pending', 'Paid', 'Failed', 'Paid', 'Pending', 'Paid', 'Failed', 'Paid', 'Paid', 'Pending', 'Paid', 'Paid'];
   const start = Date.parse(campaign.scheduledAt || campaign.createdAt || Date.now());
   return people.map((person, index) => ({
     id: `${campaign.id}-buy-${index + 1}`,
     customer: person.name,
+    phone: person.phone,
     invoiceNumber: String(2023046471967 + index * 13),
     email: person.email,
-    productType,
+    productType: productTitle,
+    productTitle,
     quantity: 5,
     amount: campaign.brief?.discountedPrice ?? campaign.brief?.price ?? amounts[index % amounts.length],
     at: new Date(start + index * 36e5 * 3).toISOString(),
-    status: index === 0 ? 'Pending' : 'Paid',
+    status: statuses[index % statuses.length],
   }));
 }

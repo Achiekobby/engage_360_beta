@@ -89,7 +89,7 @@ export default function WelcomeReportsSection() {
   );
 
   return (
-    <section className="admin-card overflow-hidden rounded-2xl border border-[#E4E4E7] bg-white p-4 sm:p-5 lg:p-6">
+    <section className="admin-card overflow-hidden admin-card-sm rounded-2xl border border-[#E4E4E7] bg-white p-4 sm:p-5 lg:p-6">
       <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
         <div className="flex flex-wrap items-center gap-2 sm:gap-3">
           <FilterSelect

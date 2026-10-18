@@ -232,7 +232,7 @@ export default function BusinessActionsMenu({
         left: position?.left ?? 0,
         visibility: position ? 'visible' : 'hidden',
       }}
-      className={`z-[80] w-[236px] overflow-hidden rounded-xl border border-[#EEF0F4] bg-white shadow-[0_12px_32px_rgba(11,19,84,0.14)] ${
+      className={`z-[80] w-[236px] admin-card overflow-hidden rounded-xl border border-[#EEF0F4] bg-white shadow-[0_12px_32px_rgba(11,19,84,0.14)] ${
         position?.placement === 'up' ? 'origin-bottom' : 'origin-top'
       }`}
     >

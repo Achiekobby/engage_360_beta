@@ -75,12 +75,12 @@ export function buildHolidayReport({ businessId = 'all', dateFilter = '30d' } = 
         datasets: [
           {
             label: 'Today',
-            color: '#C2410C',
+            color: '#2563EB',
             data: scaleSeries([120, 95, 140, 110, 165, 130, 175, 145, 190, 160], factor * 0.9),
           },
           {
             label: 'Yesterday',
-            color: '#FDBA74',
+            color: '#93C5FD',
             data: scaleSeries([80, 70, 100, 85, 120, 95, 130, 105, 140, 115], factor * 0.9),
           },
         ],
@@ -94,12 +94,12 @@ export function buildHolidayReport({ businessId = 'all', dateFilter = '30d' } = 
         datasets: [
           {
             label: 'Today',
-            color: '#EA580C',
+            color: '#3A10CD',
             data: scaleSeries([100, 85, 130, 115, 150, 125, 165, 140, 180, 155], factor * 0.9),
           },
           {
             label: 'Yesterday',
-            color: '#F59E0B',
+            color: '#60A5FA',
             data: scaleSeries([70, 60, 95, 80, 110, 90, 120, 100, 135, 110], factor * 0.9),
           },
         ],
@@ -110,7 +110,7 @@ export function buildHolidayReport({ businessId = 'all', dateFilter = '30d' } = 
         subtitle: `Monthly holiday & festive send volume for ${scope}`,
         type: 'single',
         labels: MONTH_LABELS,
-        color: '#FB923C',
+        color: '#60A5FA',
         data: scaleSeries(HOLIDAY_ENGAGEMENT_SERIES, factor * 0.85),
       },
     ],
@@ -124,7 +124,7 @@ export function buildHolidayReport({ businessId = 'all', dateFilter = '30d' } = 
           Math.round(800 * factor),
           Math.round(1100 * factor),
         ],
-        colors: ['#EA580C', '#F59E0B', '#EF4444'],
+        colors: ['#3A10CD', '#E67E22', '#EF4444'],
       },
       channelMix: {
         title: 'Channel distribution',
@@ -136,21 +136,21 @@ export function buildHolidayReport({ businessId = 'all', dateFilter = '30d' } = 
             : businessId === 'txtconnect'
               ? [40, 40, 20]
               : [65, 20, 15],
-        colors: ['#C2410C', '#EA580C', '#F59E0B'],
+        colors: ['#2563EB', '#2E7DAD', '#1F9D55'],
       },
       volumeByBusiness: {
         title: 'Volume by business',
         subtitle: 'Holiday automation volume across onboarded businesses',
         labels: ['DealBoxx', 'TxtConnect', 'Venus Retail', 'Northstar'],
         values: volumeByBusinessValues(businessId, factor, dateFilter, 4500),
-        color: '#9A3412',
+        color: '#0B1354',
       },
       approvalMix: {
         title: 'Approval workflow mix',
         subtitle: `Auto vs business approval for ${scope}`,
         labels: ['Auto-approval', 'Business-approval'],
         values: businessId === 'all' ? [70, 30] : businessId === 'venus-retail' ? [38, 62] : [75, 25],
-        colors: ['#7C2D12', '#EA580C'],
+        colors: ['#0B1354', '#3A10CD'],
       },
       pipelineTrend: {
         title: 'Holiday send pipeline',
@@ -159,12 +159,12 @@ export function buildHolidayReport({ businessId = 'all', dateFilter = '30d' } = 
         series: [
           {
             label: 'Scheduled',
-            color: '#EA580C',
+            color: '#3A10CD',
             data: scaleSeries([230, 200, 260, 180, 240, 210, 280, 190, 220, 250], factor * 0.7),
           },
           {
             label: 'Needs review',
-            color: '#F59E0B',
+            color: '#60A5FA',
             data: scaleSeries([45, 38, 60, 32, 52, 46, 65, 35, 48, 55], factor * 0.7),
           },
         ],
@@ -179,35 +179,35 @@ export function buildHolidayReport({ businessId = 'all', dateFilter = '30d' } = 
         id: 'clicks',
         title: 'Clicks Growth Trends',
         subtitle: `Festive click volume for ${scope}`,
-        color: '#EA580C',
+        color: '#3A10CD',
         data: scaleSeries(HOLIDAY_ENGAGEMENT_SERIES, factor * 0.8),
       },
       {
         id: 'engagement',
         title: 'Engagement Growth Trends',
         subtitle: `Festive engagement for ${scope}`,
-        color: '#F59E0B',
+        color: '#60A5FA',
         data: scaleSeries([200, 125, 90, 50, 95, 148, 80, 178, 142, 205], factor * 0.8),
       },
       {
         id: 'conversions',
         title: 'Conversions Growth Trends',
         subtitle: `Festive conversions for ${scope}`,
-        color: '#C2410C',
+        color: '#2563EB',
         data: scaleSeries([195, 120, 88, 48, 92, 145, 78, 172, 138, 200], factor * 0.8),
       },
       {
         id: 'ctr',
         title: 'Click-Through-Rate Growth Trends',
         subtitle: `Festive CTR for ${scope}`,
-        color: '#FB923C',
+        color: '#60A5FA',
         data: scaleSeries([205, 128, 92, 52, 98, 150, 82, 180, 145, 210], factor * 0.8),
       },
       {
         id: 'open-rate',
         title: 'Open Rate Growth Trends',
         subtitle: `Festive open rate for ${scope}`,
-        color: '#9A3412',
+        color: '#0B1354',
         data: scaleSeries([190, 118, 85, 45, 90, 140, 75, 168, 135, 198], factor * 0.8),
       },
     ],
@@ -221,22 +221,22 @@ export function buildHolidayReport({ businessId = 'all', dateFilter = '30d' } = 
         datasets: [
           {
             label: 'DealBoxx',
-            color: '#C2410C',
+            color: '#2563EB',
             data: scaleSeries([125, 145, 115, 165, 155, 185], factor * 0.5),
           },
           {
             label: 'TxtConnect',
-            color: '#EA580C',
+            color: '#3A10CD',
             data: scaleSeries([95, 105, 88, 125, 115, 135], factor * 0.5),
           },
           {
             label: 'Venus Retail',
-            color: '#F59E0B',
+            color: '#60A5FA',
             data: scaleSeries([72, 82, 68, 98, 90, 105], factor * 0.5),
           },
           {
             label: 'Northstar',
-            color: '#FB923C',
+            color: '#60A5FA',
             data: scaleSeries([52, 58, 48, 72, 65, 78], factor * 0.5),
           },
         ],
@@ -250,17 +250,17 @@ export function buildHolidayReport({ businessId = 'all', dateFilter = '30d' } = 
         datasets: [
           {
             label: 'SMS',
-            color: '#C2410C',
+            color: '#2563EB',
             data: scaleSeries([150, 160, 140, 180, 170, 195], factor * 0.55),
           },
           {
             label: 'Email',
-            color: '#EA580C',
+            color: '#3A10CD',
             data: scaleSeries([95, 105, 88, 120, 112, 130], factor * 0.55),
           },
           {
             label: 'WhatsApp',
-            color: '#F59E0B',
+            color: '#60A5FA',
             data: scaleSeries([62, 72, 55, 88, 80, 95], factor * 0.55),
           },
         ],
@@ -296,17 +296,17 @@ export function buildHolidayReport({ businessId = 'all', dateFilter = '30d' } = 
           Math.min(90, Math.round(58 * (0.85 + factor * 0.1))),
           Math.min(55, Math.round(22 * (0.85 + factor * 0.12))),
         ],
-        color: '#EA580C',
+        color: '#3A10CD',
       },
       funnel: {
         title: 'Holiday conversion funnel',
         subtitle: `Launch through conversion for ${scope}`,
         steps: [
-          { label: 'Launched', value: Math.round(17000 * factor), color: '#7C2D12' },
-          { label: 'Delivered', value: Math.round(15000 * factor), color: '#9A3412' },
-          { label: 'Opened', value: Math.round(2200 * factor), color: '#C2410C' },
-          { label: 'Clicked', value: Math.round(1700 * factor), color: '#EA580C' },
-          { label: 'Converted', value: Math.round(1200 * factor), color: '#F59E0B' },
+          { label: 'Launched', value: Math.round(17000 * factor), color: '#0B1354' },
+          { label: 'Delivered', value: Math.round(15000 * factor), color: '#0B1354' },
+          { label: 'Opened', value: Math.round(2200 * factor), color: '#2563EB' },
+          { label: 'Clicked', value: Math.round(1700 * factor), color: '#3A10CD' },
+          { label: 'Converted', value: Math.round(1200 * factor), color: '#60A5FA' },
         ],
       },
       conversionTrend: {
@@ -316,12 +316,12 @@ export function buildHolidayReport({ businessId = 'all', dateFilter = '30d' } = 
         series: [
           {
             label: 'Clicks',
-            color: '#EA580C',
+            color: '#3A10CD',
             data: scaleSeries([900, 1020, 1100, 960, 1240, 1380, 1290, 1460, 1520, 1600], factor * 0.6),
           },
           {
             label: 'Conversions',
-            color: '#C2410C',
+            color: '#2563EB',
             data: scaleSeries([240, 280, 310, 260, 350, 390, 370, 420, 440, 480], factor * 0.6),
           },
         ],

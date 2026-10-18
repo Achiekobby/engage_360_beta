@@ -12,7 +12,7 @@ const COLLECTION_BADGE = {
   'Repeated Base': 'bg-[#FFF1E8] text-[#E67E22]',
   'Birthday Club': 'bg-[#FFF8E1] text-[#C9A227]',
   'VIP Segment': 'bg-[#EDE8F8] text-primary',
-  'Anniversary Club': 'bg-[#FCE7F3] text-[#BE185D]',
+  'Anniversary Club': 'bg-[#EDE8F8] text-primary',
 };
 
 function AudienceBadge({ label, type }) {
@@ -34,7 +34,7 @@ function AudienceBadge({ label, type }) {
 
 export default function AnalyticsAudienceTable({ rows = ANALYTICS_AUDIENCE_ROWS }) {
   return (
-    <div className="admin-card overflow-hidden rounded-xl border border-[#EEF0F4] bg-white">
+    <div className="admin-card overflow-hidden admin-card rounded-xl border border-[#EEF0F4] bg-white">
       <div className="overflow-x-auto">
         <table className="w-full min-w-[980px] border-collapse">
           <thead>

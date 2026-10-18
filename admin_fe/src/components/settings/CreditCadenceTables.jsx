@@ -7,7 +7,7 @@ export default function CreditCadenceTables({ groups, onView }) {
   return (
     <div className="mt-5 space-y-4">
       {groups.map((group) => (
-        <section key={group.id} className="overflow-hidden rounded-xl border border-[#EEF0F4] bg-white">
+        <section key={group.id} className="admin-card overflow-hidden rounded-xl border border-[#EEF0F4] bg-white">
           <header className="border-b border-[#EEF0F4] px-4 py-3 sm:px-5">
             <h2 className="text-sm font-semibold tracking-tight text-[#0B1354]">{group.label}</h2>
             <p className="mt-0.5 text-xs text-[#717171]">

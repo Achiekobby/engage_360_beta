@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Megaphone, Plus } from 'lucide-react';
+import { Megaphone, Plus, ShoppingBag, TrendingUp } from 'lucide-react';
 import { clsx } from 'clsx';
 import { Reveal } from '../../components/motion';
 import CampaignsSidebar from '../../components/campaigns-module/CampaignsSidebar';
@@ -13,6 +13,18 @@ import {
 function getCategoryLabel(categoryId) {
   return CAMPAIGN_CATEGORIES.find((item) => item.id === categoryId)?.label || 'Campaigns';
 }
+
+const CATEGORY_COPY = {
+  'sales-conversion': {
+    eyebrow: 'Drive revenue',
+    description:
+      'Build offer-led campaigns with a compelling message, product visuals, pricing, and precise audience targeting.',
+    emptyTitle: 'No sales conversion campaigns yet',
+    emptyBody:
+      'Turn browsers into buyers. Create a sales campaign with channel messaging, product attachments, discounts, and targeted reach.',
+    emptyIcon: ShoppingBag,
+  },
+};
 
 export default function CampaignsHomePage() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -43,6 +55,9 @@ export default function CampaignsHomePage() {
 
   const categoryLabel = getCategoryLabel(activeCategory);
   const createPath = `${CAMPAIGNS_BASE}/create/method?category=${activeCategory}&from=home`;
+  const categoryCopy = CATEGORY_COPY[activeCategory];
+  const EmptyIcon = categoryCopy?.emptyIcon || Megaphone;
+  const isSalesConversion = activeCategory === 'sales-conversion';
 
   return (
     <div className="flex h-full w-full overflow-hidden">
@@ -84,13 +99,14 @@ export default function CampaignsHomePage() {
             <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-wide text-primary">
-                  Your workspace
+                  {categoryCopy?.eyebrow || 'Your workspace'}
                 </p>
                 <h1 className="mt-1 text-2xl font-bold tracking-tight text-[#0B1354] sm:text-3xl">
                   {categoryLabel}
                 </h1>
                 <p className="mt-2 max-w-xl text-sm leading-relaxed text-[#717171] sm:text-base">
-                  Campaigns in this category will appear here once you create them.
+                  {categoryCopy?.description ||
+                    'Campaigns in this category will appear here once you create them.'}
                 </p>
               </div>
 
@@ -99,7 +115,7 @@ export default function CampaignsHomePage() {
                 className="inline-flex shrink-0 items-center justify-center gap-2 rounded-sm bg-primary px-4 py-2.5 text-sm font-semibold text-white shadow-[0_4px_16px_rgba(58,16,205,0.28)] transition-all hover:-translate-y-0.5 hover:bg-[#320EB8]"
               >
                 <Plus className="h-4 w-4" strokeWidth={2.5} />
-                Create Campaign
+                {isSalesConversion ? 'Create Sales Campaign' : 'Create Campaign'}
               </Link>
             </div>
           </Reveal>
@@ -114,23 +130,49 @@ export default function CampaignsHomePage() {
               className="mt-8"
             >
               {campaigns.length === 0 ? (
-                <div className="flex flex-col items-center justify-center border border-dashed border-[#E4E4E7] bg-white px-6 py-20 text-center sm:py-28">
-                  <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#EDE8F8] text-primary">
-                    <Megaphone className="h-6 w-6" strokeWidth={2} />
+                <div
+                  className={clsx(
+                    'relative overflow-hidden border border-dashed bg-white px-6 py-20 text-center sm:py-28',
+                    isSalesConversion
+                      ? 'border-primary/20 bg-gradient-to-b from-[#F7F8FF] via-white to-white'
+                      : 'border-[#E4E4E7]',
+                  )}
+                >
+                  {isSalesConversion ? (
+                    <div
+                      className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-transparent via-primary/40 to-transparent"
+                      aria-hidden="true"
+                    />
+                  ) : null}
+                  <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-[#EDE8F8] text-primary">
+                    <EmptyIcon className="h-6 w-6" strokeWidth={2} />
                   </div>
                   <h2 className="mt-5 text-lg font-bold text-[#0B1354] sm:text-xl">
-                    No {categoryLabel.toLowerCase()} campaigns yet
+                    {categoryCopy?.emptyTitle || `No ${categoryLabel.toLowerCase()} campaigns yet`}
                   </h2>
-                  <p className="mt-2 max-w-md text-sm leading-relaxed text-[#717171]">
-                    You haven&apos;t created any campaigns in this category. Start from a template
-                    or build one from scratch.
+                  <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-[#717171]">
+                    {categoryCopy?.emptyBody ||
+                      "You haven't created any campaigns in this category. Start from a template or build one from scratch."}
                   </p>
+                  {isSalesConversion ? (
+                    <div className="mx-auto mt-5 flex max-w-lg flex-wrap items-center justify-center gap-2">
+                      {['Message & offer', 'Product visuals', 'Targeted reach'].map((chip) => (
+                        <span
+                          key={chip}
+                          className="inline-flex items-center gap-1.5 rounded-sm bg-white px-2.5 py-1 text-[11px] font-semibold text-[#545454] ring-1 ring-[#EEF0F4]"
+                        >
+                          <TrendingUp className="h-3 w-3 text-primary" strokeWidth={2.5} />
+                          {chip}
+                        </span>
+                      ))}
+                    </div>
+                  ) : null}
                   <Link
                     to={createPath}
                     className="mt-6 inline-flex items-center gap-2 rounded-sm bg-primary px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#320EB8]"
                   >
                     <Plus className="h-4 w-4" strokeWidth={2.5} />
-                    Create campaign
+                    {isSalesConversion ? 'Start sales campaign' : 'Create campaign'}
                   </Link>
                 </div>
               ) : null}

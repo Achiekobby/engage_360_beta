@@ -40,7 +40,7 @@ export function SettingsBarChart({ chart }) {
   const activeIndex = focus.active == null ? null : Number(focus.active);
 
   return (
-    <article className={clsx('rounded-xl border border-[#EEF0F4] bg-white p-4 sm:p-5', focus.active && 'relative z-20')}>
+    <article className={clsx('admin-card rounded-xl border border-[#EEF0F4] bg-white p-4 sm:p-5', focus.active && 'relative z-20')}>
       <div className="flex items-start justify-between gap-3">
         <div>
           <h2 className="text-sm font-semibold tracking-tight text-[#0B1354]">{chart.title}</h2>
@@ -152,7 +152,7 @@ export function HealthStatGrid({ items }) {
   return (
     <div className={clsx('grid grid-cols-1 gap-3 sm:grid-cols-2', items.length === 4 ? 'xl:grid-cols-4' : 'xl:grid-cols-3')}>
       {items.map((stat) => (
-        <article key={stat.id} className="rounded-xl border border-[#EEF0F4] bg-white px-4 py-4">
+        <article key={stat.id} className="admin-card rounded-xl border border-[#EEF0F4] bg-white px-4 py-4">
           <p className="text-sm text-[#717171]">{stat.label}</p>
           <p className="mt-2 text-[1.75rem] font-semibold tabular-nums leading-none tracking-tight text-[#0B1354]">{stat.value}</p>
           <p className="mt-3 flex items-center gap-1.5 text-[11px] text-[#A1A1AA]">
@@ -169,7 +169,7 @@ export function CategoryEngagement({ rows }) {
   const focus = useChartFocus();
 
   return (
-    <article className={clsx('rounded-xl border border-[#EEF0F4] bg-white p-4 sm:p-5', focus.active && 'relative z-20')}>
+    <article className={clsx('admin-card rounded-xl border border-[#EEF0F4] bg-white p-4 sm:p-5', focus.active && 'relative z-20')}>
       <h2 className="text-sm font-semibold tracking-tight text-[#0B1354]">Campaign category engagement</h2>
       <p className="mt-0.5 text-xs text-[#717171]">Opens and clicks as a share of messages sent in each campaign type</p>
       <ul className="mt-5 space-y-4">
@@ -212,7 +212,7 @@ export function LanguageMix({ rows }) {
   const focus = useChartFocus();
 
   return (
-    <article className="rounded-xl border border-[#EEF0F4] bg-white p-4 sm:p-5">
+    <article className="admin-card rounded-xl border border-[#EEF0F4] bg-white p-4 sm:p-5">
       <h2 className="text-sm font-semibold tracking-tight text-[#0B1354]">Language engagement</h2>
       <p className="mt-0.5 text-xs text-[#717171]">Share of delivered messages by language</p>
       <div className="mt-5 flex h-3 overflow-hidden rounded-full bg-[#F4F4F5]">

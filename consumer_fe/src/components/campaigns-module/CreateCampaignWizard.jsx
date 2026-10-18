@@ -18,6 +18,8 @@ import PromoVisualPicker from './PromoVisualPicker';
 import LeadGenerationFormStep from './LeadGenerationFormStep';
 import EventActivationAttachmentStep from './EventActivationAttachmentStep';
 import EventRegistrationFormStep from './EventRegistrationFormStep';
+import SalesConversionMessageStep from './SalesConversionMessageStep';
+import SalesConversionAttachmentStep from './SalesConversionAttachmentStep';
 import {
   FieldError,
   FieldLabel,
@@ -30,6 +32,7 @@ import {
   CAMPAIGNS_BASE,
   createCampaignFromForm,
   createDefaultSegmentFilters,
+  createEmptyBanner,
   createEmptyEventDetails,
   computeCustomerScanStats,
   detectPromoVisualFromFile,
@@ -78,6 +81,7 @@ const EMPTY_FORM = {
   body: '',
   description: '',
   cta: '',
+  banner: createEmptyBanner(),
   attachments: [createEmptyAttachment('attachment-1')],
   leadQuestions: [],
   event: createEmptyEventDetails(),
@@ -119,11 +123,11 @@ const FIELD_HELP = {
   externalList: 'Upload a spreadsheet with customer contact details for this campaign.',
 };
 
-function wizardKind(step, { isLeadGeneration, isEventActivation }) {
+function wizardKind(step, { isLeadGeneration, isEventActivation, isSalesConversion }) {
   if (isEventActivation) {
     return ['message', 'event', 'registration', 'targeting', 'scan'][step - 1];
   }
-  if (isLeadGeneration) {
+  if (isLeadGeneration || isSalesConversion) {
     return ['message', 'attachment', 'targeting', 'scan'][step - 1];
   }
   return ['message', 'attachment', 'targeting', 'scan'][step - 1];
@@ -133,15 +137,18 @@ function validateStep(step, form, options = false) {
   const flags = typeof options === 'boolean' ? { isLeadGeneration: options } : options;
   const isLeadGeneration = Boolean(flags.isLeadGeneration);
   const isEventActivation = Boolean(flags.isEventActivation);
-  const kind = wizardKind(step, { isLeadGeneration, isEventActivation });
+  const isSalesConversion = Boolean(flags.isSalesConversion);
+  const kind = wizardKind(step, { isLeadGeneration, isEventActivation, isSalesConversion });
   const errors = {};
 
   if (kind === 'message') {
-    if (!form.name.trim()) {
-      errors.name = 'Enter a campaign name so you can identify it later.';
-    }
-    if (!form.objective) {
-      errors.objective = 'Choose an objective that matches your goal.';
+    if (!isSalesConversion) {
+      if (!form.name.trim()) {
+        errors.name = 'Enter a campaign name so you can identify it later.';
+      }
+      if (!form.objective) {
+        errors.objective = 'Choose an objective that matches your goal.';
+      }
     }
     if (!form.channel) {
       errors.channel = 'Select a channel to send this campaign.';
@@ -154,7 +161,9 @@ function validateStep(step, form, options = false) {
     if (!form.headline.trim()) {
       errors.headline = isLeadGeneration
         ? 'Add a title for your lead capture form.'
-        : 'Add a short title for this message.';
+        : isSalesConversion
+          ? 'Add a clear offer title for this campaign.'
+          : 'Add a short title for this message.';
     }
 
     if (isLeadGeneration) {
@@ -219,17 +228,21 @@ export default function CreateCampaignWizard({
   const navigate = useNavigate();
   const template = seedTemplate || getTemplateById(templateId);
   const [step, setStep] = useState(1);
-  const [form, setForm] = useState(EMPTY_FORM);
+  const [form, setForm] = useState(() => ({
+    ...EMPTY_FORM,
+    channel: seedTemplate?.channel || EMPTY_FORM.channel,
+  }));
   const [errors, setErrors] = useState({});
   const [pendingSegmentType, setPendingSegmentType] = useState('');
   const [listPreviewType, setListPreviewType] = useState(null);
 
   const isLeadGeneration = categoryId === 'lead-generation';
   const isEventActivation = categoryId === 'events-activation';
+  const isSalesConversion = categoryId === 'sales-conversion';
   const wizardSteps = getWizardSteps(categoryId);
   const scanStep = wizardSteps.length;
   const reviewStep = scanStep + 1;
-  const stepFlags = { isLeadGeneration, isEventActivation };
+  const stepFlags = { isLeadGeneration, isEventActivation, isSalesConversion };
 
   const scanStats = computeCustomerScanStats(form);
 
@@ -241,6 +254,8 @@ export default function CreateCampaignWizard({
   const showPreview = step === 1 && !isLeadGeneration;
   const attachmentsRef = useRef(form.attachments);
   attachmentsRef.current = form.attachments;
+  const bannerRef = useRef(form.banner);
+  bannerRef.current = form.banner;
   const messageLabel =
     form.channel === 'email'
       ? 'Email Message'
@@ -251,7 +266,7 @@ export default function CreateCampaignWizard({
           : 'SMS Message';
 
   useEffect(() => {
-    if (!template && !categoryLabel) return;
+    if (!template && !categoryLabel) return; 
 
     // Both routes share this effect. On the template route it also seeds
     // the message/questions from the chosen template; on the direct route
@@ -266,7 +281,7 @@ export default function CreateCampaignWizard({
       name: prev.name || template?.name || '',
       objective:
         prev.objective || (categoryId ? getDefaultObjectiveForCategory(categoryId) : 'Promote Product'),
-      channel: prev.channel || (templateMode ? 'sms' : prev.channel) || 'sms',
+      channel: prev.channel || template?.channel || 'sms',
       leadQuestions:
         prev.leadQuestions.length > 0 ? prev.leadQuestions : template?.leadQuestions || [],
     }));
@@ -348,9 +363,36 @@ export default function CreateCampaignWizard({
   useEffect(
     () => () => {
       attachmentsRef.current.forEach((attachment) => revokePreviewUrl(attachment.previewUrl));
+      revokePreviewUrl(bannerRef.current?.previewUrl);
     },
     [],
   );
+
+  const handleBannerChange = (file) => {
+    setForm((prev) => {
+      revokePreviewUrl(prev.banner?.previewUrl);
+
+      const detected = detectPromoVisualFromFile(file);
+
+      return {
+        ...prev,
+        banner: {
+          file,
+          fileName: file?.name || '',
+          previewUrl: file ? URL.createObjectURL(file) : '',
+          fileMimeType: file?.type || '',
+          promoVisual: detected || prev.banner?.promoVisual || 'image',
+        },
+      };
+    });
+
+    setErrors((prev) => {
+      if (!prev.banner) return prev;
+      const next = { ...prev };
+      delete next.banner;
+      return next;
+    });
+  };
 
   const updateSegmentValue = (filterId, value) => {
     setForm((prev) => {
@@ -572,6 +614,14 @@ export default function CreateCampaignWizard({
 
     setErrors({});
 
+    if (isSalesConversion && step === 1) {
+      setForm((prev) => ({
+        ...prev,
+        name: prev.name.trim() || prev.headline.trim(),
+        objective: prev.objective || getDefaultObjectiveForCategory(categoryId),
+      }));
+    }
+
     if (step < scanStep) {
       setStep((prev) => prev + 1);
     }
@@ -639,6 +689,7 @@ export default function CreateCampaignWizard({
           templateMode={templateMode}
           isLeadGeneration={isLeadGeneration}
           isEventActivation={isEventActivation}
+          isSalesConversion={isSalesConversion}
           onBack={() => setStep(scanStep)}
           onEdit={() => setStep(1)}
           onProceed={handleCreateCampaign}
@@ -665,9 +716,15 @@ export default function CreateCampaignWizard({
         </Link>
         <div>
           <p className="text-xs font-semibold uppercase tracking-wide text-primary">
-            {templateMode ? 'From a template' : 'From scratch'}
+            {isSalesConversion
+              ? 'Sales Conversion'
+              : templateMode
+                ? 'From a template'
+                : 'From scratch'}
           </p>
-          <h1 className="text-xl font-bold text-[#0B1354] sm:text-2xl">Create Campaign</h1>
+          <h1 className="text-xl font-bold text-[#0B1354] sm:text-2xl">
+            {isSalesConversion ? 'Create Sales Campaign' : 'Create Campaign'}
+          </h1>
         </div>
       </div>
 
@@ -693,196 +750,211 @@ export default function CreateCampaignWizard({
                   </div>
                 ) : null}
 
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div>
-                    <FieldLabel htmlFor="campaignName" help={FIELD_HELP.name}>
-                      Campaign Name
-                    </FieldLabel>
-                    <input
-                      id="campaignName"
-                      value={form.name}
-                      onChange={(event) => update('name', event.target.value)}
-                      placeholder="Enter campaign name"
-                      className={inputClassName(errors.name)}
-                      aria-invalid={Boolean(errors.name)}
-                    />
-                    <FieldError message={errors.name} />
-                  </div>
-
-                  <div>
-                    <FieldLabel htmlFor="objective" help={FIELD_HELP.objective}>
-                      Campaign Objective
-                    </FieldLabel>
-                    <select
-                      id="objective"
-                      value={form.objective}
-                      onChange={(event) => update('objective', event.target.value)}
-                      className={clsx(inputClassName(errors.objective), 'cursor-pointer')}
-                      aria-invalid={Boolean(errors.objective)}
-                    >
-                      <option value="">Select objective</option>
-                      {CAMPAIGN_OBJECTIVES.map((option) => (
-                        <option key={option} value={option}>
-                          {option}
-                        </option>
-                      ))}
-                    </select>
-                    <FieldError message={errors.objective} />
-                  </div>
-                </div>
-
-                <div>
-                  <FieldLabel help={FIELD_HELP.channel}>Campaign Channel</FieldLabel>
-                  <div
-                    className={clsx(
-                      'flex flex-wrap gap-x-6 gap-y-3 rounded-sm border px-4 py-3.5',
-                      errors.channel ? 'border-[#E5484D] bg-[#FFF5F5]' : 'border-[#EEF0F4] bg-white',
-                    )}
-                  >
-                    {CAMPAIGN_CHANNELS.map(({ id, label }) => {
-                      const Icon = CHANNEL_ICONS[id];
-                      const selected = form.channel === id;
-
-                      return (
-                        <label
-                          key={id}
-                          className="inline-flex cursor-pointer items-center gap-2.5 text-sm font-medium text-[#0B1354]"
-                        >
-                          <input
-                            type="radio"
-                            name="channel"
-                            className="sr-only"
-                            checked={selected}
-                            onChange={() => update('channel', id)}
-                          />
-                          <span
-                            className={clsx(
-                              'flex h-4 w-4 items-center justify-center rounded-full border-2 transition-colors',
-                              selected ? 'border-primary' : 'border-[#C8CDD8]',
-                            )}
-                          >
-                            {selected ? (
-                              <span className="h-2 w-2 rounded-full bg-primary" />
-                            ) : null}
-                          </span>
-                          <Icon className="h-4 w-4 text-primary" strokeWidth={2} />
-                          {label}
-                        </label>
-                      );
-                    })}
-                  </div>
-                  <FieldError message={errors.channel} />
-                </div>
-
-                {isLeadGeneration ? (
-                  <>
-                    <div className="grid gap-4 sm:grid-cols-2">
-                      <div>
-                        <FieldLabel htmlFor="headline" help={FIELD_HELP.formTitle}>
-                          Form Title
-                        </FieldLabel>
-                        <input
-                          id="headline"
-                          value={form.headline}
-                          onChange={(event) => update('headline', event.target.value)}
-                          placeholder="Get Your Free Guide"
-                          className={inputClassName(errors.headline)}
-                          aria-invalid={Boolean(errors.headline)}
-                        />
-                        <FieldError message={errors.headline} />
-                      </div>
-
-                      <div>
-                        <FieldLabel htmlFor="body" help={FIELD_HELP.formIntro}>
-                          Invitation Message
-                        </FieldLabel>
-                        <input
-                          id="body"
-                          value={form.body}
-                          onChange={(event) => update('body', event.target.value)}
-                          placeholder="Tell us a bit about yourself to get started."
-                          className={inputClassName(errors.body)}
-                          aria-invalid={Boolean(errors.body)}
-                        />
-                        <FieldError message={errors.body} />
-                      </div>
-                    </div>
-
-                    <div className="border-t border-[#F0F2F7] pt-6">
-                      <p className="mb-4 text-sm font-bold text-[#0B1354]">Build Your Lead Capture Form</p>
-                      <LeadGenerationFormStep
-                        questions={form.leadQuestions}
-                        onAddQuestion={addLeadQuestion}
-                        onUpdateQuestion={updateLeadQuestion}
-                        onRemoveQuestion={removeLeadQuestion}
-                        onReorderQuestions={reorderLeadQuestions}
-                        error={errors.leadQuestions}
-                        formTitle={form.headline}
-                        formIntro={form.body}
-                      />
-                    </div>
-                  </>
+                {isSalesConversion ? (
+                  <SalesConversionMessageStep
+                    form={form}
+                    errors={errors}
+                    onUpdate={update}
+                    onBannerChange={handleBannerChange}
+                  />
                 ) : (
                   <>
-                    <div>
-                      <FieldLabel htmlFor="body" help={FIELD_HELP.body}>
-                        {messageLabel}
-                      </FieldLabel>
-                      <textarea
-                        id="body"
-                        value={form.body}
-                        onChange={(event) => update('body', event.target.value)}
-                        rows={4}
-                        placeholder="Write your campaign message..."
-                        className={clsx(inputClassName(errors.body), 'resize-none')}
-                        aria-invalid={Boolean(errors.body)}
-                      />
-                      <FieldError message={errors.body} />
-                    </div>
-
                     <div className="grid gap-4 sm:grid-cols-2">
                       <div>
-                        <FieldLabel htmlFor="headline" help={FIELD_HELP.headline}>
-                          Title
+                        <FieldLabel htmlFor="campaignName" help={FIELD_HELP.name}>
+                          Campaign Name
                         </FieldLabel>
                         <input
-                          id="headline"
-                          value={form.headline}
-                          onChange={(event) => update('headline', event.target.value)}
-                          placeholder="Exclusive summer flash sales"
-                          className={inputClassName(errors.headline)}
-                          aria-invalid={Boolean(errors.headline)}
+                          id="campaignName"
+                          value={form.name}
+                          onChange={(event) => update('name', event.target.value)}
+                          placeholder="Enter campaign name"
+                          className={inputClassName(errors.name)}
+                          aria-invalid={Boolean(errors.name)}
                         />
-                        <FieldError message={errors.headline} />
+                        <FieldError message={errors.name} />
                       </div>
 
                       <div>
-                        <FieldLabel htmlFor="cta" help={FIELD_HELP.cta}>
-                          Call to Action
+                        <FieldLabel htmlFor="objective" help={FIELD_HELP.objective}>
+                          Campaign Objective
                         </FieldLabel>
-                        <input
-                          id="cta"
-                          value={form.cta}
-                          onChange={(event) => update('cta', event.target.value)}
-                          placeholder="Buy Now"
-                          className={inputClassName(errors.cta)}
-                        />
+                        <select
+                          id="objective"
+                          value={form.objective}
+                          onChange={(event) => update('objective', event.target.value)}
+                          className={clsx(inputClassName(errors.objective), 'cursor-pointer')}
+                          aria-invalid={Boolean(errors.objective)}
+                        >
+                          <option value="">Select objective</option>
+                          {CAMPAIGN_OBJECTIVES.map((option) => (
+                            <option key={option} value={option}>
+                              {option}
+                            </option>
+                          ))}
+                        </select>
+                        <FieldError message={errors.objective} />
                       </div>
                     </div>
 
                     <div>
-                      <FieldLabel htmlFor="description" help={FIELD_HELP.description}>
-                        Description
-                      </FieldLabel>
-                      <textarea
-                        id="description"
-                        value={form.description}
-                        onChange={(event) => update('description', event.target.value)}
-                        rows={4}
-                        placeholder="Lorem ipsum lorem ipsum lorem"
-                        className={clsx(inputClassName(errors.description), 'resize-none')}
-                      />
+                      <FieldLabel help={FIELD_HELP.channel}>Campaign Channel</FieldLabel>
+                      <div
+                        className={clsx(
+                          'flex flex-wrap gap-x-6 gap-y-3 rounded-sm border px-4 py-3.5',
+                          errors.channel
+                            ? 'border-[#E5484D] bg-[#FFF5F5]'
+                            : 'border-[#EEF0F4] bg-white',
+                        )}
+                      >
+                        {CAMPAIGN_CHANNELS.map(({ id, label }) => {
+                          const Icon = CHANNEL_ICONS[id];
+                          const selected = form.channel === id;
+
+                          return (
+                            <label
+                              key={id}
+                              className="inline-flex cursor-pointer items-center gap-2.5 text-sm font-medium text-[#0B1354]"
+                            >
+                              <input
+                                type="radio"
+                                name="channel"
+                                className="sr-only"
+                                checked={selected}
+                                onChange={() => update('channel', id)}
+                              />
+                              <span
+                                className={clsx(
+                                  'flex h-4 w-4 items-center justify-center rounded-full border-2 transition-colors',
+                                  selected ? 'border-primary' : 'border-[#C8CDD8]',
+                                )}
+                              >
+                                {selected ? (
+                                  <span className="h-2 w-2 rounded-full bg-primary" />
+                                ) : null}
+                              </span>
+                              <Icon className="h-4 w-4 text-primary" strokeWidth={2} />
+                              {label}
+                            </label>
+                          );
+                        })}
+                      </div>
+                      <FieldError message={errors.channel} />
                     </div>
+
+                    {isLeadGeneration ? (
+                      <>
+                        <div className="grid gap-4 sm:grid-cols-2">
+                          <div>
+                            <FieldLabel htmlFor="headline" help={FIELD_HELP.formTitle}>
+                              Form Title
+                            </FieldLabel>
+                            <input
+                              id="headline"
+                              value={form.headline}
+                              onChange={(event) => update('headline', event.target.value)}
+                              placeholder="Get Your Free Guide"
+                              className={inputClassName(errors.headline)}
+                              aria-invalid={Boolean(errors.headline)}
+                            />
+                            <FieldError message={errors.headline} />
+                          </div>
+
+                          <div>
+                            <FieldLabel htmlFor="body" help={FIELD_HELP.formIntro}>
+                              Invitation Message
+                            </FieldLabel>
+                            <input
+                              id="body"
+                              value={form.body}
+                              onChange={(event) => update('body', event.target.value)}
+                              placeholder="Tell us a bit about yourself to get started."
+                              className={inputClassName(errors.body)}
+                              aria-invalid={Boolean(errors.body)}
+                            />
+                            <FieldError message={errors.body} />
+                          </div>
+                        </div>
+
+                        <div className="border-t border-[#F0F2F7] pt-6">
+                          <p className="mb-4 text-sm font-bold text-[#0B1354]">
+                            Build Your Lead Capture Form
+                          </p>
+                          <LeadGenerationFormStep
+                            questions={form.leadQuestions}
+                            onAddQuestion={addLeadQuestion}
+                            onUpdateQuestion={updateLeadQuestion}
+                            onRemoveQuestion={removeLeadQuestion}
+                            onReorderQuestions={reorderLeadQuestions}
+                            error={errors.leadQuestions}
+                            formTitle={form.headline}
+                            formIntro={form.body}
+                          />
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <div>
+                          <FieldLabel htmlFor="body" help={FIELD_HELP.body}>
+                            {messageLabel}
+                          </FieldLabel>
+                          <textarea
+                            id="body"
+                            value={form.body}
+                            onChange={(event) => update('body', event.target.value)}
+                            rows={4}
+                            placeholder="Write your campaign message..."
+                            className={clsx(inputClassName(errors.body), 'resize-none')}
+                            aria-invalid={Boolean(errors.body)}
+                          />
+                          <FieldError message={errors.body} />
+                        </div>
+
+                        <div className="grid gap-4 sm:grid-cols-2">
+                          <div>
+                            <FieldLabel htmlFor="headline" help={FIELD_HELP.headline}>
+                              Title
+                            </FieldLabel>
+                            <input
+                              id="headline"
+                              value={form.headline}
+                              onChange={(event) => update('headline', event.target.value)}
+                              placeholder="Exclusive summer flash sales"
+                              className={inputClassName(errors.headline)}
+                              aria-invalid={Boolean(errors.headline)}
+                            />
+                            <FieldError message={errors.headline} />
+                          </div>
+
+                          <div>
+                            <FieldLabel htmlFor="cta" help={FIELD_HELP.cta}>
+                              Call to Action
+                            </FieldLabel>
+                            <input
+                              id="cta"
+                              value={form.cta}
+                              onChange={(event) => update('cta', event.target.value)}
+                              placeholder="Buy Now"
+                              className={inputClassName(errors.cta)}
+                            />
+                          </div>
+                        </div>
+
+                        <div>
+                          <FieldLabel htmlFor="description" help={FIELD_HELP.description}>
+                            Description
+                          </FieldLabel>
+                          <textarea
+                            id="description"
+                            value={form.description}
+                            onChange={(event) => update('description', event.target.value)}
+                            rows={4}
+                            placeholder="Lorem ipsum lorem ipsum lorem"
+                            className={clsx(inputClassName(errors.description), 'resize-none')}
+                          />
+                        </div>
+                      </>
+                    )}
                   </>
                 )}
               </div>
@@ -901,7 +973,18 @@ export default function CreateCampaignWizard({
               />
             ) : null}
 
-            {step === 2 && !isEventActivation ? (
+            {step === 2 && isSalesConversion ? (
+              <SalesConversionAttachmentStep
+                attachments={form.attachments}
+                errors={errors}
+                onUpdateAttachment={updateAttachment}
+                onFileChange={handleAttachmentFileChange}
+                onAddAttachment={addAnotherAttachment}
+                onRemoveAttachment={removeAttachment}
+              />
+            ) : null}
+
+            {step === 2 && !isEventActivation && !isSalesConversion ? (
               <div className="space-y-8">
                 {form.attachments.map((attachment, index) => (
                   <div key={attachment.id} className="space-y-5">

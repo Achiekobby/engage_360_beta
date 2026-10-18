@@ -64,7 +64,7 @@ export default function TicketDetailPage() {
       />
 
       <div className="mt-5 grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1fr)_20rem]">
-        <section className="rounded-xl border border-[#EEF0F4] bg-white px-4 py-5 sm:px-5">
+        <section className="admin-card rounded-xl border border-[#EEF0F4] bg-white px-4 py-5 sm:px-5">
           <h2 className="text-sm font-semibold text-[#0B1354]">Conversation</h2>
           <ol className="mt-4 space-y-3">
             {ticket.messages.map((message) => {
@@ -109,7 +109,7 @@ export default function TicketDetailPage() {
         </section>
 
         <aside className="space-y-4">
-          <section className="rounded-xl border border-[#EEF0F4] bg-white px-4 py-4">
+          <section className="admin-card rounded-xl border border-[#EEF0F4] bg-white px-4 py-4">
             <h2 className="text-sm font-semibold text-[#0B1354]">Ticket</h2>
             <dl className="mt-3 space-y-3 text-sm">
               <div>

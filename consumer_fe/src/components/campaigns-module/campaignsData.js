@@ -194,7 +194,21 @@ export function getWizardSteps(categoryId) {
 
   if (categoryId === 'events-activation') return EVENT_WIZARD_STEPS;
 
+  // Sales conversion matches the default 4-step flow; step 1 uses a tailored
+  // Message & Primary Asset layout with an optional banner beside description.
+  if (categoryId === 'sales-conversion') return WIZARD_STEPS;
+
   return WIZARD_STEPS;
+}
+
+export function createEmptyBanner() {
+  return {
+    file: null,
+    fileName: '',
+    previewUrl: '',
+    fileMimeType: '',
+    promoVisual: 'image',
+  };
 }
 
 export function detectPromoVisualFromFile(file) {
@@ -923,6 +937,14 @@ export const MOCK_CAMPAIGNS = [
     clickRate: '24%',
     dateCreated: '12-06-26',
     route: 'direct',
+    categoryId: 'sales-conversion',
+    headline: 'Clear Offer',
+    body: 'Trust is built over time. Choose brands that are transparent, reliable, and committed to serving you better.',
+    description:
+      'Trust is built over time. Choose brands that are transparent, reliable, and committed to serving you better.',
+    cta: 'Buy Now',
+    customerCategoryLabel: 'Deal Box Promotion',
+    collectionLabel: 'New Customers',
   },
   {
     id: 'vip-exclusive',
@@ -935,6 +957,9 @@ export const MOCK_CAMPAIGNS = [
     dateCreated: '08-04-26',
     route: 'template',
     templateId: 'holiday-special',
+    categoryId: 'promotions',
+    headline: 'VIP Members Only',
+    cta: 'Claim Offer',
   },
   {
     id: 'flash-friday',
@@ -946,6 +971,9 @@ export const MOCK_CAMPAIGNS = [
     clickRate: '—',
     dateCreated: '01-06-26',
     route: 'direct',
+    categoryId: 'sales-conversion',
+    headline: 'Flash Friday',
+    cta: 'Shop Now',
   },
   {
     id: 'loyalty-birthday',
@@ -958,6 +986,37 @@ export const MOCK_CAMPAIGNS = [
     dateCreated: '22-05-26',
     route: 'template',
     templateId: 'birthday-offer',
+    categoryId: 'customer-engagement',
+    headline: 'Happy Birthday!',
+    cta: 'Redeem Gift',
+  },
+  {
+    id: 'lead-magnet-guide',
+    name: 'Free Guide Lead Magnet',
+    channel: 'SMS',
+    status: 'Active',
+    audienceReach: '5.1k',
+    openRate: '54%',
+    clickRate: '18%',
+    dateCreated: '03-07-26',
+    route: 'template',
+    categoryId: 'lead-generation',
+    headline: 'Get Your Free Guide',
+    cta: 'Download',
+  },
+  {
+    id: 'event-summer-fest',
+    name: 'Summer Fest Invite',
+    channel: 'WhatsApp',
+    status: 'Scheduled',
+    audienceReach: '3.6k',
+    openRate: '—',
+    clickRate: '—',
+    dateCreated: '15-07-26',
+    route: 'direct',
+    categoryId: 'events-activation',
+    headline: 'You are invited',
+    cta: 'RSVP Now',
   },
 ];
 
@@ -1003,6 +1062,7 @@ export function createCampaignFromForm(form, route = 'direct', templateId = null
     cta: form.cta,
     attachmentName: form.attachments?.[0]?.fileName || '',
     attachments: form.attachments,
+    banner: form.banner || null,
     leadQuestions: form.leadQuestions || [],
     event: form.event || null,
     registrationQuestions: form.registrationQuestions || [],

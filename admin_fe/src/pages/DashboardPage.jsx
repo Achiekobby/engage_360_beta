@@ -86,7 +86,7 @@ function MetricCard({ metric, rangeLabel, formatCount }) {
   const up = metric.delta >= 0;
 
   return (
-    <article className="flex h-full flex-col rounded-2xl border border-[#EEF0F4] bg-white px-4 py-4">
+    <article className="flex h-full flex-col admin-card rounded-2xl border border-[#EEF0F4] bg-white px-4 py-4">
       <div className="flex items-start justify-between gap-3">
         <p className="flex items-center gap-1.5 text-sm font-medium text-[#717171]">
           {metric.label}
@@ -155,7 +155,7 @@ function VolumeMenu({ sort, onChange }) {
         <ChevronDown className="h-3.5 w-3.5" aria-hidden="true" />
       </button>
       {open ? (
-        <ul className="absolute right-0 z-20 mt-1 w-32 rounded-xl border border-[#EEF0F4] bg-white p-1 shadow-lg">
+        <ul className="absolute right-0 z-20 mt-1 w-32 admin-card rounded-xl border border-[#EEF0F4] bg-white p-1 shadow-lg">
           {['volume', 'name'].map((option) => (
             <li key={option}>
               <button
@@ -204,7 +204,7 @@ function RegionChart({ rows, formatCount }) {
   const total = rows.reduce((sum, row) => sum + row.value, 0);
 
   return (
-    <article className="h-full rounded-2xl border border-[#EEF0F4] bg-white p-4 sm:p-5">
+    <article className="admin-card h-full rounded-2xl border border-[#EEF0F4] bg-white p-4 sm:p-5">
       <div className="mb-4 flex items-start justify-between gap-3">
         <div className="flex items-start gap-2.5">
           <span className="mt-0.5 flex h-8 w-8 items-center justify-center rounded-lg bg-[#EFF6FF] text-primary">
@@ -258,7 +258,7 @@ function CityChart({ rows, formatCount }) {
   const total = rows.reduce((sum, row) => sum + row.value, 0);
 
   return (
-    <article className="h-full rounded-2xl border border-[#EEF0F4] bg-white p-4 sm:p-5">
+    <article className="admin-card h-full rounded-2xl border border-[#EEF0F4] bg-white p-4 sm:p-5">
       <div className="mb-4 flex items-start justify-between gap-3">
         <div className="flex items-start gap-2.5">
           <span className="mt-0.5 flex h-8 w-8 items-center justify-center rounded-lg bg-[#EFF6FF] text-primary">
@@ -322,7 +322,7 @@ function CountryDonut({ rows, formatCount }) {
   };
 
   return (
-    <article className={clsx('h-full rounded-2xl border border-[#EEF0F4] bg-white p-4 sm:p-5', focus.active && 'relative z-20')}>
+    <article className={clsx('admin-card h-full rounded-2xl border border-[#EEF0F4] bg-white p-4 sm:p-5', focus.active && 'relative z-20')}>
       <h3 className="text-base font-bold text-[#0B1354]">Business by Country</h3>
       <p className="text-xs text-[#717171]">Who uses the service the most</p>
       <div className="mt-4 flex items-center gap-4">
@@ -399,7 +399,7 @@ function TypeColumns({ rows, formatCount }) {
   const sum = rows.reduce((acc, row) => acc + row.value, 0);
 
   return (
-    <article className={clsx('h-full rounded-2xl border border-[#EEF0F4] bg-white p-4 sm:p-5', focus.active && 'relative z-20')}>
+    <article className={clsx('admin-card h-full rounded-2xl border border-[#EEF0F4] bg-white p-4 sm:p-5', focus.active && 'relative z-20')}>
       <h3 className="text-base font-bold text-[#0B1354]">Business by Type</h3>
       <p className="text-xs text-[#717171]">Who uses the service the most</p>
       <div className="mt-4 flex h-52 items-end gap-2">
@@ -465,7 +465,7 @@ function SignupChart({ growth }) {
   const activeIndex = focus.active == null ? null : Number(focus.active);
 
   return (
-    <article className={clsx('rounded-2xl border border-[#EEF0F4] bg-white p-4 sm:p-5', focus.active && 'relative z-20')}>
+    <article className={clsx('admin-card rounded-2xl border border-[#EEF0F4] bg-white p-4 sm:p-5', focus.active && 'relative z-20')}>
       <h3 className="text-base font-bold text-[#0B1354]">Business Signup Growth Over Time</h3>
       <p className="mt-0.5 text-xs text-[#717171]">Patterns in customer growth and distribution over time</p>
 
@@ -587,7 +587,7 @@ function Menu({ label, icon: Icon, open, onToggle, children, active }) {
         <ChevronDown className={clsx('h-3.5 w-3.5 transition-transform', open && 'rotate-180')} aria-hidden="true" />
       </button>
       {open ? (
-        <div className="absolute right-0 z-20 mt-2 w-64 rounded-2xl border border-[#EEF0F4] bg-white p-3 shadow-[0_16px_40px_rgba(11,19,84,0.12)]">
+        <div className="absolute right-0 z-20 mt-2 w-64 admin-card rounded-2xl border border-[#EEF0F4] bg-white p-3 shadow-[0_16px_40px_rgba(11,19,84,0.12)]">
           {children}
         </div>
       ) : null}
@@ -623,7 +623,7 @@ export default function DashboardPage() {
 
   return (
     <div className="w-full px-3 py-3 sm:px-4 sm:py-4">
-      <section className="rounded-3xl border border-white bg-white p-4 shadow-[0_10px_40px_rgba(11,19,84,0.06)] sm:p-5">
+      <section className="rounded-3xl border border-white bg-white p-4 sm:p-5">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <SectionTitle
           icon={BarChart3}

@@ -2,32 +2,34 @@ import { useEffect, useState } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { ArrowRight, Eye, ListChecks, X } from 'lucide-react';
 import { clsx } from 'clsx';
-import CampaignMobilePreview from './CampaignMobilePreview';
+import { SmsPhonePreview, WhatsAppPhonePreview } from './CampaignMobilePreview';
 import EmailPreviewCanvas from './EmailPreviewCanvas';
 
 const fieldClass =
   'w-full rounded-sm border border-[#E4E4E7] bg-white px-3 py-2.5 text-sm text-[#0B1354] outline-none';
 
 function DetailsFields({ channel, headline, body, cta }) {
+  const isEmail = channel === 'email';
+  const messageLabel =
+    channel === 'whatsapp' ? 'WhatsApp message' : channel === 'email' ? 'Subject line' : 'Message';
+
   return (
     <div
       className={clsx(
         'mx-auto w-full rounded-2xl bg-[#F3F0FF]/80 p-5 shadow-[0_8px_28px_rgba(11,19,84,0.06)] ring-1 ring-white/70 sm:p-6',
-        channel === 'email' ? 'max-w-xl' : 'max-w-sm',
+        isEmail ? 'max-w-xl' : 'max-w-sm',
       )}
     >
       <div>
-        <label className="mb-1.5 block text-xs font-medium text-[#717171]">
-          {channel === 'email' ? 'Subject line' : 'Message'}
-        </label>
-        {channel === 'email' ? (
+        <label className="mb-1.5 block text-xs font-medium text-[#717171]">{messageLabel}</label>
+        {isEmail ? (
           <input readOnly value={headline || ''} className={fieldClass} />
         ) : (
           <textarea readOnly rows={4} value={body || ''} className={`${fieldClass} resize-none leading-relaxed`} />
         )}
       </div>
 
-      {channel === 'email' ? (
+      {isEmail ? (
         <div className="mt-4">
           <label className="mb-1.5 block text-xs font-medium text-[#717171]">Body</label>
           <textarea readOnly rows={5} value={body || ''} className={`${fieldClass} resize-none leading-relaxed`} />
@@ -35,13 +37,13 @@ function DetailsFields({ channel, headline, body, cta }) {
       ) : null}
 
       <div className="mt-4 grid gap-3 sm:grid-cols-2">
-        {channel !== 'email' ? (
+        {!isEmail ? (
           <div>
             <label className="mb-1.5 block text-xs font-medium text-[#717171]">Title</label>
             <input readOnly value={headline || ''} className={fieldClass} />
           </div>
         ) : null}
-        <div className={channel === 'email' ? 'sm:col-span-2' : ''}>
+        <div className={isEmail ? 'sm:col-span-2' : ''}>
           <label className="mb-1.5 block text-xs font-medium text-[#717171]">Call to action</label>
           <input readOnly value={cta || ''} className={fieldClass} />
         </div>
@@ -104,10 +106,15 @@ export default function TemplatePreviewDrawer({
   cta,
   accent,
   products,
+  image,
+  footerNote,
 }) {
   const reduceMotion = useReducedMotion();
   const [mode, setMode] = useState('preview');
   const isEmail = channel === 'email';
+  const isWhatsApp = channel === 'whatsapp';
+  const isSms = channel === 'sms' || (!isEmail && !isWhatsApp);
+  const usesPhoneFrame = isWhatsApp || isSms;
 
   useEffect(() => {
     if (isOpen) setMode('preview');
@@ -157,7 +164,9 @@ export default function TemplatePreviewDrawer({
               'absolute right-0 top-0 flex h-full w-full flex-col border-l border-[#EEF0F4] bg-white shadow-[-12px_0_48px_rgba(11,19,84,0.12)]',
               isEmail
                 ? 'max-w-[26rem] sm:max-w-[32rem] lg:max-w-[36rem]'
-                : 'max-w-[24rem] sm:max-w-[28rem] lg:max-w-[30rem]',
+                : usesPhoneFrame
+                  ? 'max-w-[28rem] sm:max-w-[32rem] lg:max-w-[34rem]'
+                  : 'max-w-[24rem] sm:max-w-[28rem] lg:max-w-[30rem]',
             )}
           >
             <div className="flex shrink-0 items-start justify-between gap-4 border-b border-[#F0F2F7] px-5 py-4 sm:px-6">
@@ -190,10 +199,13 @@ export default function TemplatePreviewDrawer({
 
             <div
               className={clsx(
-                'min-h-0 flex-1 px-5 sm:px-6',
+                'min-h-0 flex-1',
                 mode === 'preview' && !isEmail
-                  ? 'flex flex-col overflow-hidden py-5'
-                  : 'overflow-y-auto py-6',
+                  ? clsx(
+                      'flex flex-col overflow-hidden',
+                      usesPhoneFrame ? 'px-3 py-3 sm:px-4' : 'px-5 py-5 sm:px-6',
+                    )
+                  : 'overflow-y-auto px-5 py-6 sm:px-6',
               )}
             >
               <AnimatePresence mode="wait">
@@ -216,21 +228,24 @@ export default function TemplatePreviewDrawer({
                       />
                     ) : (
                       <div
-                        className="flex min-h-0 flex-1 items-center justify-center rounded-sm px-2 py-2"
+                        className="flex min-h-0 flex-1 items-center justify-center overflow-hidden rounded-sm"
                         style={{
-                          background:
-                            'radial-gradient(ellipse 80% 70% at 50% 35%, rgba(58,16,205,0.1) 0%, transparent 55%), linear-gradient(165deg, #F7F5FF 0%, #EEF2FA 48%, #E8ECF6 100%)',
+                          background: isWhatsApp
+                            ? 'radial-gradient(ellipse 80% 70% at 50% 35%, rgba(18,140,126,0.14) 0%, transparent 55%), linear-gradient(165deg, #F0FDF4 0%, #ECFDF5 48%, #E8F8EF 100%)'
+                            : 'radial-gradient(ellipse 80% 70% at 50% 35%, rgba(58,16,205,0.1) 0%, transparent 55%), linear-gradient(165deg, #F7F5FF 0%, #EEF2FA 48%, #E8ECF6 100%)',
                         }}
                       >
-                        <CampaignMobilePreview
-                          channel="sms"
-                          headline={headline}
-                          body={body}
-                          cta={cta}
-                          fillHeight
-                          expanded
-                          compact
-                        />
+                        {isWhatsApp ? (
+                          <WhatsAppPhonePreview
+                            headline={headline}
+                            body={body}
+                            cta={cta}
+                            image={image}
+                            footerNote={footerNote}
+                          />
+                        ) : (
+                          <SmsPhonePreview headline={headline} body={body} cta={cta} />
+                        )}
                       </div>
                     )
                   ) : (

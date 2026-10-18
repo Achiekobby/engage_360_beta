@@ -1,8 +1,11 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, NavLink, useLocation, useSearchParams } from 'react-router-dom';
 import { ChevronDown, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 import { clsx } from 'clsx';
+import { getCampaign } from '../campaigns/campaignData';
 import { ADMIN_NAV } from './adminNavData';
+
+const CAMPAIGN_RESERVED = new Set(['analytics', 'templates', 'sender-ids', 'new']);
 
 const DROPDOWN_MS = 300;
 
@@ -140,28 +143,56 @@ export default function AdminSidebar({ collapsed = false, onToggleCollapse, onNa
     setManualOpen({});
   }, [pathname]);
 
-  const campaignCategory =
-    pathname === '/campaigns' || pathname === '/campaigns/analytics' ? searchParams.get('category') : null;
+  const campaignCategory = useMemo(() => {
+    if (!(pathname === '/campaigns' || pathname.startsWith('/campaigns/'))) return null;
+
+    if (pathname === '/campaigns' || pathname === '/campaigns/analytics') {
+      return searchParams.get('category');
+    }
+
+    const segment = pathname.split('/')[2];
+    if (!segment || CAMPAIGN_RESERVED.has(segment)) return null;
+    return getCampaign(segment)?.category ?? null;
+  }, [pathname, searchParams]);
+
   const settingsTab = pathname === '/settings' ? searchParams.get('tab') || 'overview' : null;
   const onPlatformAutomations = pathname.startsWith('/settings/automations');
+  const onTicketsSection = pathname === '/tickets' || pathname.startsWith('/tickets/');
+  const onTicketAnalytics = pathname === '/tickets/analytics' || pathname.startsWith('/tickets/analytics/');
 
   const childIsActive = (child) => {
-    if (child.category) return campaignCategory === child.category;
+    if (child.category) return Boolean(campaignCategory) && campaignCategory === child.category;
     if (child.settingsSection === 'automations') return onPlatformAutomations;
     if (child.tab) return !onPlatformAutomations && settingsTab === child.tab;
     if (child.kind) {
       return pathname === child.to || pathname.startsWith(`${child.to}/`);
     }
+    // Tickets inbox stays active on nested ticket detail pages
+    if (child.to === '/tickets') {
+      return onTicketsSection && !onTicketAnalytics;
+    }
     if (child.end) return pathname === child.to;
     return pathname === child.to || pathname.startsWith(`${child.to}/`);
   };
 
-  const sectionIsActive = (to) => pathname === to || pathname.startsWith(`${to}/`);
+  const sectionIsActive = (item) => {
+    const to = typeof item === 'string' ? item : item.to;
+    const exact = typeof item === 'object' && Boolean(item.end);
+
+    if (exact) {
+      if (pathname === to) return true;
+    } else if (pathname === to || pathname.startsWith(`${to}/`)) {
+      return true;
+    }
+
+    if (typeof item === 'object' && item.children?.some((child) => childIsActive(child))) return true;
+    return false;
+  };
 
   const childrenOpen = (item) => {
     if (!item.dropdown) return true;
     if (manualOpen[item.to] != null) return manualOpen[item.to];
-    return sectionIsActive(item.to);
+    return sectionIsActive(item);
   };
 
   const openMenuKey = ADMIN_NAV.filter((item) => item.dropdown && childrenOpen(item))
@@ -205,6 +236,7 @@ export default function AdminSidebar({ collapsed = false, onToggleCollapse, onNa
             const { label, to, icon: Icon, end, children, dropdown } = item;
             const hasChildren = Boolean(children?.length);
             const open = hasChildren && !collapsed && childrenOpen(item);
+            const active = sectionIsActive(item);
             const dashed = Boolean(dropdown);
             const childListId = `${to.replace(/\W+/g, '-')}-sections`;
 
@@ -218,35 +250,33 @@ export default function AdminSidebar({ collapsed = false, onToggleCollapse, onNa
                 <div className="relative">
                   <NavLink
                     to={to}
-                    end={end}
+                    end={Boolean(end)}
                     title={label}
                     onClick={onNavigate}
-                    className={({ isActive }) =>
+                    className={() =>
                       clsx(
                         'group relative z-10 flex items-center rounded-xl py-2.5 text-sm transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30',
                         collapsed ? 'justify-center px-2' : 'gap-3 px-3',
                         dropdown && !collapsed && 'pr-10',
-                        isActive
+                        active
                           ? 'bg-primary font-semibold text-white shadow-[0_8px_18px_rgba(37,99,235,0.22)]'
                           : 'font-medium text-[#3F3F46] hover:bg-[#EFF6FF] hover:text-primary',
                       )
                     }
                   >
-                    {({ isActive }) => (
-                      <>
-                        <span
-                          className={clsx(
-                            'flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-colors',
-                            isActive
-                              ? 'bg-white/15 text-white'
-                              : 'bg-[#F6F7FB] text-[#717171] group-hover:bg-white group-hover:text-primary',
-                          )}
-                        >
-                          <Icon className="h-[18px] w-[18px]" strokeWidth={1.75} />
-                        </span>
-                        <span className={clsx('truncate', collapsed && 'sr-only')}>{label}</span>
-                      </>
-                    )}
+                    <>
+                      <span
+                        className={clsx(
+                          'flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-colors',
+                          active
+                            ? 'bg-white/15 text-white'
+                            : 'bg-[#F6F7FB] text-[#717171] group-hover:bg-white group-hover:text-primary',
+                        )}
+                      >
+                        <Icon className="h-[18px] w-[18px]" strokeWidth={1.75} />
+                      </span>
+                      <span className={clsx('truncate', collapsed && 'sr-only')}>{label}</span>
+                    </>
                   </NavLink>
                   {dropdown && hasChildren && !collapsed ? (
                     <button
@@ -261,7 +291,7 @@ export default function AdminSidebar({ collapsed = false, onToggleCollapse, onNa
                       }}
                       className={clsx(
                         'absolute right-1.5 top-1/2 z-20 flex h-7 w-7 -translate-y-1/2 cursor-pointer items-center justify-center rounded-md transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30',
-                        sectionIsActive(to)
+                        active
                           ? 'text-white hover:bg-white/15'
                           : 'text-[#717171] hover:bg-[#EFF6FF] hover:text-primary',
                       )}

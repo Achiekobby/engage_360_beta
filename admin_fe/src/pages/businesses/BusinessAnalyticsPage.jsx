@@ -61,7 +61,7 @@ function Menu({ label, icon: Icon, open, onToggle, children, active }) {
         <ChevronDown className={clsx('h-3.5 w-3.5 transition-transform', open && 'rotate-180')} aria-hidden="true" />
       </button>
       {open ? (
-        <div className="absolute right-0 z-20 mt-2 w-64 rounded-2xl border border-[#EEF0F4] bg-white p-3 shadow-[0_16px_40px_rgba(11,19,84,0.12)]">
+        <div className="absolute right-0 z-20 mt-2 w-64 admin-card rounded-2xl border border-[#EEF0F4] bg-white p-3 shadow-[0_16px_40px_rgba(11,19,84,0.12)]">
           {children}
         </div>
       ) : null}
@@ -108,7 +108,7 @@ function MetricCard({ metric, rangeLabel }) {
   const up = metric.delta >= 0;
 
   return (
-    <article className="rounded-2xl border border-[#EEF0F4] bg-white px-4 py-4">
+    <article className="admin-card rounded-2xl border border-[#EEF0F4] bg-white px-4 py-4">
       <p className="flex items-center gap-1.5 text-sm font-medium text-[#717171]">
         {metric.label}
         <span className="text-[#C4C4CC]" title={metric.hint}>
@@ -134,7 +134,7 @@ function BarList({ title, subtitle, rows }) {
   const sum = rows.reduce((acc, row) => acc + row.value, 0);
 
   return (
-    <article className={clsx('h-full rounded-2xl border border-[#EEF0F4] bg-white p-4 sm:p-5', focus.active && 'relative z-20')}>
+    <article className={clsx('admin-card h-full rounded-2xl border border-[#EEF0F4] bg-white p-4 sm:p-5', focus.active && 'relative z-20')}>
       <h3 className="text-base font-bold text-[#0B1354]">{title}</h3>
       <p className="text-xs text-[#717171]">{subtitle}</p>
       <ul className="mt-4 space-y-2">
@@ -208,7 +208,7 @@ function GenderDonut({ rows }) {
   };
 
   return (
-    <article className={clsx('h-full rounded-2xl border border-[#EEF0F4] bg-white p-4 sm:p-5', focus.active && 'relative z-20')}>
+    <article className={clsx('admin-card h-full rounded-2xl border border-[#EEF0F4] bg-white p-4 sm:p-5', focus.active && 'relative z-20')}>
       <h3 className="text-base font-bold text-[#0B1354]">Customers by Gender</h3>
       <p className="text-xs text-[#717171]">Gender composition of the customer base</p>
       <div className="mt-5 flex items-center justify-center gap-8">
@@ -422,7 +422,7 @@ export default function BusinessAnalyticsPage() {
         />
         <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
           {data.quality.map((item) => (
-            <article key={item.id} className="rounded-2xl border border-[#EEF0F4] bg-white px-4 py-4">
+            <article key={item.id} className="admin-card rounded-2xl border border-[#EEF0F4] bg-white px-4 py-4">
               <p className="flex items-center gap-1.5 text-sm font-medium text-[#717171]">
                 {item.label}
                 <span className="text-[#C4C4CC]" title={item.hint}>

@@ -216,7 +216,7 @@ export default function BusinessesPage() {
         }
       />
 
-      <div className="mt-5 overflow-hidden rounded-xl border border-[#EEF0F4] bg-white">
+      <div className="mt-5 admin-card overflow-hidden rounded-xl border border-[#EEF0F4] bg-white">
         <div className="grid grid-cols-2 lg:grid-cols-4">
           {stats.map((stat) => {
             const selected = selectedStat === stat.id;

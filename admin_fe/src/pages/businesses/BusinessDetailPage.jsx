@@ -214,7 +214,7 @@ function AccountAccessCard({ business }) {
   const StatusIcon = ready ? ShieldCheck : ShieldAlert;
 
   return (
-    <section className="flex h-full w-full flex-col overflow-hidden rounded-2xl border border-[#EEF0F4] bg-white shadow-[0_4px_24px_rgba(11,19,84,0.04)]">
+    <section className="flex h-full w-full flex-col admin-card overflow-hidden rounded-2xl border border-[#EEF0F4] bg-white">
       <div className="flex items-center justify-between gap-3 border-b border-[#F0F2F7] px-5 py-4">
         <div className="flex min-w-0 items-center gap-2.5">
           <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-[#EFF6FF] text-primary">
@@ -312,7 +312,7 @@ function CompanyDetailsCard({ business }) {
   const credits = (business.creditBalance ?? 0).toLocaleString('en-GB');
 
   return (
-    <section className="w-full overflow-hidden rounded-2xl border border-[#EEF0F4] bg-white shadow-[0_4px_24px_rgba(11,19,84,0.04)]">
+    <section className="w-full admin-card overflow-hidden rounded-2xl border border-[#EEF0F4] bg-white">
       <div className="flex items-center gap-2.5 border-b border-[#F0F2F7] px-5 py-4">
         <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-[#EFF6FF] text-primary">
           <Building2 className="h-3.5 w-3.5" aria-hidden="true" />
@@ -382,7 +382,7 @@ function CompanyDetailsCard({ business }) {
 function SectionCard({ title, icon: Icon, children, footer, fill = false, className = '' }) {
   return (
     <div
-      className={`flex h-full w-full flex-col overflow-hidden rounded-2xl border border-[#EEF0F4] bg-white shadow-[0_4px_24px_rgba(11,19,84,0.04)] ${className}`}
+      className={`flex h-full w-full flex-col admin-card overflow-hidden rounded-2xl border border-[#EEF0F4] bg-white ${className}`}
     >
       <div className="flex items-center gap-2.5 border-b border-[#F0F2F7] px-5 py-4">
         <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#EFF6FF] text-primary">
@@ -435,7 +435,7 @@ export default function BusinessDetailPage() {
 
   return (
     <div className="w-full px-4 py-8 sm:px-6 lg:px-8">
-      <div className="mb-6 overflow-hidden rounded-2xl border border-[#EEF0F4] bg-white shadow-sm">
+      <div className="mb-6 admin-card overflow-hidden rounded-2xl border border-[#EEF0F4] bg-white">
         <div className="flex items-center justify-end gap-3 px-4 py-3 sm:px-5">
           <BusinessActionsButton
             business={business}
@@ -452,7 +452,7 @@ export default function BusinessDetailPage() {
             <div role="tabpanel" id="business-panel-profile" aria-labelledby="business-tab-profile">
       {/* ── Hero card ─────────────────────────────────────────────────────── */}
       <Reveal variant="fadeUp" when="load">
-        <div className="relative rounded-2xl border border-[#EEF0F4] bg-white shadow-sm">
+        <div className="relative admin-card rounded-2xl border border-[#EEF0F4] bg-white">
 
           {/* ── Identity ───────────────────────────────────────────────────── */}
           <div className="flex items-start gap-5 px-6 pb-0 pt-6 sm:px-8">

@@ -73,12 +73,12 @@ export function buildAnniversaryReport({ businessId = 'all', dateFilter = '30d' 
         datasets: [
           {
             label: 'Today',
-            color: '#9F1239',
+            color: '#0B1354',
             data: scaleSeries([115, 90, 135, 105, 160, 125, 170, 140, 185, 155], factor * 0.9),
           },
           {
             label: 'Yesterday',
-            color: '#F9A8D4',
+            color: '#BFDBFE',
             data: scaleSeries([75, 65, 95, 80, 115, 90, 125, 100, 135, 110], factor * 0.9),
           },
         ],
@@ -92,12 +92,12 @@ export function buildAnniversaryReport({ businessId = 'all', dateFilter = '30d' 
         datasets: [
           {
             label: 'Today',
-            color: '#BE185D',
+            color: '#3A10CD',
             data: scaleSeries([95, 80, 125, 110, 145, 120, 160, 135, 175, 150], factor * 0.9),
           },
           {
             label: 'Yesterday',
-            color: '#FB7185',
+            color: '#60A5FA',
             data: scaleSeries([65, 55, 90, 75, 105, 85, 115, 95, 130, 105], factor * 0.9),
           },
         ],
@@ -108,7 +108,7 @@ export function buildAnniversaryReport({ businessId = 'all', dateFilter = '30d' 
         subtitle: `Monthly celebrated anniversary volume for ${scope}`,
         type: 'single',
         labels: MONTH_LABELS,
-        color: '#F472B6',
+        color: '#93C5FD',
         data: scaleSeries([210, 95, 70, 55, 120, 100, 165, 140, 185, 155], factor * 0.85),
       },
     ],
@@ -122,7 +122,7 @@ export function buildAnniversaryReport({ businessId = 'all', dateFilter = '30d' 
           Math.round(600 * factor),
           Math.round(900 * factor),
         ],
-        colors: ['#BE185D', '#F59E0B', '#EF4444'],
+        colors: ['#3A10CD', '#E67E22', '#EF4444'],
       },
       channelMix: {
         title: 'Channel distribution',
@@ -134,21 +134,21 @@ export function buildAnniversaryReport({ businessId = 'all', dateFilter = '30d' 
             : businessId === 'txtconnect'
               ? [35, 48, 17]
               : [58, 25, 17],
-        colors: ['#BE185D', '#DB2777', '#F472B6'],
+        colors: ['#2563EB', '#2E7DAD', '#1F9D55'],
       },
       volumeByBusiness: {
         title: 'Volume by business',
         subtitle: 'Anniversary automation volume across onboarded businesses',
         labels: ['DealBoxx', 'TxtConnect', 'Venus Retail', 'Northstar'],
         values: volumeByBusinessValues(businessId, factor, dateFilter, 3800),
-        color: '#9F1239',
+        color: '#0B1354',
       },
       approvalMix: {
         title: 'Approval workflow mix',
         subtitle: `Auto vs business approval for ${scope}`,
         labels: ['Auto-approval', 'Business-approval'],
         values: businessId === 'all' ? [60, 40] : businessId === 'venus-retail' ? [30, 70] : [65, 35],
-        colors: ['#831843', '#DB2777'],
+        colors: ['#0B1354', '#5B21B6'],
       },
       pipelineTrend: {
         title: 'Anniversary send pipeline',
@@ -157,7 +157,7 @@ export function buildAnniversaryReport({ businessId = 'all', dateFilter = '30d' 
         series: [
           {
             label: 'Scheduled',
-            color: '#BE185D',
+            color: '#3A10CD',
             data: scaleSeries([190, 170, 220, 150, 205, 180, 240, 160, 195, 215], factor * 0.7),
           },
           {
@@ -177,35 +177,35 @@ export function buildAnniversaryReport({ businessId = 'all', dateFilter = '30d' 
         id: 'clicks',
         title: 'Clicks Growth Trends',
         subtitle: `Anniversary click volume for ${scope}`,
-        color: '#DB2777',
+        color: '#5B21B6',
         data: scaleSeries([210, 95, 70, 55, 120, 100, 165, 140, 185, 155], factor * 0.8),
       },
       {
         id: 'engagement',
         title: 'Engagement Growth Trends',
         subtitle: `Anniversary engagement for ${scope}`,
-        color: '#F472B6',
+        color: '#93C5FD',
         data: scaleSeries([200, 90, 65, 50, 115, 95, 160, 135, 180, 150], factor * 0.8),
       },
       {
         id: 'conversions',
         title: 'Conversions Growth Trends',
         subtitle: `Anniversary conversions for ${scope}`,
-        color: '#BE185D',
+        color: '#3A10CD',
         data: scaleSeries([190, 85, 60, 45, 110, 90, 155, 130, 175, 145], factor * 0.8),
       },
       {
         id: 'ctr',
         title: 'Click-Through-Rate Growth Trends',
         subtitle: `Anniversary CTR for ${scope}`,
-        color: '#FB7185',
+        color: '#60A5FA',
         data: scaleSeries([205, 92, 68, 52, 118, 98, 162, 138, 182, 152], factor * 0.8),
       },
       {
         id: 'open-rate',
         title: 'Open-Rate Growth Trends',
         subtitle: `Anniversary open rate for ${scope}`,
-        color: '#9F1239',
+        color: '#0B1354',
         data: scaleSeries([195, 88, 62, 48, 112, 92, 158, 132, 178, 148], factor * 0.8),
       },
     ],
@@ -219,22 +219,22 @@ export function buildAnniversaryReport({ businessId = 'all', dateFilter = '30d' 
         datasets: [
           {
             label: 'DealBoxx',
-            color: '#BE185D',
+            color: '#3A10CD',
             data: scaleSeries([115, 135, 105, 155, 145, 170], factor * 0.5),
           },
           {
             label: 'TxtConnect',
-            color: '#DB2777',
+            color: '#5B21B6',
             data: scaleSeries([88, 98, 82, 118, 108, 128], factor * 0.5),
           },
           {
             label: 'Venus Retail',
-            color: '#F472B6',
+            color: '#93C5FD',
             data: scaleSeries([68, 78, 62, 92, 85, 98], factor * 0.5),
           },
           {
             label: 'Northstar',
-            color: '#FB7185',
+            color: '#60A5FA',
             data: scaleSeries([48, 54, 44, 68, 60, 72], factor * 0.5),
           },
         ],
@@ -248,17 +248,17 @@ export function buildAnniversaryReport({ businessId = 'all', dateFilter = '30d' 
         datasets: [
           {
             label: 'SMS',
-            color: '#BE185D',
+            color: '#3A10CD',
             data: scaleSeries([135, 145, 125, 165, 155, 180], factor * 0.55),
           },
           {
             label: 'Email',
-            color: '#DB2777',
+            color: '#5B21B6',
             data: scaleSeries([90, 100, 85, 115, 108, 125], factor * 0.55),
           },
           {
             label: 'WhatsApp',
-            color: '#F472B6',
+            color: '#93C5FD',
             data: scaleSeries([58, 68, 52, 82, 74, 90], factor * 0.55),
           },
         ],
@@ -294,17 +294,17 @@ export function buildAnniversaryReport({ businessId = 'all', dateFilter = '30d' 
           Math.min(90, Math.round(60 * (0.85 + factor * 0.1))),
           Math.min(55, Math.round(19 * (0.85 + factor * 0.12))),
         ],
-        color: '#BE185D',
+        color: '#3A10CD',
       },
       funnel: {
         title: 'Anniversary conversion funnel',
         subtitle: `Launch through conversion for ${scope}`,
         steps: [
-          { label: 'Launched', value: Math.round(14800 * factor), color: '#831843' },
-          { label: 'Delivered', value: Math.round(13000 * factor), color: '#9F1239' },
-          { label: 'Opened', value: Math.round(1600 * factor), color: '#BE185D' },
-          { label: 'Clicked', value: Math.round(1200 * factor), color: '#DB2777' },
-          { label: 'Converted', value: Math.round(900 * factor), color: '#F472B6' },
+          { label: 'Launched', value: Math.round(14800 * factor), color: '#0B1354' },
+          { label: 'Delivered', value: Math.round(13000 * factor), color: '#0B1354' },
+          { label: 'Opened', value: Math.round(1600 * factor), color: '#3A10CD' },
+          { label: 'Clicked', value: Math.round(1200 * factor), color: '#5B21B6' },
+          { label: 'Converted', value: Math.round(900 * factor), color: '#93C5FD' },
         ],
       },
       conversionTrend: {
@@ -314,12 +314,12 @@ export function buildAnniversaryReport({ businessId = 'all', dateFilter = '30d' 
         series: [
           {
             label: 'Clicks',
-            color: '#DB2777',
+            color: '#5B21B6',
             data: scaleSeries([780, 900, 960, 840, 1080, 1220, 1140, 1280, 1350, 1420], factor * 0.6),
           },
           {
             label: 'Conversions',
-            color: '#BE185D',
+            color: '#3A10CD',
             data: scaleSeries([200, 245, 270, 225, 305, 345, 325, 370, 390, 420], factor * 0.6),
           },
         ],

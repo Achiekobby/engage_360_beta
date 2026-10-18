@@ -59,7 +59,7 @@ export default function BusinessesTable({ businesses, selectedIds, onToggle, onT
 
   return (
     <>
-      <div className="hidden overflow-hidden rounded-xl border border-[#EEF0F4] bg-white shadow-[0_4px_20px_rgba(11,19,84,0.04)] md:block">
+      <div className="hidden admin-card overflow-hidden rounded-xl border border-[#EEF0F4] bg-white md:block">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[760px] border-collapse">
             <thead>
@@ -139,7 +139,7 @@ export default function BusinessesTable({ businesses, selectedIds, onToggle, onT
         {businesses.map((business) => (
           <li
             key={business.id}
-            className="flex items-center gap-3 rounded-xl border border-[#EEF0F4] bg-white p-4 shadow-[0_4px_20px_rgba(11,19,84,0.04)]"
+            className="flex items-center gap-3 admin-card rounded-xl border border-[#EEF0F4] bg-white p-4"
           >
             <SelectBox
               checked={selectedIds.has(business.id)}

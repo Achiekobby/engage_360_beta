@@ -61,7 +61,7 @@ export default function GhanaBusinessMap({ rows, formatCount }) {
       </ComposableMap>
 
       {hovered ? (
-        <div className="pointer-events-none absolute left-1 top-1 rounded-xl border border-[#EEF0F4] bg-white px-3 py-2 shadow-lg">
+        <div className="pointer-events-none absolute left-1 top-1 admin-card rounded-xl border border-[#EEF0F4] bg-white px-3 py-2 shadow-lg">
           <p className="text-xs font-semibold text-[#0B1354]">{hovered.label}</p>
           <p className="text-[11px] text-[#717171]">{formatCount(hovered.value).replace('k', 'K')} businesses</p>
         </div>

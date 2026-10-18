@@ -9,6 +9,7 @@ import {
 } from '../../components/campaigns-module/campaignsData';
 import { getCategoryLabel } from '../../components/campaigns-module/smsTemplateLibraryData';
 import { SMS_TEMPLATE_LIBRARY } from '../../components/campaigns-module/smsTemplateLibraryData';
+import { getWhatsAppLibraryTemplateById } from '../../components/campaigns-module/whatsappTemplateLibraryData';
 
 export default function CreateCampaignPage() {
   const navigate = useNavigate();
@@ -16,26 +17,62 @@ export default function CreateCampaignPage() {
   const templateId = searchParams.get('template');
   const categoryId = searchParams.get('category');
   const source = searchParams.get('source');
+  const channelParam = searchParams.get('channel');
   const [successOpen, setSuccessOpen] = useState(false);
   const [createdCampaign, setCreatedCampaign] = useState(null);
 
   const designTemplate = useMemo(() => getTemplateById(templateId), [templateId]);
-  const libraryTemplate = useMemo(
+  const smsLibraryTemplate = useMemo(
     () => SMS_TEMPLATE_LIBRARY.find((item) => item.id === templateId) || null,
+    [templateId],
+  );
+  const whatsappLibraryTemplate = useMemo(
+    () => getWhatsAppLibraryTemplateById(templateId),
     [templateId],
   );
 
   const seedTemplate = useMemo(() => {
-    if (designTemplate) return designTemplate;
-    if (!libraryTemplate) return null;
+    if (designTemplate) {
+      return {
+        ...designTemplate,
+        channel: channelParam || designTemplate.channel || 'email',
+      };
+    }
+
+    if (whatsappLibraryTemplate || channelParam === 'whatsapp') {
+      const libraryTemplate = whatsappLibraryTemplate;
+      if (!libraryTemplate) return null;
+
+      return {
+        id: libraryTemplate.id,
+        name: libraryTemplate.title,
+        category: libraryTemplate.categoryLabel,
+        headline: libraryTemplate.previewTitle || libraryTemplate.title,
+        body: libraryTemplate.whatsappMessage,
+        cta: libraryTemplate.callToAction || 'Learn More',
+        channel: 'whatsapp',
+        image: libraryTemplate.image,
+        accent: 'from-[#075E54] to-[#128C7E]',
+        products: [
+          { label: 'Offer', price: 'Special' },
+          { label: 'Deal', price: 'Limited' },
+          { label: 'New', price: 'Just In' },
+          { label: 'Hot', price: 'Popular' },
+        ],
+        leadQuestions: libraryTemplate.leadQuestions || [],
+      };
+    }
+
+    if (!smsLibraryTemplate) return null;
 
     return {
-      id: libraryTemplate.id,
-      name: libraryTemplate.title,
-      category: libraryTemplate.categoryLabel,
-      headline: libraryTemplate.title,
-      body: libraryTemplate.description,
-      cta: 'Learn More',
+      id: smsLibraryTemplate.id,
+      name: smsLibraryTemplate.title,
+      category: smsLibraryTemplate.categoryLabel,
+      headline: smsLibraryTemplate.previewTitle || smsLibraryTemplate.title,
+      body: smsLibraryTemplate.smsMessage || smsLibraryTemplate.description,
+      cta: smsLibraryTemplate.callToAction || 'Learn More',
+      channel: channelParam || 'sms',
       accent: 'from-primary to-[#6B4FE0]',
       products: [
         { label: 'Offer', price: 'Special' },
@@ -43,9 +80,9 @@ export default function CreateCampaignPage() {
         { label: 'New', price: 'Just In' },
         { label: 'Hot', price: 'Popular' },
       ],
-      leadQuestions: libraryTemplate.leadQuestions || [],
+      leadQuestions: smsLibraryTemplate.leadQuestions || [],
     };
-  }, [designTemplate, libraryTemplate]);
+  }, [designTemplate, smsLibraryTemplate, whatsappLibraryTemplate, channelParam]);
 
   const route = seedTemplate || source === 'library' ? 'template' : 'direct';
 

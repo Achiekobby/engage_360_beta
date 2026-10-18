@@ -24,7 +24,7 @@ const ROUTES = [
     id: 'template',
     title: 'Start with a template',
     description:
-      'Pick a ready-made SMS or email design for this category, preview it, then customize.',
+      'Pick a ready-made SMS, WhatsApp, or email design for this category, preview it, then customize.',
     icon: Sparkles,
     badge: 'Quickest way',
     features: ['Matched to this category', 'Live preview', 'Easy to customize'],

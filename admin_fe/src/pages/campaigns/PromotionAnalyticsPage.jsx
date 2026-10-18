@@ -58,7 +58,7 @@ function Menu({ label, icon: Icon, open, onToggle, children, active }) {
         <ChevronDown className={clsx('h-3.5 w-3.5 transition-transform', open && 'rotate-180')} aria-hidden="true" />
       </button>
       {open ? (
-        <div className="absolute left-0 z-20 mt-2 w-60 rounded-xl border border-[#EEF0F4] bg-white p-2 shadow-[0_16px_40px_rgba(11,19,84,0.12)]">
+        <div className="absolute left-0 z-20 mt-2 w-60 admin-card rounded-xl border border-[#EEF0F4] bg-white p-2 shadow-[0_16px_40px_rgba(11,19,84,0.12)]">
           {children}
         </div>
       ) : null}
@@ -94,7 +94,7 @@ function TrendChart({ chart }) {
   const activeIndex = focus.active == null ? null : Number(focus.active);
 
   return (
-    <article className={clsx('rounded-xl border border-[#EEF0F4] bg-white p-4 sm:p-5', focus.active && 'relative z-20')}>
+    <article className={clsx('admin-card rounded-xl border border-[#EEF0F4] bg-white p-4 sm:p-5', focus.active && 'relative z-20')}>
       <h2 className="text-base font-bold text-[#0B1354]">{chart.title}</h2>
       <p className="mt-0.5 text-xs text-[#717171]">{chart.subtitle}</p>
       <div className="mt-8 flex gap-2">
@@ -300,7 +300,7 @@ export default function PromotionAnalyticsPage() {
         <>
           <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-3">
             {data.cards.map((card) => (
-              <article key={card.id} className="rounded-xl border border-[#EEF0F4] bg-white px-4 py-4">
+              <article key={card.id} className="admin-card rounded-xl border border-[#EEF0F4] bg-white px-4 py-4">
                 <p className="text-sm font-medium text-[#717171]">{card.label}</p>
                 <p className="mt-3 text-[1.75rem] font-semibold tabular-nums leading-none text-[#0B1354]">{card.value}</p>
                 <p className="mt-3 flex items-center gap-1.5 text-xs text-[#8B8B93]">

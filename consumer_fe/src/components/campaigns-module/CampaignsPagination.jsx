@@ -34,6 +34,8 @@ export default function CampaignsPagination({
   totalItems,
   pageSize,
   onPageChange,
+  itemLabel = 'templates',
+  className,
 }) {
   if (totalPages <= 1) return null;
 
@@ -42,13 +44,18 @@ export default function CampaignsPagination({
   const end = Math.min(currentPage * pageSize, totalItems);
 
   return (
-    <div className="mt-8 flex flex-col gap-4 border-t border-[#F0F2F7] pt-6 sm:flex-row sm:items-center sm:justify-between">
+    <div
+      className={clsx(
+        'mt-8 flex flex-col gap-4 border-t border-[#F0F2F7] pt-6 sm:flex-row sm:items-center sm:justify-between',
+        className,
+      )}
+    >
       <p className="text-sm text-[#717171]">
         Showing{' '}
         <span className="font-semibold text-[#0B1354]">
           {start}–{end}
         </span>{' '}
-        of <span className="font-semibold text-[#0B1354]">{totalItems}</span> templates
+        of <span className="font-semibold text-[#0B1354]">{totalItems}</span> {itemLabel}
       </p>
 
       <div className="flex items-center gap-1.5">

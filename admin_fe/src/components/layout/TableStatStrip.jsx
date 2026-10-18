@@ -18,7 +18,7 @@ function gridCols(count) {
 
 export default function TableStatStrip({ items, selectedId }) {
   return (
-    <div className="overflow-hidden rounded-xl border border-[#EEF0F4] bg-white">
+    <div className="admin-card overflow-hidden rounded-xl border border-[#EEF0F4] bg-white">
       <div className={clsx('grid', gridCols(items.length))}>
         {items.map((stat) => {
           const selected = selectedId != null && selectedId === stat.id;

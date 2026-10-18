@@ -24,16 +24,16 @@ export default function AnalyticsMetricCard({
   return (
     <article
       className={clsx(
-        'admin-card-sm flex rounded-xl border border-[#EEF0F4] bg-white',
+        'admin-card-sm flex rounded-xl border border-[#EEF0F4]',
         compact
-          ? 'min-w-0 flex-col items-start gap-2.5 px-3.5 py-3.5 sm:px-4'
-          : 'items-center gap-3 px-4 py-3.5 sm:gap-4 sm:px-5 sm:py-4',
+          ? 'min-w-0 flex-row items-center gap-3 bg-[#F7F8FA] px-3.5 py-3.5 sm:px-4'
+          : 'items-center gap-3 bg-white px-4 py-3.5 sm:gap-4 sm:px-5 sm:py-4',
       )}
     >
       <span
         className={clsx(
-          'inline-flex shrink-0 items-center justify-center rounded-md bg-[#F4F5F7]',
-          compact ? 'h-9 w-9' : 'h-11 w-11',
+          'inline-flex shrink-0 items-center justify-center rounded-lg bg-white shadow-[0_1px_3px_rgba(11,19,84,0.08)] ring-1 ring-[#EEF0F4]',
+          compact ? 'h-10 w-10' : 'h-11 w-11',
         )}
       >
         <Icon
@@ -45,12 +45,17 @@ export default function AnalyticsMetricCard({
         <p
           className={clsx(
             'font-bold text-[#0B1354]',
-            compact ? 'text-xs leading-snug sm:text-[13px]' : 'truncate text-sm',
+            compact ? 'truncate text-[13px] leading-snug' : 'truncate text-sm',
           )}
         >
           {label}
         </p>
-        <p className={clsx('text-[#717171]', compact ? 'mt-1 text-sm' : 'mt-0.5 text-sm')}>
+        <p
+          className={clsx(
+            'tabular-nums text-[#717171]',
+            compact ? 'mt-0.5 text-sm font-medium' : 'mt-0.5 text-sm',
+          )}
+        >
           {value}
         </p>
       </div>

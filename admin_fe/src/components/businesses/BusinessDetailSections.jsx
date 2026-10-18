@@ -306,7 +306,7 @@ function DateFilter({ value, onChange }) {
         <ul
           role="listbox"
           aria-label="Date range"
-          className="absolute right-0 z-20 mt-2 w-44 overflow-hidden rounded-xl border border-[#EEF0F4] bg-white py-1 shadow-[0_12px_32px_rgba(11,19,84,0.12)]"
+          className="absolute right-0 z-20 mt-2 w-44 admin-card overflow-hidden rounded-xl border border-[#EEF0F4] bg-white py-1 shadow-[0_12px_32px_rgba(11,19,84,0.12)]"
         >
           {DATE_RANGES.map((range) => (
             <li key={range.id}>
@@ -365,7 +365,7 @@ export function BusinessSectionNav({ section, onChange }) {
 
 function PageHeader({ title, description, actions, children }) {
   return (
-    <header className="rounded-xl border border-[#EEF0F4] bg-white px-4 py-4 shadow-[0_1px_2px_rgba(11,19,84,0.04)] sm:px-5">
+    <header className="admin-card rounded-xl border border-[#EEF0F4] bg-white px-4 py-4 sm:px-5">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0">
           <h2 className="text-lg font-extrabold tracking-tight text-[#0B1354]">{title}</h2>
@@ -465,7 +465,7 @@ export function CreditHistoryPanel({ business }) {
         />
       </div>
 
-      <div className="overflow-hidden rounded-xl border border-[#EEF0F4] bg-white">
+      <div className="admin-card overflow-hidden rounded-xl border border-[#EEF0F4] bg-white">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[760px] border-collapse text-left text-sm">
             <thead>
@@ -504,7 +504,7 @@ export function CreditHistoryPanel({ business }) {
                       <button
                         type="button"
                         onClick={() => downloadReceipt(business.companyName, item, channel)}
-                        className="inline-flex cursor-pointer items-center gap-1.5 rounded-xl border border-[#E4E4E7] bg-white px-3 py-1.5 text-sm font-semibold text-[#0B1354] transition-colors hover:border-primary/30 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
+                        className="inline-flex cursor-pointer items-center gap-1.5 admin-card-sm rounded-xl border border-[#E4E4E7] bg-white px-3 py-1.5 text-sm font-semibold text-[#0B1354] transition-colors hover:border-primary/30 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
                       >
                         <Download className="h-4 w-4" aria-hidden="true" />
                         Download Receipt
@@ -565,7 +565,7 @@ function CollectionGroups({ collection, groups, onBack, onDelete, onViewCustomer
         <SearchField value={query} onChange={setQuery} label={`Search groups in ${collection.name}`} />
       </PageHeader>
 
-      <div className="overflow-hidden rounded-xl border border-[#EEF0F4] bg-white">
+      <div className="admin-card overflow-hidden rounded-xl border border-[#EEF0F4] bg-white">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[720px] border-collapse text-left text-sm">
             <thead>
@@ -616,7 +616,7 @@ function CollectionGroups({ collection, groups, onBack, onDelete, onViewCustomer
                         <button
                           type="button"
                           onClick={() => onViewCustomers(item)}
-                          className="inline-flex cursor-pointer items-center gap-1.5 rounded-xl border border-[#E4E4E7] bg-white px-3 py-1.5 text-sm font-semibold text-[#0B1354] transition-colors hover:border-primary/30 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
+                          className="inline-flex cursor-pointer items-center gap-1.5 admin-card-sm rounded-xl border border-[#E4E4E7] bg-white px-3 py-1.5 text-sm font-semibold text-[#0B1354] transition-colors hover:border-primary/30 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
                         >
                           <Eye className="h-4 w-4" aria-hidden="true" />
                           View Customers
@@ -800,7 +800,7 @@ function CustomerProfileDialog({ customer, onClose, onSave }) {
                 setEditing(true);
                 setWriting(false);
               }}
-              className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-[#E4E4E7] bg-white px-4 py-2.5 text-sm font-semibold text-primary transition-colors hover:border-primary/30 hover:bg-[#EFF6FF] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
+              className="inline-flex cursor-pointer items-center gap-2 admin-card-sm rounded-xl border border-[#E4E4E7] bg-white px-4 py-2.5 text-sm font-semibold text-primary transition-colors hover:border-primary/30 hover:bg-[#EFF6FF] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
             >
               <User className="h-4 w-4" aria-hidden="true" />
               Edit Details
@@ -1032,7 +1032,7 @@ function CustomerTable({ group, onBack }) {
               Filters
             </button>
             {filtersOpen ? (
-              <div className="absolute right-0 z-20 mt-2 w-56 space-y-3 rounded-xl border border-[#EEF0F4] bg-white p-3 shadow-[0_12px_32px_rgba(11,19,84,0.12)]">
+              <div className="absolute right-0 z-20 mt-2 w-56 space-y-3 admin-card rounded-xl border border-[#EEF0F4] bg-white p-3 shadow-[0_12px_32px_rgba(11,19,84,0.12)]">
                 <label className="block text-xs font-semibold text-[#717171]">
                   Customer type
                   <select
@@ -1069,7 +1069,7 @@ function CustomerTable({ group, onBack }) {
           <button
             type="button"
             onClick={exportRows}
-            className="inline-flex cursor-pointer items-center gap-1.5 rounded-xl border border-[#E4E4E7] bg-white px-3 py-2 text-sm font-semibold text-[#0B1354] transition-colors hover:border-primary/30 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
+            className="inline-flex cursor-pointer items-center gap-1.5 admin-card-sm rounded-xl border border-[#E4E4E7] bg-white px-3 py-2 text-sm font-semibold text-[#0B1354] transition-colors hover:border-primary/30 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
           >
             <Download className="h-4 w-4" aria-hidden="true" />
             Export
@@ -1077,7 +1077,7 @@ function CustomerTable({ group, onBack }) {
         </div>
       </PageHeader>
 
-      <div className="overflow-x-auto rounded-2xl border border-[#EEF0F4] bg-white">
+      <div className="overflow-x-auto admin-card rounded-2xl border border-[#EEF0F4] bg-white">
         <table className="min-w-[1100px] w-full text-left text-sm">
           <thead>
             <tr className="border-b border-[#F0F2F7] bg-[#FAFBFC] text-xs font-semibold uppercase tracking-wider text-[#717171]">
@@ -1134,7 +1134,7 @@ function CustomerTable({ group, onBack }) {
                       <MoreHorizontal className="h-4 w-4" aria-hidden="true" />
                     </button>
                     {menuId === row.id ? (
-                      <div className="absolute right-3 top-10 z-10 w-36 overflow-hidden rounded-xl border border-[#EEF0F4] bg-white py-1 shadow-lg">
+                      <div className="absolute right-3 top-10 z-10 w-36 admin-card overflow-hidden rounded-xl border border-[#EEF0F4] bg-white py-1 shadow-lg">
                         <button
                           type="button"
                           onClick={() => {
@@ -1277,7 +1277,7 @@ export function CustomerBasePanel() {
               id="customer-category"
               value={category}
               onChange={(event) => setCategory(event.target.value)}
-              className="cursor-pointer rounded-xl border border-[#E4E4E7] bg-white px-3 py-2 text-sm font-semibold text-[#0B1354] outline-none focus:border-primary focus:ring-2 focus:ring-primary/15"
+              className="cursor-pointer admin-card-sm rounded-xl border border-[#E4E4E7] bg-white px-3 py-2 text-sm font-semibold text-[#0B1354] outline-none focus:border-primary focus:ring-2 focus:ring-primary/15"
             >
               <option value="all">Category</option>
               {categories.map((item) => (
@@ -1302,7 +1302,7 @@ export function CustomerBasePanel() {
         <MetricCard label="Total Customers" value="52k" badge="10.5% Last 30 days" />
       </div>
 
-      <div className="overflow-hidden rounded-xl border border-[#EEF0F4] bg-white">
+      <div className="admin-card overflow-hidden rounded-xl border border-[#EEF0F4] bg-white">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[760px] border-collapse text-left text-sm">
             <thead>
@@ -1359,7 +1359,7 @@ export function CustomerBasePanel() {
                             setCollection(item);
                             setScreen('groups');
                           }}
-                          className="inline-flex cursor-pointer items-center gap-1.5 rounded-xl border border-[#E4E4E7] bg-white px-3 py-1.5 text-sm font-semibold text-[#0B1354] transition-colors hover:border-primary/30 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
+                          className="inline-flex cursor-pointer items-center gap-1.5 admin-card-sm rounded-xl border border-[#E4E4E7] bg-white px-3 py-1.5 text-sm font-semibold text-[#0B1354] transition-colors hover:border-primary/30 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
                         >
                           <Eye className="h-4 w-4" aria-hidden="true" />
                           View

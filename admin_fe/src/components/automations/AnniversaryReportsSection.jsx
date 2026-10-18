@@ -2,14 +2,14 @@ import PlatformReportsSection from './PlatformReportsSection';
 import { buildAnniversaryReport } from './anniversaryReportsData';
 
 const ANNIVERSARY_THEME = {
-  iconClass: 'text-[#BE185D]',
+  iconClass: 'text-primary',
   selectClass:
-    'border-[#FBCFE8] text-[#9F1239] hover:border-[#F9A8D4] focus:border-[#BE185D] focus:ring-[#BE185D]/20',
-  titleClass: 'text-[#9F1239]',
-  valueClass: 'text-[#BE185D]',
-  chipClass: 'bg-[#FCE7F3] text-[#BE185D]',
-  rateLabelClass: 'text-[#BE185D]',
-  tabActiveClass: 'bg-[#BE185D] text-white shadow-sm',
+    'border-[#E4E4E7] text-[#0B1354] hover:border-primary/30 focus:border-primary/40 focus:ring-primary/15',
+  titleClass: 'text-[#0B1354]',
+  valueClass: 'text-[#0B1354]',
+  chipClass: 'bg-[#EDE8F8] text-primary',
+  rateLabelClass: 'text-[#717171]',
+  tabActiveClass: 'bg-primary text-white shadow-sm',
 };
 
 export default function AnniversaryReportsSection() {

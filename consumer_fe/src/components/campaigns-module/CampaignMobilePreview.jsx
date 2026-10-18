@@ -1,9 +1,22 @@
-import { Bell, Check, Mail, MessageSquare, ShoppingBag, Smartphone } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { IPhoneMockup } from 'react-device-mockup';
+import {
+  Bell,
+  Check,
+  CheckCheck,
+  Mail,
+  MessageCircle,
+  MessageSquare,
+  Phone,
+  ShoppingBag,
+  Video,
+} from 'lucide-react';
+import { clsx } from 'clsx';
 
 const CHANNEL_META = {
   sms: { icon: MessageSquare, label: 'SMS', tint: 'bg-[#E8F4FC] text-[#2E7DAD]' },
   email: { icon: Mail, label: 'Email', tint: 'bg-[#EDE8F8] text-primary' },
-  whatsapp: { icon: Smartphone, label: 'WhatsApp', tint: 'bg-[#E8F8EF] text-[#1F9D55]' },
+  whatsapp: { icon: MessageCircle, label: 'WhatsApp', tint: 'bg-[#E8F8EF] text-[#128C7E]' },
   push: { icon: Bell, label: 'Push', tint: 'bg-[#FFF4E8] text-[#E67E22]' },
 };
 
@@ -77,10 +90,15 @@ function PhoneChrome({ children, tall = false, dense = false, fillHeight = false
   );
 }
 
-function SmsPreview({ headline, body, cta, expanded = false }) {
+function SmsPreview({ headline, body, cta, expanded = false, statusPad = false }) {
   return (
     <div className="flex h-full min-h-0 flex-col overflow-hidden bg-[#F4F5F8]">
-      <div className="shrink-0 border-b border-[#E4E6EC] bg-white/90 px-3 py-2.5 backdrop-blur sm:px-4 sm:py-3">
+      <div
+        className={clsx(
+          'shrink-0 border-b border-[#E4E6EC] bg-white/90 px-4 backdrop-blur',
+          statusPad ? 'pb-3 pt-11' : 'py-3',
+        )}
+      >
         <div className="flex items-center gap-2.5">
           <div
             className={`flex items-center justify-center rounded-full bg-primary font-bold text-white ${
@@ -98,13 +116,13 @@ function SmsPreview({ headline, body, cta, expanded = false }) {
         </div>
       </div>
 
-      <div className="flex min-h-0 flex-1 flex-col overflow-hidden px-3 py-3 sm:px-4 sm:py-4">
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden px-4 py-4">
         <p className={`mb-3 text-center font-medium text-[#9AA0B0] ${expanded ? 'text-[10px]' : 'text-[9px]'}`}>
           Today · 9:41 AM
         </p>
 
         <div
-          className={`mr-auto max-w-[88%] rounded-2xl rounded-tl-md border border-[#E8EAF0] bg-white shadow-[0_2px_8px_rgba(11,19,84,0.06)] ${
+          className={`mr-auto max-w-[85%] rounded-2xl rounded-tl-md border border-[#E8EAF0] bg-white shadow-[0_2px_8px_rgba(11,19,84,0.06)] ${
             expanded ? 'px-4 py-3' : 'px-3.5 py-2.5'
           }`}
         >
@@ -139,31 +157,242 @@ function SmsPreview({ headline, body, cta, expanded = false }) {
   );
 }
 
-function WhatsAppPreview({ headline, body, cta }) {
+function WhatsAppChatBody({
+  headline,
+  body,
+  cta,
+  image,
+  expanded = false,
+  footerNote,
+  statusPad = false,
+}) {
   return (
-    <div className="min-h-[18rem] bg-[#E5DDD5] p-3">
-      <div className="mb-3 flex items-center gap-2 rounded-sm bg-[#075E54] px-3 py-2 text-white">
-        <div className="flex h-7 w-7 items-center justify-center rounded-full bg-white/20">
-          <Smartphone className="h-3.5 w-3.5" strokeWidth={2} />
+    <div className="flex h-full min-h-0 flex-col bg-[#E5DDD5]">
+      <div
+        className={clsx(
+          'flex shrink-0 items-center gap-2.5 bg-[#075E54] px-4 pb-3 text-white',
+          statusPad ? 'pt-11' : 'pt-2.5',
+        )}
+      >
+        <div
+          className={clsx(
+            'flex shrink-0 items-center justify-center rounded-full bg-white/20',
+            expanded ? 'h-9 w-9' : 'h-8 w-8',
+          )}
+        >
+          <MessageCircle className={expanded ? 'h-4 w-4' : 'h-3.5 w-3.5'} strokeWidth={2} />
         </div>
-        <div>
-          <p className="text-[10px] font-semibold">Engage 360</p>
-          <p className="text-[8px] text-white/70">Business account</p>
+        <div className="min-w-0 flex-1">
+          <p className={clsx('truncate font-semibold', expanded ? 'text-xs' : 'text-[11px]')}>
+            Engage 360
+          </p>
+          <p className={clsx('truncate text-white/70', expanded ? 'text-[10px]' : 'text-[9px]')}>
+            Business account · online
+          </p>
+        </div>
+        <div className="flex shrink-0 items-center gap-3 text-white/90">
+          <Video className={expanded ? 'h-4 w-4' : 'h-3.5 w-3.5'} strokeWidth={2} />
+          <Phone className={expanded ? 'h-4 w-4' : 'h-3.5 w-3.5'} strokeWidth={2} />
         </div>
       </div>
-      <div className="max-w-[90%] rounded-lg rounded-tl-sm bg-white px-3 py-2.5 shadow-sm">
-        <p className="text-[11px] font-bold text-[#0B1354]">{headline || 'Campaign title'}</p>
-        <p className="mt-1 text-[10px] leading-relaxed text-[#545454]">
-          {body || 'Your WhatsApp message preview will appear here.'}
+
+      <div
+        className="min-h-0 flex-1 overflow-y-auto px-4 py-3.5"
+        style={{
+          backgroundImage:
+            'radial-gradient(rgba(0,0,0,0.04) 0.6px, transparent 0.6px), radial-gradient(rgba(0,0,0,0.03) 0.6px, transparent 0.6px)',
+          backgroundSize: '14px 14px, 14px 14px',
+          backgroundPosition: '0 0, 7px 7px',
+        }}
+      >
+        <p
+          className={clsx(
+            'mx-auto mb-3 w-fit rounded-full bg-white/80 px-2.5 py-1 font-medium text-[#667781] shadow-sm',
+            expanded ? 'text-[10px]' : 'text-[9px]',
+          )}
+        >
+          Today
         </p>
-        {cta ? (
-          <div className="mt-2 border-t border-[#EEF0F4] pt-2 text-center text-[10px] font-semibold text-[#075E54]">
-            {cta}
+
+        <div
+          className={clsx(
+            'mr-auto max-w-[86%] overflow-hidden rounded-lg rounded-tl-sm bg-white shadow-[0_1px_1px_rgba(11,20,26,0.13)]',
+            expanded ? 'text-[11px]' : 'text-[10px]',
+          )}
+        >
+          {image ? (
+            <div className={clsx('w-full overflow-hidden bg-[#D1D7DB]', expanded ? 'h-28' : 'h-20')}>
+              <img src={image} alt="" className="h-full w-full object-cover" />
+            </div>
+          ) : null}
+
+          <div className={clsx(expanded ? 'px-3.5 py-3' : 'px-3 py-2.5')}>
+            <p className="font-semibold leading-snug text-[#111B21]">
+              {headline || 'Campaign title'}
+            </p>
+            <p className="mt-1.5 whitespace-pre-line leading-relaxed text-[#3B4A54]">
+              {body || 'Your WhatsApp message preview will appear here.'}
+            </p>
+            {footerNote ? (
+              <p className="mt-2 text-[9px] leading-relaxed text-[#667781]">{footerNote}</p>
+            ) : null}
+            <div className="mt-1.5 flex items-center justify-end gap-1 text-[9px] text-[#667781]">
+              <span>9:41 AM</span>
+              <CheckCheck className="h-3 w-3 text-[#53BDEB]" strokeWidth={2.5} />
+            </div>
           </div>
-        ) : null}
-        <p className="mt-1.5 text-right text-[8px] text-[#717171]">12:04 ✓✓</p>
+
+          {cta ? (
+            <div className="border-t border-[#E9EDEF]">
+              <div className="px-3.5 py-2.5 text-center text-[11px] font-semibold text-[#027EB5]">
+                {cta}
+              </div>
+            </div>
+          ) : null}
+        </div>
+      </div>
+
+      <div className="flex shrink-0 items-center gap-2.5 bg-[#F0F2F5] px-3.5 py-2.5">
+        <div className="flex h-9 min-w-0 flex-1 items-center rounded-full bg-white px-3.5 text-[10px] text-[#667781]">
+          Type a message
+        </div>
+        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#075E54] text-white">
+          <MessageCircle className="h-3.5 w-3.5" strokeWidth={2.25} />
+        </div>
       </div>
     </div>
+  );
+}
+
+function WhatsAppPreview({ headline, body, cta, image, expanded = false, footerNote }) {
+  return (
+    <WhatsAppChatBody
+      headline={headline}
+      body={body}
+      cta={cta}
+      image={image}
+      expanded={expanded}
+      footerNote={footerNote}
+    />
+  );
+}
+
+function FittedPhoneFrame({
+  children,
+  screenWidth = 248,
+  statusbarColor = '#FFFFFF',
+  measureKey = '',
+}) {
+  const viewportRef = useRef(null);
+  const phoneRef = useRef(null);
+  const [fit, setFit] = useState({ scale: 1, width: null, height: null });
+
+  useEffect(() => {
+    const viewport = viewportRef.current;
+    const phone = phoneRef.current;
+    if (!viewport || !phone) return undefined;
+
+    const measure = () => {
+      // Leave room so the bezel / rounded corners aren't clipped on either side
+      const availableW = Math.max(viewport.clientWidth - 28, 0);
+      const availableH = Math.max(viewport.clientHeight - 20, 0);
+      const phoneW = phone.scrollWidth || phone.offsetWidth;
+      const phoneH = phone.scrollHeight || phone.offsetHeight;
+      if (!availableW || !availableH || !phoneW || !phoneH) return;
+
+      const nextScale = Math.min(1, availableW / phoneW, availableH / phoneH);
+      const safeScale = Number.isFinite(nextScale) && nextScale > 0 ? nextScale : 1;
+      setFit({
+        scale: safeScale,
+        width: Math.ceil(phoneW * safeScale),
+        height: Math.ceil(phoneH * safeScale),
+      });
+    };
+
+    const raf = window.requestAnimationFrame(measure);
+    const observer = new ResizeObserver(measure);
+    observer.observe(viewport);
+    observer.observe(phone);
+    return () => {
+      window.cancelAnimationFrame(raf);
+      observer.disconnect();
+    };
+  }, [screenWidth, measureKey]);
+
+  return (
+    <div
+      ref={viewportRef}
+      className="flex h-full min-h-0 w-full items-center justify-center overflow-hidden px-3 py-2"
+    >
+      <div
+        className="relative shrink-0"
+        style={
+          fit.width && fit.height
+            ? { width: fit.width, height: fit.height }
+            : undefined
+        }
+      >
+        <div
+          ref={phoneRef}
+          className={clsx(
+            'will-change-transform',
+            fit.width ? 'absolute left-0 top-0 origin-top-left' : 'origin-center',
+          )}
+          style={{ transform: `scale(${fit.scale})` }}
+        >
+          <IPhoneMockup
+            screenWidth={screenWidth}
+            screenType="island"
+            frameColor="#1C1C1E"
+            statusbarColor={statusbarColor}
+            hideStatusBar
+            hideNavBar
+            frameOnly
+          >
+            {children}
+          </IPhoneMockup>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export function SmsPhonePreview({ headline, body, cta, screenWidth = 248 }) {
+  return (
+    <FittedPhoneFrame
+      screenWidth={screenWidth}
+      statusbarColor="#FFFFFF"
+      measureKey={`${headline}|${body}|${cta}`}
+    >
+      <SmsPreview headline={headline} body={body} cta={cta} expanded statusPad />
+    </FittedPhoneFrame>
+  );
+}
+
+export function WhatsAppPhonePreview({
+  headline,
+  body,
+  cta,
+  image,
+  footerNote,
+  screenWidth = 248,
+}) {
+  return (
+    <FittedPhoneFrame
+      screenWidth={screenWidth}
+      statusbarColor="#075E54"
+      measureKey={`${headline}|${body}|${cta}|${image}|${footerNote}`}
+    >
+      <WhatsAppChatBody
+        headline={headline}
+        body={body}
+        cta={cta}
+        image={image}
+        expanded
+        footerNote={footerNote}
+        statusPad
+      />
+    </FittedPhoneFrame>
   );
 }
 
@@ -278,6 +507,8 @@ export default function CampaignMobilePreview({
   headline,
   body,
   cta,
+  image,
+  footerNote,
   templateMode = false,
   accent,
   products,
@@ -302,7 +533,16 @@ export default function CampaignMobilePreview({
       />
     );
   } else if (channel === 'whatsapp') {
-    content = <WhatsAppPreview headline={headline} body={body} cta={cta} />;
+    content = (
+      <WhatsAppPreview
+        headline={headline}
+        body={body}
+        cta={cta}
+        image={image}
+        expanded={expanded}
+        footerNote={footerNote}
+      />
+    );
   } else if (channel === 'push') {
     content = <PushPreview headline={headline} body={body} />;
   } else if (channel === 'email') {
@@ -363,6 +603,51 @@ export function SmsTemplateMiniPreview({ headline, body, cta }) {
       </div>
 
       <p className="mt-2 text-right text-[9px] font-medium text-[#9AA0B0]">{charCount} chars</p>
+    </div>
+  );
+}
+
+export function WhatsAppTemplateMiniPreview({ headline, body, cta, image }) {
+  const message = body || 'Your WhatsApp message preview will appear here.';
+
+  return (
+    <div className="flex h-full min-h-full flex-col overflow-hidden bg-[#E5DDD5]">
+      <div className="flex items-center gap-2 bg-[#075E54] px-3 py-2.5 text-white">
+        <div className="flex h-6 w-6 items-center justify-center rounded-full bg-white/20">
+          <MessageCircle className="h-3 w-3" strokeWidth={2.25} />
+        </div>
+        <div className="min-w-0">
+          <p className="truncate text-[10px] font-semibold">Engage 360</p>
+          <p className="text-[8px] text-white/70">WhatsApp Business</p>
+        </div>
+      </div>
+
+      <div className="flex flex-1 flex-col justify-center px-3 py-3">
+        <div className="max-w-[94%] overflow-hidden rounded-lg rounded-tl-sm bg-white shadow-sm">
+          {image ? (
+            <div className="h-14 w-full overflow-hidden bg-[#D1D7DB]">
+              <img src={image} alt="" className="h-full w-full object-cover" />
+            </div>
+          ) : null}
+          <div className="px-2.5 py-2">
+            {headline ? (
+              <p className="text-[10px] font-semibold leading-snug text-[#111B21] line-clamp-1">
+                {headline}
+              </p>
+            ) : null}
+            <p className="mt-1 text-[10px] leading-relaxed text-[#3B4A54] line-clamp-3">{message}</p>
+            <div className="mt-1 flex items-center justify-end gap-0.5 text-[8px] text-[#667781]">
+              <span>9:41</span>
+              <CheckCheck className="h-2.5 w-2.5 text-[#53BDEB]" strokeWidth={2.5} />
+            </div>
+          </div>
+          {cta ? (
+            <div className="border-t border-[#E9EDEF] px-2.5 py-1.5 text-center text-[9px] font-semibold text-[#027EB5]">
+              {cta}
+            </div>
+          ) : null}
+        </div>
+      </div>
     </div>
   );
 }

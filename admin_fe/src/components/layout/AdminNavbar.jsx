@@ -65,7 +65,7 @@ const QUICK_LINKS = [
 function SearchResults({ needle, hasHits, businessHits, campaignHits, onGo }) {
   return (
     <div
-      className="overflow-hidden rounded-xl border border-[#EEF0F4] bg-white text-[#0B1354] shadow-[0_16px_40px_rgba(11,19,84,0.16)]"
+      className="admin-card overflow-hidden rounded-xl border border-[#EEF0F4] bg-white text-[#0B1354] shadow-[0_16px_40px_rgba(11,19,84,0.16)]"
       role="listbox"
       aria-label="Search results"
     >
@@ -379,7 +379,7 @@ export default function AdminNavbar({ menuOpen, onToggleMenu }) {
               id={noticesId}
               role="region"
               aria-label="Notifications"
-              className="absolute right-0 top-[calc(100%+8px)] w-[min(calc(100vw-1rem),20rem)] overflow-hidden rounded-xl border border-[#EEF0F4] bg-white text-[#0B1354] shadow-[0_16px_40px_rgba(11,19,84,0.16)]"
+              className="absolute right-0 top-[calc(100%+8px)] w-[min(calc(100vw-1rem),20rem)] admin-card overflow-hidden rounded-xl border border-[#EEF0F4] bg-white text-[#0B1354] shadow-[0_16px_40px_rgba(11,19,84,0.16)]"
             >
               <div className="border-b border-[#F0F2F7] px-4 py-3">
                 <p className="text-sm font-semibold text-[#0B1354]">Notifications</p>
@@ -427,7 +427,7 @@ export default function AdminNavbar({ menuOpen, onToggleMenu }) {
               id={accountId}
               role="menu"
               aria-label="Account"
-              className="absolute right-0 top-[calc(100%+8px)] w-[min(calc(100vw-1rem),16rem)] overflow-hidden rounded-xl border border-[#EEF0F4] bg-white text-[#0B1354] shadow-[0_16px_40px_rgba(11,19,84,0.16)]"
+              className="absolute right-0 top-[calc(100%+8px)] w-[min(calc(100vw-1rem),16rem)] admin-card overflow-hidden rounded-xl border border-[#EEF0F4] bg-white text-[#0B1354] shadow-[0_16px_40px_rgba(11,19,84,0.16)]"
             >
               <div className="border-b border-[#F0F2F7] px-4 py-3">
                 <p className="text-sm font-semibold text-[#0B1354]">{user.name}</p>

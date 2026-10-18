@@ -319,6 +319,11 @@
   }
 }
 
+/* Keep elevated surfaces readable on the global white canvas */
+[data-admin-scroll] {
+  background-color: #ffffff;
+}
+
 /* Thin theme scrollbar — soft primary tint so it blends into light surfaces */
 .scrollbar-thin {
   scrollbar-width: thin;

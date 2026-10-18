@@ -185,7 +185,7 @@ export default function BirthdayReportsSection() {
         </div>
       ) : (
         <div className="mt-6 space-y-5">
-          <div className="admin-card-sm flex flex-col gap-3 rounded-xl border border-[#EEF0F4] bg-white px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-5">
+          <div className="admin-card-sm flex flex-col gap-3 admin-card rounded-xl border border-[#EEF0F4] bg-white px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-5">
             <p className="text-sm font-semibold text-[#0B1354]">Stats Report</p>
 
             <div className="inline-flex self-start rounded-full bg-[#F0F2F7] p-1 sm:self-auto">

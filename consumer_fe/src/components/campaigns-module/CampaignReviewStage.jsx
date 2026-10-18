@@ -46,17 +46,17 @@ function ReviewField({ label, value, className, multiline = false }) {
   );
 }
 
-function ReviewBanner({ attachment }) {
+function ReviewBanner({ attachment, label = 'Banner (Optional)', emptyLabel = 'No banner uploaded' }) {
   return (
     <div>
-      <p className="mb-1.5 text-sm font-semibold text-[#0B1354]">Banner (Optional)</p>
+      <p className="mb-1.5 text-sm font-semibold text-[#0B1354]">{label}</p>
       <PromoVisualPreview
         promoVisual={attachment?.promoVisual || 'image'}
         previewUrl={attachment?.previewUrl}
         fileName={attachment?.fileName}
         fileMimeType={attachment?.fileMimeType}
         compact
-        emptyLabel="No banner uploaded"
+        emptyLabel={emptyLabel}
       />
     </div>
   );
@@ -180,6 +180,7 @@ export default function CampaignReviewStage({
   templateMode,
   isLeadGeneration = false,
   isEventActivation = false,
+  isSalesConversion = false,
   onBack,
   onEdit,
   onProceed,
@@ -201,6 +202,7 @@ export default function CampaignReviewStage({
           : 'SMS Message';
   const preferredReach = resolvePreferredReach(form, scanStats);
   const primaryAttachment = form.attachments[0];
+  const bannerAsset = isSalesConversion ? form.banner : primaryAttachment;
   const promoVisualLabel =
     PROMO_VISUAL_OPTIONS.find((item) => item.id === primaryAttachment?.promoVisual)?.label || '—';
   const categoryLabel =
@@ -292,7 +294,13 @@ export default function CampaignReviewStage({
                     <ReviewField label="Title" value={form.headline} />
                     <ReviewField label="Call to Action" value={form.cta} />
                     <ReviewField label="Description" value={form.description || form.body} multiline />
-                    {isEventActivation ? null : <ReviewBanner attachment={primaryAttachment} />}
+                    {isEventActivation ? null : (
+                      <ReviewBanner
+                        attachment={bannerAsset}
+                        label="Banner (Optional)"
+                        emptyLabel="No banner uploaded"
+                      />
+                    )}
                   </div>
                 </>
               )}
@@ -398,26 +406,52 @@ export default function CampaignReviewStage({
                   </p>
                 ) : null}
 
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <ReviewField
-                    label="Promo Visuals"
-                    value={
-                      PROMO_VISUAL_OPTIONS.find((item) => item.id === attachment.promoVisual)
-                        ?.label || promoVisualLabel
-                    }
-                  />
-                  <ReviewField
-                    label="Voucher / Promo Code (Optional)"
-                    value={attachment.voucherCode}
-                  />
-                  <ReviewBanner attachment={attachment} />
-                  <ReviewField
-                    label="Promo Expiry Date"
-                    value={formatDisplayDate(attachment.promoExpiryDate)}
-                  />
-                  <ReviewField label="Price" value={attachment.price} />
-                  <ReviewField label="Discounted Price" value={attachment.discountedPrice} />
-                </div>
+                {isSalesConversion ? (
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <ReviewField
+                      label="Product Visuals"
+                      value={
+                        PROMO_VISUAL_OPTIONS.find((item) => item.id === attachment.promoVisual)
+                          ?.label || promoVisualLabel
+                      }
+                    />
+                    <ReviewBanner
+                      attachment={attachment}
+                      label="Attachment"
+                      emptyLabel="No attachment uploaded"
+                    />
+                    <ReviewField label="Price" value={attachment.price} />
+                    <ReviewField
+                      label="Discounted Price (Optional)"
+                      value={attachment.discountedPrice}
+                    />
+                    <ReviewField
+                      label="End Date"
+                      value={formatDisplayDate(attachment.promoExpiryDate)}
+                    />
+                  </div>
+                ) : (
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <ReviewField
+                      label="Promo Visuals"
+                      value={
+                        PROMO_VISUAL_OPTIONS.find((item) => item.id === attachment.promoVisual)
+                          ?.label || promoVisualLabel
+                      }
+                    />
+                    <ReviewField
+                      label="Voucher / Promo Code (Optional)"
+                      value={attachment.voucherCode}
+                    />
+                    <ReviewBanner attachment={attachment} />
+                    <ReviewField
+                      label="Promo Expiry Date"
+                      value={formatDisplayDate(attachment.promoExpiryDate)}
+                    />
+                    <ReviewField label="Price" value={attachment.price} />
+                    <ReviewField label="Discounted Price" value={attachment.discountedPrice} />
+                  </div>
+                )}
               </div>
             ))}
           </section>

@@ -73,7 +73,7 @@ export default function TicketsPage() {
         />
       </div>
 
-      <div className="mt-5 overflow-hidden rounded-xl border border-[#EEF0F4] bg-white">
+      <div className="mt-5 admin-card overflow-hidden rounded-xl border border-[#EEF0F4] bg-white">
         {paged.rows.length ? (
           <table className="w-full text-left text-sm">
             <thead className="border-b border-[#EEF0F4] bg-[#FAFBFC] text-xs font-medium uppercase tracking-wide text-[#717171]">

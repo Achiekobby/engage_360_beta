@@ -168,7 +168,7 @@ export default function CreditHistoryModal({ business, onClose }) {
               ) : null}
             </button>
             {filtersOpen ? (
-              <div className="absolute right-0 z-20 mt-2 w-48 rounded-xl border border-[#EEF0F4] bg-white p-3 shadow-[0_10px_28px_rgba(11,19,84,0.12)]">
+              <div className="absolute right-0 z-20 mt-2 w-48 admin-card rounded-xl border border-[#EEF0F4] bg-white p-3 shadow-[0_10px_28px_rgba(11,19,84,0.12)]">
                 <p className="text-xs font-semibold uppercase tracking-wide text-[#717171]">Status</p>
                 <div className="mt-2 flex flex-wrap gap-1.5">
                   {[

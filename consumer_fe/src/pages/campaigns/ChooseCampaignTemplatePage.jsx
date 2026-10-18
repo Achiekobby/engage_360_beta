@@ -1,12 +1,16 @@
 import { useMemo, useState } from 'react';
 import { Link, Navigate, useNavigate, useSearchParams } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
-import { ArrowLeft, ArrowRight, Eye, Mail, MessageSquare } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Eye, Mail, MessageCircle, MessageSquare } from 'lucide-react';
 import { clsx } from 'clsx';
 import { Reveal, StaggerItem, StaggerReveal } from '../../components/motion';
 import TemplatePreviewDrawer from '../../components/campaigns-module/TemplatePreviewDrawer';
 import CampaignsPagination from '../../components/campaigns-module/CampaignsPagination';
-import { TemplateMiniPreview, SmsTemplateMiniPreview } from '../../components/campaigns-module/CampaignMobilePreview';
+import {
+  TemplateMiniPreview,
+  SmsTemplateMiniPreview,
+  WhatsAppTemplateMiniPreview,
+} from '../../components/campaigns-module/CampaignMobilePreview';
 import {
   CAMPAIGN_TEMPLATES,
   CAMPAIGNS_BASE,
@@ -16,13 +20,21 @@ import {
   isValidCampaignCategory,
 } from '../../components/campaigns-module/campaignCategoryMeta';
 import { getTemplatesByCategory } from '../../components/campaigns-module/smsTemplateLibraryData';
+import { getWhatsAppTemplatesByCategory } from '../../components/campaigns-module/whatsappTemplateLibraryData';
 
 const TABS = [
   { id: 'sms', label: 'SMS Templates', icon: MessageSquare },
+  { id: 'whatsapp', label: 'WhatsApp Templates', icon: MessageCircle },
   { id: 'email', label: 'Email Templates', icon: Mail },
 ];
 
 const PAGE_SIZE = 6;
+
+const CHANNEL_COUNT_LABEL = {
+  sms: 'SMS',
+  whatsapp: 'WhatsApp',
+  email: 'email',
+};
 
 export default function ChooseCampaignTemplatePage() {
   const navigate = useNavigate();
@@ -41,6 +53,11 @@ export default function ChooseCampaignTemplatePage() {
     [categoryId, categoryValid],
   );
 
+  const whatsappTemplates = useMemo(
+    () => (categoryValid ? getWhatsAppTemplatesByCategory(categoryId) : []),
+    [categoryId, categoryValid],
+  );
+
   // Shared email templates (no categoryId) show everywhere; category-specific
   // ones (e.g. Lead Generation) only appear for their matching category.
   const emailTemplates = useMemo(
@@ -50,7 +67,13 @@ export default function ChooseCampaignTemplatePage() {
       ),
     [categoryId],
   );
-  const list = activeTab === 'email' ? emailTemplates : smsTemplates;
+
+  const list =
+    activeTab === 'email'
+      ? emailTemplates
+      : activeTab === 'whatsapp'
+        ? whatsappTemplates
+        : smsTemplates;
 
   const totalPages = Math.max(1, Math.ceil(list.length / PAGE_SIZE));
   const pagedList = useMemo(
@@ -76,6 +99,12 @@ export default function ChooseCampaignTemplatePage() {
     if (channel === 'sms') {
       navigate(
         `${CAMPAIGNS_BASE}/create/wizard?template=${template.id}&category=${categoryId}&source=library&channel=sms${fromQuery}`,
+      );
+      return;
+    }
+    if (channel === 'whatsapp') {
+      navigate(
+        `${CAMPAIGNS_BASE}/create/wizard?template=${template.id}&category=${categoryId}&source=library&channel=whatsapp${fromQuery}`,
       );
       return;
     }
@@ -114,8 +143,8 @@ export default function ChooseCampaignTemplatePage() {
             </div>
 
             <p className="mt-3 text-sm leading-relaxed text-[#717171] sm:text-base">
-              SMS templates are filtered for {category.label.toLowerCase()}. Preview a design, then
-              continue into campaign setup.
+              SMS and WhatsApp templates are filtered for {category.label.toLowerCase()}. Preview a
+              design, then continue into campaign setup.
             </p>
           </div>
 
@@ -131,7 +160,7 @@ export default function ChooseCampaignTemplatePage() {
             </Link>
 
             <div
-              className="relative inline-flex w-full rounded-full border border-[#E4E4E7] bg-[#FAFBFC] p-1 sm:w-auto"
+              className="relative inline-flex w-full flex-wrap rounded-full border border-[#E4E4E7] bg-[#FAFBFC] p-1 sm:w-auto"
               role="tablist"
               aria-label="Template channel"
             >
@@ -145,7 +174,7 @@ export default function ChooseCampaignTemplatePage() {
                     aria-selected={active}
                     onClick={() => handleTabChange(id)}
                     className={clsx(
-                      'relative inline-flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-full px-4 py-2.5 text-sm font-semibold transition-colors sm:flex-none sm:px-5',
+                      'relative inline-flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-full px-3 py-2.5 text-sm font-semibold transition-colors sm:flex-none sm:px-4',
                       active ? 'text-white' : 'text-[#717171] hover:text-[#0B1354]',
                     )}
                   >
@@ -157,7 +186,10 @@ export default function ChooseCampaignTemplatePage() {
                       />
                     ) : null}
                     <Icon className="relative h-4 w-4" strokeWidth={2} />
-                    <span className="relative">{label}</span>
+                    <span className="relative hidden sm:inline">{label}</span>
+                    <span className="relative sm:hidden">
+                      {id === 'sms' ? 'SMS' : id === 'whatsapp' ? 'WhatsApp' : 'Email'}
+                    </span>
                   </button>
                 );
               })}
@@ -178,20 +210,21 @@ export default function ChooseCampaignTemplatePage() {
           <div className="mb-4 flex items-end justify-between gap-3">
             <p className="text-sm text-[#717171]">
               <span className="font-semibold text-[#0B1354]">{list.length}</span>{' '}
-              {activeTab === 'email' ? 'email' : 'SMS'} template
+              {CHANNEL_COUNT_LABEL[activeTab] || activeTab} template
               {list.length === 1 ? '' : 's'}
-              {activeTab === 'sms' ? ` for ${category.label.toLowerCase()}` : ''}
+              {activeTab === 'sms' || activeTab === 'whatsapp'
+                ? ` for ${category.label.toLowerCase()}`
+                : ''}
             </p>
           </div>
 
           {list.length === 0 ? (
             <div className="border border-dashed border-[#E4E4E7] bg-white px-6 py-16 text-center">
               <h2 className="text-lg font-bold text-[#0B1354]">
-                No {activeTab === 'email' ? 'email' : 'SMS'} templates in this category yet
+                No {CHANNEL_COUNT_LABEL[activeTab] || activeTab} templates in this category yet
               </h2>
               <p className="mt-2 text-sm text-[#717171]">
-                Try the {activeTab === 'email' ? 'SMS' : 'email'} tab, or go back and start this
-                campaign from scratch.
+                Try another channel tab, or go back and start this campaign from scratch.
               </p>
               <button
                 type="button"
@@ -236,34 +269,66 @@ export default function ChooseCampaignTemplatePage() {
                         />
                       </StaggerItem>
                     ))
-                  : pagedList.map((template) => (
-                      <StaggerItem key={template.id}>
-                        <TemplateGridCard
-                          eyebrow={template.categoryLabel}
-                          title={template.title}
-                          description={template.description}
-                          media={
-                            <SmsTemplateMiniPreview
-                              headline={template.previewTitle}
-                              body={template.smsMessage}
-                              cta={template.callToAction}
-                            />
-                          }
-                          onPreview={() =>
-                            setPreview({
-                              channel: 'sms',
-                              template,
-                              title: template.title,
-                              subtitle: `${template.categoryLabel} · SMS`,
-                              headline: template.previewTitle,
-                              body: template.smsMessage,
-                              cta: template.callToAction,
-                            })
-                          }
-                          onUse={() => handleUseTemplate('sms', template)}
-                        />
-                      </StaggerItem>
-                    ))}
+                  : activeTab === 'whatsapp'
+                    ? pagedList.map((template) => (
+                        <StaggerItem key={template.id}>
+                          <TemplateGridCard
+                            eyebrow={template.categoryLabel}
+                            title={template.title}
+                            description={template.description}
+                            media={
+                              <WhatsAppTemplateMiniPreview
+                                headline={template.previewTitle}
+                                body={template.whatsappMessage}
+                                cta={template.callToAction}
+                                image={template.image}
+                              />
+                            }
+                            onPreview={() =>
+                              setPreview({
+                                channel: 'whatsapp',
+                                template,
+                                title: template.title,
+                                subtitle: `${template.categoryLabel} · WhatsApp`,
+                                headline: template.previewTitle,
+                                body: template.whatsappMessage,
+                                cta: template.callToAction,
+                                image: template.image,
+                                footerNote: template.footerNote,
+                              })
+                            }
+                            onUse={() => handleUseTemplate('whatsapp', template)}
+                          />
+                        </StaggerItem>
+                      ))
+                    : pagedList.map((template) => (
+                        <StaggerItem key={template.id}>
+                          <TemplateGridCard
+                            eyebrow={template.categoryLabel}
+                            title={template.title}
+                            description={template.description}
+                            media={
+                              <SmsTemplateMiniPreview
+                                headline={template.previewTitle}
+                                body={template.smsMessage}
+                                cta={template.callToAction}
+                              />
+                            }
+                            onPreview={() =>
+                              setPreview({
+                                channel: 'sms',
+                                template,
+                                title: template.title,
+                                subtitle: `${template.categoryLabel} · SMS`,
+                                headline: template.previewTitle,
+                                body: template.smsMessage,
+                                cta: template.callToAction,
+                              })
+                            }
+                            onUse={() => handleUseTemplate('sms', template)}
+                          />
+                        </StaggerItem>
+                      ))}
               </StaggerReveal>
 
               <CampaignsPagination
@@ -290,6 +355,8 @@ export default function ChooseCampaignTemplatePage() {
         cta={preview?.cta}
         accent={preview?.accent}
         products={preview?.products}
+        image={preview?.image}
+        footerNote={preview?.footerNote}
       />
     </main>
   );

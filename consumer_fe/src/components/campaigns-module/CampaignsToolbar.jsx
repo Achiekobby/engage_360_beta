@@ -1,12 +1,13 @@
-import { Search } from 'lucide-react';
-import FilterDropdownChip from '../customer-engagement/FilterDropdownChip';
-import { CalendarDays, Layers } from 'lucide-react';
+import { Filter, Search } from 'lucide-react';
+import { clsx } from 'clsx';
 
-const STATUS_OPTIONS = ['All Status', 'Active', 'Scheduled', 'Draft', 'Completed'];
-const CHANNEL_OPTIONS = ['All Channels', 'SMS', 'Email', 'WhatsApp', 'Push Notification'];
-const DATE_OPTIONS = ['All Time', 'Last 7 days', 'Last 30 days', 'This Year'];
-
-export default function CampaignsToolbar({ searchQuery, onSearchChange, resultCount }) {
+export default function CampaignsToolbar({
+  searchQuery,
+  onSearchChange,
+  resultCount,
+  onOpenFilters,
+  activeFilterCount = 0,
+}) {
   return (
     <div className="rounded-sm border border-[#EEF0F4] bg-white p-4 shadow-[0_4px_20px_rgba(11,19,84,0.05)] sm:p-5">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
@@ -25,13 +26,28 @@ export default function CampaignsToolbar({ searchQuery, onSearchChange, resultCo
         </div>
 
         <div className="relative z-10 flex flex-wrap items-center gap-2 sm:gap-3">
-          <FilterDropdownChip label="Status" options={STATUS_OPTIONS} icon={Layers} />
-          <FilterDropdownChip label="Channel" options={CHANNEL_OPTIONS} icon={Layers} />
-          <FilterDropdownChip label="Date Filter" options={DATE_OPTIONS} icon={CalendarDays} />
+          <button
+            type="button"
+            onClick={onOpenFilters}
+            className={clsx(
+              'inline-flex cursor-pointer items-center gap-1.5 rounded-sm border px-3.5 py-2.5 text-sm font-semibold transition-colors',
+              activeFilterCount > 0
+                ? 'border-primary/30 bg-[#F7F8FF] text-primary'
+                : 'border-[#E4E4E7] bg-white text-[#0B1354] hover:border-primary/30 hover:bg-[#F7F8FF] hover:text-primary',
+            )}
+          >
+            <Filter className="h-4 w-4" strokeWidth={2} />
+            Filters
+            {activeFilterCount > 0 ? (
+              <span className="ml-0.5 rounded-full bg-primary px-1.5 py-0.5 text-[10px] font-semibold text-white">
+                {activeFilterCount}
+              </span>
+            ) : null}
+          </button>
         </div>
       </div>
 
-      {searchQuery ? (
+      {searchQuery || activeFilterCount > 0 ? (
         <p className="mt-3 text-sm text-[#717171]">
           Showing <span className="font-semibold text-[#0B1354]">{resultCount}</span> matching
           campaign{resultCount === 1 ? '' : 's'}

@@ -49,7 +49,7 @@ export default function OnboardBusinessPage() {
         backLabel="Businesses"
       />
 
-      <div className="mt-8 rounded-2xl border border-[#EEF0F4] bg-white p-5 shadow-[0_8px_30px_rgba(11,19,84,0.04)] sm:p-8">
+      <div className="admin-card mt-8 rounded-2xl border border-[#EEF0F4] bg-white p-5 sm:p-8">
         <OnboardingStepper step={step} onStepSelect={goToStep} />
 
         <Formik

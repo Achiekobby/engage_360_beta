@@ -49,7 +49,7 @@ export default function CampaignTemplatesPage() {
 
       <div className="mt-5 grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
         {rows.map((item) => (
-          <article key={item.id} className="flex flex-col rounded-xl border border-[#EEF0F4] bg-white p-4">
+          <article key={item.id} className="flex flex-col admin-card rounded-xl border border-[#EEF0F4] bg-white p-4">
             <p className="text-xs font-medium text-[#717171]">
               {labelFor(CAMPAIGN_CHANNELS, item.channel)} · {labelFor(CAMPAIGN_CATEGORIES, item.category)}
             </p>

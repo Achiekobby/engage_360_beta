@@ -27,7 +27,7 @@ export default function AnalyticsAudienceStats({ stats = ANALYTICS_AUDIENCE_STAT
         return (
           <article
             key={stat.id}
-            className="admin-card relative overflow-hidden rounded-xl border border-[#EEF0F4] bg-white p-4 sm:p-5"
+            className="admin-card relative admin-card overflow-hidden rounded-xl border border-[#EEF0F4] bg-white p-4 sm:p-5"
           >
             <div
               className={clsx('absolute inset-x-0 top-0 h-1', stat.accentClass)}

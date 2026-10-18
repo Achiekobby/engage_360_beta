@@ -7,21 +7,11 @@ import AdminSidebar from '../components/layout/AdminSidebar';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { closeMobileMenu, toggleMobileMenu, toggleSidebar } from '../store/slices/navSlice';
 
-function useIsWhiteSurface() {
-  const { pathname } = useLocation();
-
-  if (pathname.includes('/analytics')) return true;
-  if (pathname.startsWith('/automations')) return true;
-  if (pathname.startsWith('/settings/automations')) return true;
-  return false;
-}
-
 export default function AdminLayout({ children }) {
   const dispatch = useAppDispatch();
   const mobileMenuOpen = useAppSelector((state) => state.nav.mobileMenuOpen);
   const sidebarCollapsed = useAppSelector((state) => state.nav.sidebarCollapsed);
   const { pathname } = useLocation();
-  const isWhiteSurface = useIsWhiteSurface();
 
   useEffect(() => {
     dispatch(closeMobileMenu());
@@ -63,10 +53,7 @@ export default function AdminLayout({ children }) {
 
         <main
           data-admin-scroll
-          className={clsx(
-            'scrollbar-thin min-h-0 min-w-0 flex-1 overflow-y-auto overscroll-contain',
-            isWhiteSurface ? 'bg-white' : 'bg-[#F6F7FB]',
-          )}
+          className="scrollbar-thin min-h-0 min-w-0 flex-1 overflow-y-auto overscroll-contain bg-white"
         >
           <div className="flex min-h-full flex-col">
             <div className="flex-1">{children}</div>

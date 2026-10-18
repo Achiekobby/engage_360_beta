@@ -154,7 +154,7 @@ export default function PlatformAutomationsPage() {
           </span>
         }
       >
-        <div className="flex w-full min-w-0 flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+        <div className="flex w-full min-w-0 flex-col gap-3">
           <div className="min-w-0 overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             <div
               role="tablist"
@@ -206,7 +206,7 @@ export default function PlatformAutomationsPage() {
             </div>
           </div>
 
-          <div className="flex shrink-0 justify-start lg:justify-end">
+          <div className="flex justify-start sm:justify-end">
             <PlatformAutomationsFilters
               dateFilter={dateFilter}
               businessId={businessId}

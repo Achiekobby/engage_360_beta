@@ -2,14 +2,14 @@ import PlatformReportsSection from './PlatformReportsSection';
 import { buildHolidayReport } from './holidayReportsData';
 
 const HOLIDAY_THEME = {
-  iconClass: 'text-[#C2410C]',
+  iconClass: 'text-primary',
   selectClass:
-    'border-[#FED7AA] text-[#9A3412] hover:border-[#FDBA74] focus:border-[#EA580C] focus:ring-[#EA580C]/20',
-  titleClass: 'text-[#9A3412]',
-  valueClass: 'text-[#C2410C]',
-  chipClass: 'bg-[#FFF1E8] text-[#C2410C]',
-  rateLabelClass: 'text-[#C2410C]',
-  tabActiveClass: 'bg-[#C2410C] text-white shadow-sm',
+    'border-[#E4E4E7] text-[#0B1354] hover:border-primary/30 focus:border-primary/40 focus:ring-primary/15',
+  titleClass: 'text-[#0B1354]',
+  valueClass: 'text-[#0B1354]',
+  chipClass: 'bg-[#EDE8F8] text-primary',
+  rateLabelClass: 'text-[#717171]',
+  tabActiveClass: 'bg-primary text-white shadow-sm',
 };
 
 export default function HolidayReportsSection() {

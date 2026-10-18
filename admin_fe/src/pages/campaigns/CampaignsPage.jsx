@@ -135,7 +135,7 @@ export default function CampaignsPage() {
               type="button"
               onClick={() => setCategory(selected ? 'all' : item.id)}
               className={clsx(
-                'rounded-xl border bg-white p-4 text-left',
+                'admin-card-sm rounded-xl border bg-white p-4 text-left',
                 selected ? 'border-primary/40 bg-[#F8FAFF]' : 'border-[#EEF0F4] hover:border-[#D4D4D8]',
               )}
             >
@@ -185,7 +185,7 @@ export default function CampaignsPage() {
         </select>
       </div>
 
-      <div className="mt-5 overflow-hidden rounded-xl border border-[#EEF0F4] bg-white">
+      <div className="mt-5 admin-card overflow-hidden rounded-xl border border-[#EEF0F4] bg-white">
         {filtered.length ? (
           <table className="w-full text-left text-sm">
             <thead className="border-b border-[#EEF0F4] bg-[#FAFBFC] text-xs font-medium uppercase tracking-wide text-[#717171]">

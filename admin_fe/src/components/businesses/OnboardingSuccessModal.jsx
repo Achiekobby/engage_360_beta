@@ -23,7 +23,7 @@ export default function OnboardingSuccessModal({ business, onView, onBackToList 
       onClose={onView}
       closeOnBackdrop={false}
       labelledBy="onboarding-success-title"
-      panelClassName="relative w-full max-w-md overflow-hidden rounded-2xl border border-[#EEF0F4] bg-white text-foreground shadow-2xl"
+      panelClassName="relative w-full max-w-md admin-card overflow-hidden rounded-2xl border border-[#EEF0F4] bg-white text-foreground shadow-2xl"
     >
       <button
         type="button"

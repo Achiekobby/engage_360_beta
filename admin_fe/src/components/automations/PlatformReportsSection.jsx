@@ -100,7 +100,7 @@ export default function PlatformReportsSection({
   );
 
   return (
-    <section className="admin-card overflow-hidden rounded-2xl border border-[#E4E4E7] bg-white p-4 sm:p-5 lg:p-6">
+    <section className="admin-card overflow-hidden admin-card-sm rounded-2xl border border-[#E4E4E7] bg-white p-4 sm:p-5 lg:p-6">
       <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
         <div className="flex flex-wrap items-center gap-2 sm:gap-3">
           <FilterSelect
@@ -196,7 +196,7 @@ export default function PlatformReportsSection({
         </div>
       ) : (
         <div className="mt-6 space-y-5">
-          <div className="admin-card-sm flex flex-col gap-3 rounded-xl border border-[#E4E4E7] bg-white px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-5">
+          <div className="admin-card-sm flex flex-col gap-3 admin-card-sm rounded-xl border border-[#E4E4E7] bg-white px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-5">
             <p className={clsx('text-sm font-semibold', theme.titleClass)}>{statsReportLabel}</p>
 
             <div className="inline-flex self-start rounded-full bg-[#F4F5F7] p-1 sm:self-auto">
