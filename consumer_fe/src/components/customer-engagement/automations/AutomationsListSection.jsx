@@ -1,11 +1,14 @@
 import { clsx } from 'clsx';
 import { StaggerItem, StaggerReveal } from '../../motion';
+import AutomationDataTable from './AutomationDataTable';
 import AutomationListItem from './AutomationListItem';
 import AutomationsPagination from './AutomationsPagination';
 import { AUTOMATION_VIEW_TABS } from './automationsData';
 
 export default function AutomationsListSection({
   activeView,
+  activeKind = '',
+  activeType = '',
   onViewChange,
   items,
   selectedIds,
@@ -19,6 +22,8 @@ export default function AutomationsListSection({
   pageSize,
   onPageChange,
 }) {
+  const useTable = activeKind === 'welcome';
+  const listKey = `${activeType}-${activeKind}-${activeView}-${currentPage}`;
   const allPageSelected =
     items.length > 0 && items.every((item) => selectedIds.has(item.id));
   const somePageSelected =
@@ -32,7 +37,7 @@ export default function AutomationsListSection({
             {activeView === 'history' ? 'History' : 'Upcoming'}
           </h2>
 
-          {items.length ? (
+          {items.length && !useTable ? (
             <label className="inline-flex cursor-pointer items-center gap-2 text-sm text-[#717171]">
               <input
                 type="checkbox"
@@ -74,23 +79,35 @@ export default function AutomationsListSection({
       <div className="mt-5">
         {items.length ? (
           <>
-            <StaggerReveal
-              key={`page-${currentPage}-${activeView}`}
-              className="flex flex-col gap-1.5"
-              stagger={0.04}
-            >
-              {items.map((item) => (
-                <StaggerItem key={item.id}>
-                  <AutomationListItem
-                    item={item}
-                    selected={selectedIds.has(item.id)}
-                    onToggleSelect={onToggleSelect}
-                    onView={onViewItem}
-                    onDelete={onDeleteItem}
-                  />
-                </StaggerItem>
-              ))}
-            </StaggerReveal>
+            {useTable ? (
+              <AutomationDataTable
+                items={items}
+                selectedIds={selectedIds}
+                onToggleSelect={onToggleSelect}
+                onToggleSelectAll={onToggleSelectAll}
+                onViewItem={onViewItem}
+                onDeleteItem={onDeleteItem}
+              />
+            ) : (
+              <StaggerReveal
+                key={listKey}
+                when="load"
+                className="flex flex-col gap-1.5"
+                stagger={0.04}
+              >
+                {items.map((item) => (
+                  <StaggerItem key={item.id}>
+                    <AutomationListItem
+                      item={item}
+                      selected={selectedIds.has(item.id)}
+                      onToggleSelect={onToggleSelect}
+                      onView={onViewItem}
+                      onDelete={onDeleteItem}
+                    />
+                  </StaggerItem>
+                ))}
+              </StaggerReveal>
+            )}
 
             <AutomationsPagination
               currentPage={currentPage}

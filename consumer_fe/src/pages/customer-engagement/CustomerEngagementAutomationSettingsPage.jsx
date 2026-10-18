@@ -61,7 +61,8 @@ export default function CustomerEngagementAutomationSettingsPage() {
       ) : null}
 
       <AutomationSettingsForm
-        initialValues={getPopulatedAutomationSettings()}
+        kindId={kindId}
+        initialValues={getPopulatedAutomationSettings(kindId)}
         title={copy.title}
         subtitle={copy.subtitle}
         onClose={() => navigate(backPath)}

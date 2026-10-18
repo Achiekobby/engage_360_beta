@@ -26,7 +26,11 @@ export default function AutomationInsightNav({
 
   return (
     <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-      <AnalyticsQuickLinks activeTab={activeTab} onTabChange={handleTabChange} />
+      <AnalyticsQuickLinks
+        kindId={kindId}
+        activeTab={activeTab}
+        onTabChange={handleTabChange}
+      />
 
       <button
         type="button"

@@ -4,6 +4,21 @@ export const ANALYTICS_QUICK_LINKS = [
   { id: 'audience', label: 'Audience' },
 ];
 
+const OVERVIEW_TAB_LABELS = {
+  birthday: 'Birthday Overview',
+  welcome: 'Welcome Overview',
+  anniversary: 'Anniversary Overview',
+  holidays: 'Holiday Overview',
+};
+
+export function getAnalyticsQuickLinks(kindId = 'birthday') {
+  return ANALYTICS_QUICK_LINKS.map((tab) =>
+    tab.id === 'overview'
+      ? { ...tab, label: OVERVIEW_TAB_LABELS[kindId] || 'Overview' }
+      : tab,
+  );
+}
+
 export const ANALYTICS_METRIC_SECTIONS = [
   {
     id: 'delivery',
@@ -11,7 +26,7 @@ export const ANALYTICS_METRIC_SECTIONS = [
     metrics: [
       { id: 'sms-launch', label: 'SMS Launch', value: '1.5K', tone: 'rocket' },
       { id: 'audience-celebrated', label: 'Audience Celebrated', value: '1.5k', tone: 'ticket' },
-      { id: 'sms-pending', label: 'SMS Pending', value: '0,5k', tone: 'rocket' },
+      { id: 'sms-pending', label: 'SMS Pending', value: '0.5k', tone: 'rocket' },
       { id: 'sms-delivered', label: 'SMS Delivered', value: '14k', tone: 'ticket' },
       { id: 'sms-failed', label: 'SMS Failed', value: '1k', tone: 'ticket' },
     ],
@@ -85,7 +100,7 @@ const AUDIENCE_SEEDS = [
     productNumber: '233244778899',
     email: 'kojo.asante@gmail.com',
     category: 'Dealboxx',
-    collection: 'VIP Segment',
+    collection: 'Anniversary Club',
   },
   {
     fullName: 'Abena Darko',

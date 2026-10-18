@@ -30,6 +30,7 @@ export default function BirthdayInsightsSection() {
     setActiveTab(tabId);
     const next = new URLSearchParams(searchParams);
     next.set('tab', 'automations');
+    next.set('kind', 'birthday');
     if (tabId === 'overview') next.delete('page');
     else next.set('page', tabId);
     setSearchParams(next, { replace: true });

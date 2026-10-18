@@ -5,8 +5,8 @@ import { Images } from 'lucide-react';
 import {
   ATTACHMENT_SIZE_GUIDES,
   ATTACHMENT_TYPE_OPTIONS,
-  FIELD_HELP,
 } from './settingsData';
+import { useSettingsKindCopy } from './settingsKindContext';
 import {
   SettingsFieldError,
   SettingsLabel,
@@ -23,6 +23,7 @@ const ACCEPT_BY_TYPE = {
 
 export default function AttachmentOnlySetup() {
   const { values, setFieldValue, errors, touched } = useFormikContext();
+  const { help } = useSettingsKindCopy();
   const uploadError = Boolean(touched.attachmentName && errors.attachmentName);
   const activeType = values.attachmentType || 'image';
   const sizeGuide = ATTACHMENT_SIZE_GUIDES[activeType] || ATTACHMENT_SIZE_GUIDES.image;
@@ -50,7 +51,7 @@ export default function AttachmentOnlySetup() {
     <div className="space-y-5">
       <MediaTypeCards
         label="Attachment type"
-        help={FIELD_HELP.attachmentType}
+        help={help.attachmentType}
         options={ATTACHMENT_TYPE_OPTIONS}
         value={activeType}
         onChange={(next) => setFieldValue('attachmentType', next)}
@@ -59,7 +60,7 @@ export default function AttachmentOnlySetup() {
       />
 
       <div>
-        <SettingsLabel htmlFor="attachment-only-upload" help={FIELD_HELP.attachmentUpload}>
+        <SettingsLabel htmlFor="attachment-only-upload" help={help.attachmentUpload}>
           Upload {ATTACHMENT_TYPE_OPTIONS.find((item) => item.value === activeType)?.label}
         </SettingsLabel>
 

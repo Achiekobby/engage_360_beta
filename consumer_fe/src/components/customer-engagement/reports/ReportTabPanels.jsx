@@ -1,16 +1,25 @@
+import { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import {
   Activity,
+  Award,
   BarChart3,
   Database,
   Gift,
+  MessageSquare,
   PieChart,
   Radio,
   RefreshCw,
   Users,
+  Wallet,
 } from 'lucide-react';
+import { clsx } from 'clsx';
 import { Reveal, StaggerItem, StaggerReveal } from '../../motion';
 import MetricCard from '../dashboard/MetricCard';
+import AnniversaryInsightsSection from '../automations/AnniversaryInsightsSection';
 import BirthdayInsightsSection from '../automations/BirthdayInsightsSection';
+import HolidayInsightsSection from '../automations/HolidayInsightsSection';
+import WelcomeInsightsSection from '../automations/WelcomeInsightsSection';
 import ReportSectionHeader from './ReportSectionHeader';
 import {
   ReportBarChart,
@@ -295,15 +304,98 @@ function ChurnRetentionReportTab() {
   );
 }
 
+const AUTOMATION_REPORT_KINDS = [
+  { id: 'birthday', label: 'Birthday', icon: Gift },
+  { id: 'welcome', label: 'Welcome Message', icon: MessageSquare },
+  { id: 'anniversary', label: 'Customer Anniversary', icon: Award },
+  { id: 'holidays', label: 'Holiday & Festive Seasons', icon: Wallet },
+];
+
+const AUTOMATION_REPORT_COPY = {
+  birthday: {
+    title: 'Birthday Automation Reports',
+    subtitle: 'Birthday automation overview and engagement & conversions performance',
+  },
+  welcome: {
+    title: 'Welcome Message Reports',
+    subtitle: 'Welcome message overview and engagement & conversions performance',
+  },
+  anniversary: {
+    title: 'Customer Anniversary Reports',
+    subtitle: 'Anniversary overview and engagement & conversions performance',
+  },
+  holidays: {
+    title: 'Holiday & Festive Seasons Reports',
+    subtitle: 'Holiday & festive season overview and engagement & conversions performance',
+  },
+};
+
+const AUTOMATION_REPORT_PANELS = {
+  birthday: BirthdayInsightsSection,
+  welcome: WelcomeInsightsSection,
+  anniversary: AnniversaryInsightsSection,
+  holidays: HolidayInsightsSection,
+};
+
 function AutomationsReportTab() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const kindFromUrl = searchParams.get('kind');
+  const [activeKind, setActiveKind] = useState(
+    AUTOMATION_REPORT_PANELS[kindFromUrl] ? kindFromUrl : 'birthday',
+  );
+
+  useEffect(() => {
+    if (AUTOMATION_REPORT_PANELS[kindFromUrl]) {
+      setActiveKind(kindFromUrl);
+    }
+  }, [kindFromUrl]);
+
+  const handleKindChange = (kindId) => {
+    setActiveKind(kindId);
+    const next = new URLSearchParams(searchParams);
+    next.set('tab', 'automations');
+    next.set('kind', kindId);
+    next.delete('page');
+    setSearchParams(next, { replace: true });
+  };
+
+  const copy = AUTOMATION_REPORT_COPY[activeKind] || AUTOMATION_REPORT_COPY.birthday;
+  const KindIcon =
+    AUTOMATION_REPORT_KINDS.find((kind) => kind.id === activeKind)?.icon || Gift;
+  const InsightsPanel = AUTOMATION_REPORT_PANELS[activeKind] || BirthdayInsightsSection;
+
   return (
     <div className="space-y-6">
       <ReportSectionHeader
-        icon={TAB_ICONS.automations}
-        title="Automation Reports"
-        subtitle="Birthday automation overview and engagement & conversions performance"
+        icon={KindIcon}
+        title={copy.title}
+        subtitle={copy.subtitle}
       />
-      <BirthdayInsightsSection />
+
+      <div className="flex flex-wrap gap-2">
+        {AUTOMATION_REPORT_KINDS.map((kind) => {
+          const active = activeKind === kind.id;
+          const Icon = kind.icon;
+          return (
+            <button
+              key={kind.id}
+              type="button"
+              onClick={() => handleKindChange(kind.id)}
+              className={clsx(
+                'inline-flex cursor-pointer items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold transition-colors',
+                active
+                  ? 'border-primary bg-primary text-white'
+                  : 'border-[#E4E4E7] bg-white text-[#717171] hover:border-primary/30 hover:text-[#0B1354]',
+              )}
+            >
+              <Icon className="h-4 w-4" strokeWidth={2.25} />
+              {kind.label}
+            </button>
+          );
+        })}
+      </div>
+
+      <InsightsPanel />
     </div>
   );
 }

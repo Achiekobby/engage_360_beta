@@ -1,21 +1,34 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Form, Formik, useFormikContext } from 'formik';
 import { clsx } from 'clsx';
-import { Eye, Gift, Pencil, Plus } from 'lucide-react';
+import {
+  Award,
+  Bell,
+  CalendarDays,
+  Eye,
+  Gift,
+  MessageSquare,
+  Pencil,
+  Plus,
+  Wallet,
+} from 'lucide-react';
 import {
   ALERT_DAY_OPTIONS,
+  ANNIVERSARY_TIME_OPTIONS,
   APPROVAL_OPTIONS,
   ATTACHMENT_SIZE_GUIDES,
   CHANNEL_OPTIONS,
   CTA_OPTIONS,
   DEFAULT_AUTOMATION_SETTINGS,
-  FIELD_HELP,
   OFFER_SETUP_OPTIONS,
   OFFER_VISUAL_OPTIONS,
   SENDING_TIME_OPTIONS,
   applyEnabledDefaults,
+  getPopulatedAutomationSettings,
+  getSettingsUiCopy,
 } from './settingsData';
-import { automationSettingsSchema } from './settingsValidation';
+import { getAutomationSettingsSchema } from './settingsValidation';
+import { SettingsKindProvider, useSettingsKindCopy } from './settingsKindContext';
 import AttachmentOnlySetup from './AttachmentOnlySetup';
 import AutomationCustomerPreview from './AutomationCustomerPreview';
 import MediaTypeCards from './MediaTypeCards';
@@ -29,6 +42,15 @@ import {
   SettingsUploadField,
   ToolbarSelect,
 } from './AutomationSettingsFields';
+
+const KIND_ICONS = {
+  gift: Gift,
+  message: MessageSquare,
+  award: Award,
+  calendar: CalendarDays,
+  bell: Bell,
+  wallet: Wallet,
+};
 
 function ChannelToolbar({ onOpenTemplates, activeTemplateName, onChannelChange }) {
   const { values, setFieldValue, errors, touched } = useFormikContext();
@@ -103,6 +125,7 @@ function ExtraAttachments() {
 
 function OfferSetupFields() {
   const { values, setFieldValue } = useFormikContext();
+  const { help, placeholders } = useSettingsKindCopy();
 
   return (
     <div className="space-y-5">
@@ -110,9 +133,9 @@ function OfferSetupFields() {
         id="description"
         name="description"
         label="Description"
-        placeholder="Give a brief description of your offer"
+        placeholder={placeholders.description}
         rows={5}
-        help={FIELD_HELP.description}
+        help={help.description}
       />
 
       <SettingsUploadField
@@ -120,7 +143,7 @@ function OfferSetupFields() {
         name="bannerName"
         label="Banner"
         optional
-        help={FIELD_HELP.bannerName}
+        help={help.bannerName}
         previewKey="bannerPreviewUrl"
         sizeKey="bannerFileSize"
         bytesKey="bannerFileBytes"
@@ -130,7 +153,7 @@ function OfferSetupFields() {
 
       <MediaTypeCards
         label="Offer Visual"
-        help={FIELD_HELP.offerVisual}
+        help={help.offerVisual}
         options={OFFER_VISUAL_OPTIONS}
         value={values.offerVisual || 'image'}
         onChange={(next) => setFieldValue('offerVisual', next)}
@@ -144,7 +167,7 @@ function OfferSetupFields() {
           name="attachmentName"
           label="Attachment"
           optional
-          help={FIELD_HELP.attachmentName}
+          help={help.attachmentName}
           previewKey="attachmentPreviewUrl"
           sizeKey="attachmentFileSize"
           bytesKey="attachmentFileBytes"
@@ -159,9 +182,9 @@ function OfferSetupFields() {
         id="voucherCode"
         name="voucherCode"
         label="Voucher / Offer Code"
-        placeholder="Enter your voucher /offer code"
+        placeholder={placeholders.voucherCode}
         optional
-        help={FIELD_HELP.voucherCode}
+        help={help.voucherCode}
       />
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-5">
@@ -171,21 +194,21 @@ function OfferSetupFields() {
           label="Offer Expiry Date"
           placeholder="Select"
           type="date"
-          help={FIELD_HELP.offerExpiryDate}
+          help={help.offerExpiryDate}
         />
         <SettingsTextField
           id="price"
           name="price"
           label="Price"
           placeholder="Enter price"
-          help={FIELD_HELP.price}
+          help={help.price}
         />
         <SettingsTextField
           id="discountedPrice"
           name="discountedPrice"
           label="Discounted Price"
           placeholder="Enter discounted price"
-          help={FIELD_HELP.discountedPrice}
+          help={help.discountedPrice}
         />
       </div>
     </div>
@@ -218,7 +241,7 @@ function CtaFieldEffects() {
   return null;
 }
 
-function EnabledDefaultsEffect() {
+function EnabledDefaultsEffect({ kindId }) {
   const { values, setValues } = useFormikContext();
   const wasEnabledRef = useRef(values.enabled);
   const valuesRef = useRef(values);
@@ -230,16 +253,20 @@ function EnabledDefaultsEffect() {
 
     if (!justEnabled) return;
 
-    setValues(applyEnabledDefaults(valuesRef.current), false);
-  }, [values.enabled, setValues]);
+    setValues(
+      applyEnabledDefaults(valuesRef.current, getPopulatedAutomationSettings(kindId)),
+      false,
+    );
+  }, [values.enabled, setValues, kindId]);
 
   return null;
 }
 
 export default function AutomationSettingsForm({
+  kindId = 'birthday',
   initialValues = DEFAULT_AUTOMATION_SETTINGS,
-  title = 'Settings',
-  subtitle = 'Set-up your birthday automatically at once',
+  title,
+  subtitle,
   onClose,
   onSaved,
 }) {
@@ -248,10 +275,18 @@ export default function AutomationSettingsForm({
   const [activeTemplateId, setActiveTemplateId] = useState('');
   const [activeTemplateName, setActiveTemplateName] = useState('');
 
+  const uiCopy = useMemo(() => getSettingsUiCopy(kindId), [kindId]);
+  const validationSchema = useMemo(() => getAutomationSettingsSchema(kindId), [kindId]);
+  const HeaderIcon = KIND_ICONS[uiCopy.headerIcon] ?? Gift;
+  const pageTitle = title ?? uiCopy.title;
+  const pageSubtitle = subtitle ?? uiCopy.subtitle;
+
   return (
+    <SettingsKindProvider kindId={kindId}>
     <Formik
       initialValues={initialValues}
-      validationSchema={automationSettingsSchema}
+      enableReinitialize
+      validationSchema={validationSchema}
       onSubmit={(values, helpers) => {
         onSaved?.(values);
         helpers.setSubmitting(false);
@@ -260,11 +295,12 @@ export default function AutomationSettingsForm({
       {({ values, setFieldValue, isSubmitting, setFieldTouched }) => (
         <Form className="space-y-5 sm:space-y-6" noValidate>
           <CtaFieldEffects />
-          <EnabledDefaultsEffect />
+          <EnabledDefaultsEffect kindId={kindId} />
           <MessageTemplateDrawer
             isOpen={templateDrawerOpen}
             onClose={() => setTemplateDrawerOpen(false)}
             channel={values.channel || 'sms'}
+            kindId={kindId}
             activeTemplateId={activeTemplateId}
             onUse={(template) => {
               const setup = template.offerSetup || 'message-only';
@@ -308,13 +344,13 @@ export default function AutomationSettingsForm({
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div className="flex min-w-0 items-start gap-3">
               <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary text-white">
-                <Gift className="h-5 w-5" strokeWidth={2} />
+                <HeaderIcon className="h-5 w-5" strokeWidth={2} />
               </span>
               <div>
                 <h1 className="text-2xl font-bold tracking-tight text-[#0B1354] sm:text-[1.75rem]">
-                  {title}
+                  {pageTitle}
                 </h1>
-                <p className="mt-1 text-sm text-[#717171] sm:text-base">{subtitle}</p>
+                <p className="mt-1 text-sm text-[#717171] sm:text-base">{pageSubtitle}</p>
               </div>
             </div>
 
@@ -353,27 +389,37 @@ export default function AutomationSettingsForm({
                   <SettingsSelectField
                     id="approvalOption"
                     name="approvalOption"
-                    label="Approval Options"
-                    placeholder="Set birthday approval option"
+                    label={uiCopy.labels.approvalOption}
+                    placeholder={uiCopy.placeholders.approvalOption}
                     options={APPROVAL_OPTIONS}
-                    help={FIELD_HELP.approvalOption}
+                    help={uiCopy.help.approvalOption}
                   />
                   <SettingsSelectField
                     id="alertDays"
                     name="alertDays"
-                    label="Business Alerts Before Birthday"
-                    placeholder="Select the days for alert"
+                    label={uiCopy.labels.alertDays}
+                    placeholder={uiCopy.placeholders.alertDays}
                     options={ALERT_DAY_OPTIONS}
-                    help={FIELD_HELP.alertDays}
+                    help={uiCopy.help.alertDays}
                   />
                   <SettingsSelectField
                     id="sendingTime"
                     name="sendingTime"
-                    label="Birthday Sending Time"
-                    placeholder="Set the birthday sending time"
+                    label={uiCopy.labels.sendingTime}
+                    placeholder={uiCopy.placeholders.sendingTime}
                     options={SENDING_TIME_OPTIONS}
-                    help={FIELD_HELP.sendingTime}
+                    help={uiCopy.help.sendingTime}
                   />
+                  {kindId === 'anniversary' ? (
+                    <SettingsSelectField
+                      id="anniversaryTime"
+                      name="anniversaryTime"
+                      label={uiCopy.labels.anniversaryTime}
+                      placeholder={uiCopy.placeholders.anniversaryTime}
+                      options={ANNIVERSARY_TIME_OPTIONS}
+                      help={uiCopy.help.anniversaryTime}
+                    />
+                  ) : null}
                 </div>
               </SettingsSection>
 
@@ -411,45 +457,45 @@ export default function AutomationSettingsForm({
                   <SettingsTextField
                     id="title"
                     name="title"
-                    label="Title"
-                    placeholder="Enter the offer title"
-                    help={FIELD_HELP.title}
+                    label={uiCopy.labels.title}
+                    placeholder={uiCopy.placeholders.title}
+                    help={uiCopy.help.title}
                   />
                   <SettingsSelectField
                     id="callToAction"
                     name="callToAction"
-                    label="Call to Action"
-                    placeholder="Select"
+                    label={uiCopy.labels.callToAction}
+                    placeholder={uiCopy.placeholders.callToAction}
                     options={CTA_OPTIONS}
-                    help={FIELD_HELP.callToAction}
+                    help={uiCopy.help.callToAction}
                   />
                   {values.callToAction === 'other' ? (
                     <SettingsTextField
                       id="customCtaLabel"
                       name="customCtaLabel"
-                      label="Custom CTA"
-                      placeholder="Enter your custom call to action"
-                      help={FIELD_HELP.customCtaLabel}
+                      label={uiCopy.labels.customCtaLabel}
+                      placeholder={uiCopy.placeholders.customCtaLabel}
+                      help={uiCopy.help.customCtaLabel}
                     />
                   ) : null}
                   {values.callToAction ? (
                     <SettingsTextField
                       id="ctaLink"
                       name="ctaLink"
-                      label="CTA Link"
-                      placeholder="https://example.com/offer"
+                      label={uiCopy.labels.ctaLink}
+                      placeholder={uiCopy.placeholders.ctaLink}
                       type="url"
-                      help={FIELD_HELP.ctaLink}
+                      help={uiCopy.help.ctaLink}
                     />
                   ) : null}
                   <div className="md:col-span-2">
                     <SettingsTextArea
                       id="message"
                       name="message"
-                      label="Message"
-                      placeholder="Type in the birthday message for your customers"
+                      label={uiCopy.labels.message}
+                      placeholder={uiCopy.placeholders.message}
                       rows={5}
-                      help={FIELD_HELP.message}
+                      help={uiCopy.help.message}
                     />
                   </div>
                 </div>
@@ -510,5 +556,6 @@ export default function AutomationSettingsForm({
         </Form>
       )}
     </Formik>
+    </SettingsKindProvider>
   );
 }

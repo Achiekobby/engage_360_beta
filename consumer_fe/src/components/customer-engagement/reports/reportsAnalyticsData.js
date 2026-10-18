@@ -45,7 +45,8 @@ export const REPORT_TABS = [
     id: 'automations',
     label: 'Automations',
     title: 'Automation Reports',
-    subtitle: 'Birthday automation overview and engagement performance',
+    subtitle:
+      'Birthday, Welcome, Anniversary, and Holiday & Festive Seasons overview and engagement performance',
   },
 ];
 

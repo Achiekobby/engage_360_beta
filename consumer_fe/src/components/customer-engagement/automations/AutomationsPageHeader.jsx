@@ -1,5 +1,14 @@
 import { useNavigate } from 'react-router-dom';
-import { Award, BarChart3, Bell, CalendarDays, Gift, MessageSquare, Settings } from 'lucide-react';
+import {
+  Award,
+  BarChart3,
+  Bell,
+  CalendarDays,
+  Gift,
+  MessageSquare,
+  Settings,
+  Wallet,
+} from 'lucide-react';
 import { CUSTOMER_ENGAGEMENT_BASE } from '../customerEngagementNavData';
 
 const KIND_ICONS = {
@@ -8,6 +17,7 @@ const KIND_ICONS = {
   award: Award,
   calendar: CalendarDays,
   bell: Bell,
+  wallet: Wallet,
 };
 
 export default function AutomationsPageHeader({ kind }) {

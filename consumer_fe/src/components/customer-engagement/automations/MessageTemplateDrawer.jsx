@@ -226,6 +226,7 @@ export default function MessageTemplateDrawer({
   onClose,
   onUse,
   channel = 'sms',
+  kindId = 'birthday',
   activeTemplateId = '',
 }) {
   const [setupFilter, setSetupFilter] = useState('all');
@@ -233,8 +234,8 @@ export default function MessageTemplateDrawer({
   const [page, setPage] = useState(1);
 
   const templates = useMemo(
-    () => getMessageTemplatesForChannel(channel, setupFilter),
-    [channel, setupFilter],
+    () => getMessageTemplatesForChannel(channel, setupFilter, kindId),
+    [channel, setupFilter, kindId],
   );
 
   const totalPages = Math.max(1, Math.ceil(templates.length / TEMPLATES_PAGE_SIZE));
@@ -250,7 +251,7 @@ export default function MessageTemplateDrawer({
   useEffect(() => {
     if (!isOpen) return;
     setSetupFilter('all');
-  }, [isOpen, channel]);
+  }, [isOpen, channel, kindId]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -264,7 +265,7 @@ export default function MessageTemplateDrawer({
 
     setPage(1);
     setPreviewId(templates[0]?.id || '');
-  }, [isOpen, channel, setupFilter, activeTemplateId, templates]);
+  }, [isOpen, channel, kindId, setupFilter, activeTemplateId, templates]);
 
   useEffect(() => {
     if (!isOpen || !pageTemplates.length) return;
@@ -283,7 +284,15 @@ export default function MessageTemplateDrawer({
       isOpen={isOpen}
       onClose={onClose}
       title={`${channelLabel} templates`}
-      subtitle="Filter by Offer Setup, Attachment Only, or Message only. Preview, then use to fill the form."
+      subtitle={
+        kindId === 'welcome'
+          ? 'Welcome Message templates by Offer Setup, Attachment Only, or Message only. Preview, then use to fill the form.'
+          : kindId === 'anniversary'
+            ? 'Customer Anniversary templates by Offer Setup, Attachment Only, or Message only. Preview, then use to fill the form.'
+            : kindId === 'holidays'
+              ? 'Holiday & Festive Seasons templates by Offer Setup, Attachment Only, or Message only. Preview, then use to fill the form.'
+              : 'Filter by Offer Setup, Attachment Only, or Message only. Preview, then use to fill the form.'
+      }
       maxWidth="max-w-7xl"
       footer={
         <div className="flex flex-wrap items-center justify-between gap-3">

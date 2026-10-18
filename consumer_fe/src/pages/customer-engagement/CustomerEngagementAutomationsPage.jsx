@@ -14,6 +14,7 @@ import {
   getKindMeta,
   getKindsForType,
 } from '../../components/customer-engagement/automations';
+
 function filterAutomationItems({
   items,
   type,
@@ -52,30 +53,38 @@ export default function CustomerEngagementAutomationsPage() {
   const [activeKind, setActiveKind] = useState('birthday');
   const [activeView, setActiveView] = useState('upcoming');
   const [searchQuery, setSearchQuery] = useState('');
-  const [refreshKey, setRefreshKey] = useState(0);
   const [page, setPage] = useState(1);
   const [filters, setFilters] = useState(AUTOMATION_FILTER_DEFAULTS);
   const [filterDrawerOpen, setFilterDrawerOpen] = useState(false);
   const [selectedIds, setSelectedIds] = useState(() => new Set());
-  const [items, setItems] = useState(() => [...AUTOMATION_ITEMS]);
+  const [removedIds, setRemovedIds] = useState(() => new Set());
 
   const kinds = useMemo(() => getKindsForType(activeType), [activeType]);
+  const resolvedKind = useMemo(() => {
+    if (kinds.some((kind) => kind.id === activeKind)) return activeKind;
+    return kinds[0]?.id || '';
+  }, [kinds, activeKind]);
   const kindMeta = useMemo(
-    () => getKindMeta(activeType, activeKind),
-    [activeType, activeKind],
+    () => getKindMeta(activeType, resolvedKind),
+    [activeType, resolvedKind],
+  );
+
+  const sourceItems = useMemo(
+    () => AUTOMATION_ITEMS.filter((item) => !removedIds.has(item.id)),
+    [removedIds],
   );
 
   const filteredItems = useMemo(
     () =>
       filterAutomationItems({
-        items,
+        items: sourceItems,
         type: activeType,
-        kind: activeKind,
+        kind: resolvedKind,
         view: activeView,
         searchQuery,
         filters,
       }),
-    [items, activeType, activeKind, activeView, searchQuery, filters, refreshKey],
+    [sourceItems, activeType, resolvedKind, activeView, searchQuery, filters],
   );
 
   const totalItems = filteredItems.length;
@@ -88,19 +97,30 @@ export default function CustomerEngagementAutomationsPage() {
   }, [filteredItems, page]);
 
   useEffect(() => {
+    if (resolvedKind && resolvedKind !== activeKind) {
+      setActiveKind(resolvedKind);
+    }
+  }, [resolvedKind, activeKind]);
+
+  useEffect(() => {
     setPage(1);
     setSelectedIds(new Set());
-  }, [activeType, activeKind, activeView, searchQuery, filters]);
+  }, [activeType, resolvedKind, activeView, searchQuery, filters]);
 
   useEffect(() => {
     if (page > totalPages) setPage(totalPages);
   }, [page, totalPages]);
 
   const handleTypeChange = (typeId) => {
-    setActiveType(typeId);
     const nextKinds = getKindsForType(typeId);
+    setActiveType(typeId);
     setActiveKind(nextKinds[0]?.id ?? '');
+    setActiveView('upcoming');
     setSearchQuery('');
+    setFilters(AUTOMATION_FILTER_DEFAULTS);
+    setRemovedIds(new Set());
+    setSelectedIds(new Set());
+    setPage(1);
   };
 
   const handleToggleSelect = (id) => {
@@ -130,7 +150,11 @@ export default function CustomerEngagementAutomationsPage() {
 
   const removeItems = (ids) => {
     const idSet = ids instanceof Set ? ids : new Set(ids);
-    setItems((prev) => prev.filter((item) => !idSet.has(item.id)));
+    setRemovedIds((prev) => {
+      const next = new Set(prev);
+      idSet.forEach((id) => next.add(id));
+      return next;
+    });
     setSelectedIds((prev) => {
       const next = new Set(prev);
       idSet.forEach((id) => next.delete(id));
@@ -148,28 +172,42 @@ export default function CustomerEngagementAutomationsPage() {
       <Reveal when="load" variant="fadeUp" delay={0.04}>
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <AutomationsTypeTabs activeType={activeType} onTypeChange={handleTypeChange} />
-          <AutomationsKindChips
-            kinds={kinds}
-            activeKind={activeKind}
-            onKindChange={(kindId) => {
-              setActiveKind(kindId);
-              setSearchQuery('');
-            }}
-          />
+          {kinds.length > 1 ? (
+            <AutomationsKindChips
+              kinds={kinds}
+              activeKind={resolvedKind}
+              onKindChange={(kindId) => {
+                setActiveKind(kindId);
+                setSearchQuery('');
+              }}
+            />
+          ) : null}
         </div>
       </Reveal>
 
-      <Reveal when="load" variant="fadeUp" delay={0.08} className="mt-8">
+      <Reveal
+        key={`header-${activeType}-${resolvedKind}`}
+        when="load"
+        variant="fadeUp"
+        delay={0.08}
+        className="mt-8"
+      >
         <AutomationsPageHeader kind={kindMeta} />
       </Reveal>
 
-      <Reveal when="load" variant="fadeUp" delay={0.12} className="mt-6">
+      <Reveal
+        key={`toolbar-${activeType}-${resolvedKind}`}
+        when="load"
+        variant="fadeUp"
+        delay={0.12}
+        className="mt-6"
+      >
         <AutomationsToolbar
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
           onRefresh={() => {
-            setItems([...AUTOMATION_ITEMS]);
-            setRefreshKey((value) => value + 1);
+            setRemovedIds(new Set());
+            setSelectedIds(new Set());
           }}
           onOpenFilters={() => setFilterDrawerOpen(true)}
           onDeleteSelected={handleBulkDelete}
@@ -178,9 +216,17 @@ export default function CustomerEngagementAutomationsPage() {
         />
       </Reveal>
 
-      <Reveal when="load" variant="fadeUp" delay={0.16} className="mt-8">
+      <Reveal
+        key={`list-${activeType}-${resolvedKind}-${activeView}`}
+        when="load"
+        variant="fadeUp"
+        delay={0.16}
+        className="mt-8"
+      >
         <AutomationsListSection
           activeView={activeView}
+          activeKind={resolvedKind}
+          activeType={activeType}
           onViewChange={setActiveView}
           items={pageItems}
           selectedIds={selectedIds}

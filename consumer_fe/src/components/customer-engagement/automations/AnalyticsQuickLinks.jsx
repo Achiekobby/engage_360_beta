@@ -1,10 +1,16 @@
 import { clsx } from 'clsx';
-import { ANALYTICS_QUICK_LINKS } from './analyticsData';
+import { getAnalyticsQuickLinks } from './analyticsData';
 
-export default function AnalyticsQuickLinks({ activeTab, onTabChange }) {
+export default function AnalyticsQuickLinks({
+  activeTab,
+  onTabChange,
+  kindId = 'birthday',
+}) {
+  const tabs = getAnalyticsQuickLinks(kindId);
+
   return (
     <div className="inline-flex rounded-full bg-[#EDE8F8] p-1">
-      {ANALYTICS_QUICK_LINKS.map((tab) => {
+      {tabs.map((tab) => {
         const active = activeTab === tab.id;
 
         return (

@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { clsx } from 'clsx';
 import { CTA_OPTIONS, getChannelLabel } from './settingsData';
+import { useSettingsKindCopy } from './settingsKindContext';
 
 const CHANNEL_THEME = {
   sms: {
@@ -90,13 +91,11 @@ function SmsLink({ label, href }) {
   );
 }
 
-function PreviewBody({ values, theme }) {
+function PreviewBody({ values, theme, emptyMessage }) {
   const channel = values.channel || 'sms';
   const setup = values.offerSetup || 'offer-setup';
   const title = values.title?.trim() || 'Offer title';
-  const message =
-    values.message?.trim() ||
-    'Your birthday message will appear here as you type.';
+  const message = values.message?.trim() || emptyMessage;
   const action = ctaLabel(values);
   const showOffer = setup === 'offer-setup';
   const showAttachment = setup === 'attachment-only' || (showOffer && values.attachmentPreviewUrl);
@@ -262,6 +261,7 @@ export default function AutomationCustomerPreview({
   showHeader = true,
 }) {
   const { values } = useFormikContext();
+  const { previewEmptyMessage } = useSettingsKindCopy();
   const channel = values.channel || 'sms';
   const theme = CHANNEL_THEME[channel] || CHANNEL_THEME.sms;
   const ChannelIcon = theme.icon;
@@ -316,7 +316,11 @@ export default function AutomationCustomerPreview({
           </div>
 
           <div className="min-h-0 flex-1 overflow-y-auto">
-            <PreviewBody values={values} theme={theme} />
+            <PreviewBody
+              values={values}
+              theme={theme}
+              emptyMessage={previewEmptyMessage}
+            />
           </div>
         </div>
       </IPhoneMockup>

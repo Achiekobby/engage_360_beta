@@ -1,5 +1,36 @@
-import { ListFilter } from 'lucide-react';
+import { FolderKanban, ListFilter, Tags } from 'lucide-react';
 import { ANALYTICS_AUDIENCE_COLUMNS, ANALYTICS_AUDIENCE_ROWS } from './analyticsData';
+import AutomationMetaBadge from './AutomationMetaBadge';
+
+const CATEGORY_BADGE = {
+  Dealboxx: 'bg-[#EDE8F8] text-primary',
+  txtconnect: 'bg-[#EEF2FF] text-[#3A10CD]',
+};
+
+const COLLECTION_BADGE = {
+  'Active Campaign': 'bg-[#E8F8EF] text-[#1F9D55]',
+  'Repeated Base': 'bg-[#FFF1E8] text-[#E67E22]',
+  'Birthday Club': 'bg-[#FFF8E1] text-[#C9A227]',
+  'VIP Segment': 'bg-[#EDE8F8] text-primary',
+  'Anniversary Club': 'bg-[#FCE7F3] text-[#BE185D]',
+};
+
+function AudienceBadge({ label, type }) {
+  const className =
+    type === 'category'
+      ? CATEGORY_BADGE[label] || 'bg-[#F0F2F7] text-[#0B1354]'
+      : COLLECTION_BADGE[label] || 'bg-[#F0F2F7] text-[#0B1354]';
+  const Icon = type === 'category' ? Tags : FolderKanban;
+
+  return (
+    <AutomationMetaBadge
+      icon={Icon}
+      label={label}
+      className={className}
+      align="start"
+    />
+  );
+}
 
 export default function AnalyticsAudienceTable({ rows = ANALYTICS_AUDIENCE_ROWS }) {
   return (
@@ -43,11 +74,11 @@ export default function AnalyticsAudienceTable({ rows = ANALYTICS_AUDIENCE_ROWS 
                 <td className="whitespace-nowrap px-4 py-3.5 text-sm text-[#0B1354] sm:px-5">
                   {row.email}
                 </td>
-                <td className="whitespace-nowrap px-4 py-3.5 text-sm text-[#0B1354] sm:px-5">
-                  {row.category}
+                <td className="whitespace-nowrap px-4 py-3.5 sm:px-5">
+                  <AudienceBadge label={row.category} type="category" />
                 </td>
-                <td className="whitespace-nowrap px-4 py-3.5 text-sm text-[#0B1354] last:pr-5 sm:px-5">
-                  {row.collection}
+                <td className="whitespace-nowrap px-4 py-3.5 last:pr-5 sm:px-5">
+                  <AudienceBadge label={row.collection} type="collection" />
                 </td>
               </tr>
             ))}
