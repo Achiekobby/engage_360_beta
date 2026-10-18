@@ -70,7 +70,7 @@ function ChildList({ id, label, items, dashed, open, childIsActive, onNavigate }
         const active = childIsActive(child);
         const last = index === items.length - 1;
         return (
-          <li key={child.tab ?? child.category ?? child.to} className="relative py-1.5">
+          <li key={child.tab ?? child.category ?? child.kind ?? child.to} className="relative py-1.5">
             <TreeElbow last={last} dashed={dashed} />
             <Link
               to={child.to}
@@ -143,10 +143,15 @@ export default function AdminSidebar({ collapsed = false, onToggleCollapse, onNa
   const campaignCategory =
     pathname === '/campaigns' || pathname === '/campaigns/analytics' ? searchParams.get('category') : null;
   const settingsTab = pathname === '/settings' ? searchParams.get('tab') || 'overview' : null;
+  const onPlatformAutomations = pathname.startsWith('/settings/automations');
 
   const childIsActive = (child) => {
     if (child.category) return campaignCategory === child.category;
-    if (child.tab) return settingsTab === child.tab;
+    if (child.settingsSection === 'automations') return onPlatformAutomations;
+    if (child.tab) return !onPlatformAutomations && settingsTab === child.tab;
+    if (child.kind) {
+      return pathname === child.to || pathname.startsWith(`${child.to}/`);
+    }
     if (child.end) return pathname === child.to;
     return pathname === child.to || pathname.startsWith(`${child.to}/`);
   };

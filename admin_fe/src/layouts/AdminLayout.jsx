@@ -7,18 +7,28 @@ import AdminSidebar from '../components/layout/AdminSidebar';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { closeMobileMenu, toggleMobileMenu, toggleSidebar } from '../store/slices/navSlice';
 
+function useIsWhiteSurface() {
+  const { pathname } = useLocation();
+
+  if (pathname.includes('/analytics')) return true;
+  if (pathname.startsWith('/automations')) return true;
+  if (pathname.startsWith('/settings/automations')) return true;
+  return false;
+}
+
 export default function AdminLayout({ children }) {
   const dispatch = useAppDispatch();
   const mobileMenuOpen = useAppSelector((state) => state.nav.mobileMenuOpen);
   const sidebarCollapsed = useAppSelector((state) => state.nav.sidebarCollapsed);
   const { pathname } = useLocation();
+  const isWhiteSurface = useIsWhiteSurface();
 
   useEffect(() => {
     dispatch(closeMobileMenu());
   }, [pathname, dispatch]);
 
   return (
-    <div className="flex h-dvh flex-col overflow-hidden bg-[#F6F7FB] text-foreground">
+    <div className="flex h-dvh flex-col overflow-hidden bg-white text-foreground">
       <AdminNavbar
         menuOpen={mobileMenuOpen}
         onToggleMenu={() => dispatch(toggleMobileMenu())}
@@ -27,7 +37,7 @@ export default function AdminLayout({ children }) {
       <div className="flex min-h-0 flex-1 overflow-hidden">
         <aside
           className={clsx(
-            'hidden h-full shrink-0 overflow-hidden border-r border-[#EEF0F4] transition-[width] duration-300 ease-out motion-reduce:transition-none lg:block',
+            'relative z-20 hidden h-full shrink-0 overflow-hidden border-r border-[#E8EAF0] bg-white shadow-[6px_0_24px_rgba(11,19,84,0.08)] transition-[width] duration-300 ease-out motion-reduce:transition-none lg:block',
             sidebarCollapsed ? 'w-[76px]' : 'w-[272px]',
           )}
         >
@@ -45,13 +55,19 @@ export default function AdminLayout({ children }) {
               aria-label="Close menu"
               onClick={() => dispatch(closeMobileMenu())}
             />
-            <div className="relative flex h-full w-[min(100%,288px)] flex-col bg-white shadow-xl">
+            <div className="relative flex h-full w-[min(100%,288px)] flex-col bg-white shadow-[8px_0_28px_rgba(11,19,84,0.14)]">
               <AdminSidebar onNavigate={() => dispatch(closeMobileMenu())} />
             </div>
           </div>
         ) : null}
 
-        <main data-admin-scroll className="scrollbar-thin min-h-0 min-w-0 flex-1 overflow-y-auto overscroll-contain">
+        <main
+          data-admin-scroll
+          className={clsx(
+            'scrollbar-thin min-h-0 min-w-0 flex-1 overflow-y-auto overscroll-contain',
+            isWhiteSurface ? 'bg-white' : 'bg-[#F6F7FB]',
+          )}
+        >
           <div className="flex min-h-full flex-col">
             <div className="flex-1">{children}</div>
             <AdminFooter />

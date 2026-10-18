@@ -73,7 +73,7 @@ export function PageHeading({
   if (!framed) return <div>{inner}</div>;
 
   return (
-    <header className="rounded-xl border border-[#EEF0F4] bg-white px-4 py-4 shadow-[0_1px_2px_rgba(11,19,84,0.04)] sm:px-5">
+    <header className="admin-card-sm rounded-xl border border-[#EEF0F4] bg-white px-4 py-4 sm:px-5">
       {inner}
     </header>
   );
