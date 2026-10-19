@@ -18,6 +18,7 @@ function toWhatsAppTemplate(template) {
     image: template.image,
     featured: Boolean(template.featured),
     leadQuestions: template.leadQuestions || [],
+    registrationQuestions: template.registrationQuestions || [],
     footerNote: 'Reply STOP to opt out · Powered by Engage 360',
   };
 }

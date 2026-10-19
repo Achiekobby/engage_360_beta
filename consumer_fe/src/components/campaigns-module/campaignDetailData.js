@@ -165,6 +165,7 @@ export function getCampaignDetailFallback(campaign) {
   if (!campaign) return null;
 
   const isSales = campaign.categoryId === 'sales-conversion';
+  const isServiceAlert = campaign.categoryId === 'service-alerts';
 
   return {
     ...campaign,
@@ -178,7 +179,7 @@ export function getCampaignDetailFallback(campaign) {
           : campaign.channel === 'Push' || campaign.channel === 'Push Notification'
             ? 'push'
             : 'sms'),
-    headline: campaign.headline || 'Clear Offer',
+    headline: campaign.headline || (isServiceAlert ? 'Downtime' : 'Clear Offer'),
     body:
       campaign.body ||
       'Trust is built over time. Choose brands that are transparent, reliable, and committed to serving you better.',
@@ -186,8 +187,9 @@ export function getCampaignDetailFallback(campaign) {
       campaign.description ||
       campaign.body ||
       'Trust is built over time. Choose brands that are transparent, reliable, and committed to serving you better.',
-    cta: campaign.cta || 'Buy Now',
+    cta: campaign.cta || (isServiceAlert ? 'Learn More' : 'Buy Now'),
     banner: campaign.banner || null,
+    supportContact: campaign.supportContact || (isServiceAlert ? '0545366373' : ''),
     attachments: campaign.attachments || [
       {
         id: 'attachment-1',
@@ -197,7 +199,7 @@ export function getCampaignDetailFallback(campaign) {
         fileMimeType: '',
         price: isSales ? 'GHS 5.99' : campaign.price || '',
         discountedPrice: isSales ? 'GHS 5.99' : '',
-        promoExpiryDate: '2026-06-12',
+        promoExpiryDate: isServiceAlert ? '' : '2026-06-12',
         voucherCode: '',
       },
     ],

@@ -276,12 +276,84 @@ export const SMS_TEMPLATE_LIBRARY = [
     id: 'outage-service-alert',
     categoryId: 'service-alerts',
     categoryLabel: 'Service Alerts',
-    title: 'Service Outage Alert',
+    title: 'Downtime Alert',
     featured: true,
+    popularity: '1100x',
     description:
-      'Notify users of disruptions, expected resolution time, and where to get help.',
+      'Notify customers of an unexpected outage, expected resolution, and where to get help.',
+    smsMessage:
+      'We are experiencing a temporary service disruption. Our team is working to restore access. Reply HELP or call support for updates.',
+    previewTitle: 'Downtime',
+    callToAction: 'Learn More',
+    idealFor: [
+      'Unexpected outages and downtime',
+      'High-impact platform incidents',
+      'Customers needing immediate status clarity',
+    ],
+    inspiration:
+      'Be inspired by Engage360 service alert campaigns — customize the status message, ETA, and support contact for every incident.',
     image:
       'https://images.unsplash.com/photo-1555949963-aa79dcee981c?auto=format&fit=crop&w=800&q=80',
+  }),
+  withDefaults({
+    id: 'scheduled-maintenance-alert',
+    categoryId: 'service-alerts',
+    categoryLabel: 'Service Alerts',
+    title: 'Scheduled Maintenance',
+    popularity: '900x',
+    description:
+      'Give customers advance notice of planned maintenance windows and expected impact.',
+    smsMessage:
+      'Scheduled maintenance tonight from 11PM–2AM. Some features may be unavailable. Please save your work and plan ahead.',
+    previewTitle: 'Scheduled Maintenance',
+    callToAction: 'View Details',
+    idealFor: [
+      'Planned infrastructure work',
+      'Product release cutovers',
+      'Reducing surprise downtime complaints',
+    ],
+    image:
+      'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=800&q=80',
+  }),
+  withDefaults({
+    id: 'service-restored-alert',
+    categoryId: 'service-alerts',
+    categoryLabel: 'Service Alerts',
+    title: 'Service Restored',
+    popularity: '850x',
+    description:
+      'Confirm that an earlier disruption is resolved and services are back to normal.',
+    smsMessage:
+      'Good news — the earlier disruption has been resolved and services are running normally again. Thank you for your patience.',
+    previewTitle: 'Service Restored',
+    callToAction: 'Check Status',
+    idealFor: [
+      'Post-incident all-clear notices',
+      'Rebuilding trust after outages',
+      'Closing the loop with affected customers',
+    ],
+    image:
+      'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=800&q=80',
+  }),
+  withDefaults({
+    id: 'security-fraud-alert',
+    categoryId: 'service-alerts',
+    categoryLabel: 'Service Alerts',
+    title: 'Security Notice',
+    popularity: '780x',
+    description:
+      'Alert customers about suspicious activity or a security precaution with clear next steps.',
+    smsMessage:
+      'Security notice: unusual activity was detected on your account. If this was not you, secure your account now and contact support immediately.',
+    previewTitle: 'Security Notice',
+    callToAction: 'Secure Account',
+    idealFor: [
+      'Fraud and suspicious login alerts',
+      'Password reset prompts',
+      'Compliance-driven security notices',
+    ],
+    image:
+      'https://images.unsplash.com/photo-1563986768609-322da13575f3?auto=format&fit=crop&w=800&q=80',
   }),
   withDefaults({
     id: 'event-invite-blast',
@@ -289,10 +361,102 @@ export const SMS_TEMPLATE_LIBRARY = [
     categoryLabel: 'Events & Activation',
     title: 'Event Invite Blast',
     featured: true,
+    popularity: '1200x',
     description:
       'Drive attendance with date, venue highlights, and an easy RSVP call to action.',
+    smsMessage:
+      "You're invited! Join us for Summer Brand Experience Night at Accra Conference Center. Reserve your seat before spots fill up.",
+    previewTitle: 'Summer Brand Experience Night',
+    callToAction: 'Reserve your seat',
+    idealFor: [
+      'Product launches and brand nights',
+      'Networking and community events',
+      'Ticketed experiences with RSVP',
+    ],
+    inspiration:
+      'Be inspired by Engage360 event campaigns — customize the invite, venue, and ticket flow for every activation.',
     image:
       'https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=800&q=80',
+    registrationQuestions: [
+      {
+        id: 'eq-name',
+        type: 'freeText',
+        question: 'Full name',
+        options: [],
+        placeholder: 'Enter your full name',
+        required: true,
+        termsText: '',
+        checkboxLabel: '',
+      },
+      {
+        id: 'eq-phone',
+        type: 'freeText',
+        question: 'Phone number',
+        options: [],
+        placeholder: 'Enter your phone number',
+        required: true,
+        termsText: '',
+        checkboxLabel: '',
+      },
+    ],
+  }),
+  withDefaults({
+    id: 'event-early-bird-tickets',
+    categoryId: 'events-activation',
+    categoryLabel: 'Events & Activation',
+    title: 'Early Bird Tickets',
+    featured: true,
+    description:
+      'Create urgency with limited early-bird pricing and a clear path to buy tickets.',
+    smsMessage:
+      'Early bird is open! Get VIP or Regular tickets for our flagship event before prices go up. Tap to secure your spot.',
+    previewTitle: 'Early Bird Access',
+    callToAction: 'Get Tickets',
+    idealFor: [
+      'Paid conferences and festivals',
+      'VIP + standard ticket tiers',
+      'Time-bound promotions',
+    ],
+    image:
+      'https://images.unsplash.com/photo-1505373877841-8d25f7d46678?auto=format&fit=crop&w=800&q=80',
+  }),
+  withDefaults({
+    id: 'event-reminder-rsvp',
+    categoryId: 'events-activation',
+    categoryLabel: 'Events & Activation',
+    title: 'Event Reminder & RSVP',
+    description:
+      'Nudge registered guests with date, time, and venue so turnout stays high.',
+    smsMessage:
+      'Reminder: Your event starts tomorrow at 12pm at Accra Conference Center. Reply YES to confirm you will attend.',
+    previewTitle: 'See you tomorrow',
+    callToAction: 'Confirm RSVP',
+    idealFor: [
+      'Day-before attendance boosts',
+      'Registered guest lists',
+      'Reducing no-shows',
+    ],
+    image:
+      'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=800&q=80',
+  }),
+  withDefaults({
+    id: 'event-workshop-signup',
+    categoryId: 'events-activation',
+    categoryLabel: 'Events & Activation',
+    title: 'Workshop Signup',
+    description:
+      'Invite customers to a hands-on workshop with limited seats and a simple signup CTA.',
+    smsMessage:
+      'Seats are limited for our hands-on workshop this weekend. Learn, network, and leave with practical takeaways. Sign up today.',
+    previewTitle: 'Hands-on Workshop',
+    callToAction: 'Sign Up',
+    idealFor: [
+      'Educational activations',
+      'Community workshops',
+      'Small-capacity venues',
+    ],
+    image:
+      'https://images.unsplash.com/photo-1475721027785-f74eccf877e2?auto=format&fit=crop&w=800&q=80',
   }),
   withDefaults({
     id: 'cart-recovery-sale',

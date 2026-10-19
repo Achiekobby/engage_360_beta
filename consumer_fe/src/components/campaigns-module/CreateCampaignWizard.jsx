@@ -16,10 +16,12 @@ import CustomerScanningStep, { CustomerListPreviewModal } from './CustomerScanni
 import CampaignReviewStage from './CampaignReviewStage';
 import PromoVisualPicker from './PromoVisualPicker';
 import LeadGenerationFormStep from './LeadGenerationFormStep';
-import EventActivationAttachmentStep from './EventActivationAttachmentStep';
-import EventRegistrationFormStep from './EventRegistrationFormStep';
 import SalesConversionMessageStep from './SalesConversionMessageStep';
 import SalesConversionAttachmentStep from './SalesConversionAttachmentStep';
+import ServiceAlertsMessageStep from './ServiceAlertsMessageStep';
+import ServiceAlertsAttachmentStep from './ServiceAlertsAttachmentStep';
+import EventsActivationMessageStep from './EventsActivationMessageStep';
+import EventsActivationCombinedStep from './EventsActivationCombinedStep';
 import {
   FieldError,
   FieldLabel,
@@ -83,6 +85,7 @@ const EMPTY_FORM = {
   cta: '',
   banner: createEmptyBanner(),
   attachments: [createEmptyAttachment('attachment-1')],
+  supportContact: '',
   leadQuestions: [],
   event: createEmptyEventDetails(),
   registrationQuestions: [],
@@ -123,13 +126,7 @@ const FIELD_HELP = {
   externalList: 'Upload a spreadsheet with customer contact details for this campaign.',
 };
 
-function wizardKind(step, { isLeadGeneration, isEventActivation, isSalesConversion }) {
-  if (isEventActivation) {
-    return ['message', 'event', 'registration', 'targeting', 'scan'][step - 1];
-  }
-  if (isLeadGeneration || isSalesConversion) {
-    return ['message', 'attachment', 'targeting', 'scan'][step - 1];
-  }
+function wizardKind(step) {
   return ['message', 'attachment', 'targeting', 'scan'][step - 1];
 }
 
@@ -138,11 +135,13 @@ function validateStep(step, form, options = false) {
   const isLeadGeneration = Boolean(flags.isLeadGeneration);
   const isEventActivation = Boolean(flags.isEventActivation);
   const isSalesConversion = Boolean(flags.isSalesConversion);
-  const kind = wizardKind(step, { isLeadGeneration, isEventActivation, isSalesConversion });
+  const isServiceAlerts = Boolean(flags.isServiceAlerts);
+  const kind = wizardKind(step);
   const errors = {};
+  const skipsNameObjective = isSalesConversion || isEventActivation || isServiceAlerts;
 
   if (kind === 'message') {
-    if (!isSalesConversion) {
+    if (!skipsNameObjective) {
       if (!form.name.trim()) {
         errors.name = 'Enter a campaign name so you can identify it later.';
       }
@@ -156,14 +155,22 @@ function validateStep(step, form, options = false) {
     if (!form.body.trim()) {
       errors.body = isLeadGeneration
         ? 'Write the invitation message your audience will receive.'
-        : 'Write the message your audience will receive.';
+        : isEventActivation
+          ? 'Write the invite message your guests will receive.'
+          : isServiceAlerts
+            ? 'Write the service alert message your audience will receive.'
+            : 'Write the message your audience will receive.';
     }
     if (!form.headline.trim()) {
       errors.headline = isLeadGeneration
         ? 'Add a title for your lead capture form.'
         : isSalesConversion
           ? 'Add a clear offer title for this campaign.'
-          : 'Add a short title for this message.';
+          : isEventActivation
+            ? 'Add an event title guests will recognize.'
+            : isServiceAlerts
+              ? 'Add a short alert title — e.g. Downtime or Maintenance.'
+              : 'Add a short title for this message.';
     }
 
     if (isLeadGeneration) {
@@ -174,7 +181,7 @@ function validateStep(step, form, options = false) {
     }
   }
 
-  if (kind === 'event') {
+  if (kind === 'attachment' && isEventActivation) {
     Object.assign(errors, validateEventDetails(form.event, form.attachments[0]));
   }
 
@@ -239,10 +246,16 @@ export default function CreateCampaignWizard({
   const isLeadGeneration = categoryId === 'lead-generation';
   const isEventActivation = categoryId === 'events-activation';
   const isSalesConversion = categoryId === 'sales-conversion';
+  const isServiceAlerts = categoryId === 'service-alerts';
   const wizardSteps = getWizardSteps(categoryId);
   const scanStep = wizardSteps.length;
   const reviewStep = scanStep + 1;
-  const stepFlags = { isLeadGeneration, isEventActivation, isSalesConversion };
+  const stepFlags = {
+    isLeadGeneration,
+    isEventActivation,
+    isSalesConversion,
+    isServiceAlerts,
+  };
 
   const scanStats = computeCustomerScanStats(form);
 
@@ -277,6 +290,7 @@ export default function CreateCampaignWizard({
       ...prev,
       headline: template?.headline || prev.headline,
       body: template?.body || prev.body,
+      description: template?.description || prev.description,
       cta: template?.cta || prev.cta,
       name: prev.name || template?.name || '',
       objective:
@@ -284,6 +298,10 @@ export default function CreateCampaignWizard({
       channel: prev.channel || template?.channel || 'sms',
       leadQuestions:
         prev.leadQuestions.length > 0 ? prev.leadQuestions : template?.leadQuestions || [],
+      registrationQuestions:
+        prev.registrationQuestions.length > 0
+          ? prev.registrationQuestions
+          : template?.registrationQuestions || [],
     }));
   }, [template, categoryLabel, categoryId, templateMode]);
 
@@ -614,7 +632,7 @@ export default function CreateCampaignWizard({
 
     setErrors({});
 
-    if (isSalesConversion && step === 1) {
+    if ((isSalesConversion || isEventActivation || isServiceAlerts) && step === 1) {
       setForm((prev) => ({
         ...prev,
         name: prev.name.trim() || prev.headline.trim(),
@@ -690,6 +708,7 @@ export default function CreateCampaignWizard({
           isLeadGeneration={isLeadGeneration}
           isEventActivation={isEventActivation}
           isSalesConversion={isSalesConversion}
+          isServiceAlerts={isServiceAlerts}
           onBack={() => setStep(scanStep)}
           onEdit={() => setStep(1)}
           onProceed={handleCreateCampaign}
@@ -718,12 +737,22 @@ export default function CreateCampaignWizard({
           <p className="text-xs font-semibold uppercase tracking-wide text-primary">
             {isSalesConversion
               ? 'Sales Conversion'
-              : templateMode
-                ? 'From a template'
-                : 'From scratch'}
+              : isEventActivation
+                ? 'Events & Activation'
+                : isServiceAlerts
+                  ? 'Service Alerts'
+                  : templateMode
+                    ? 'From a template'
+                    : 'From scratch'}
           </p>
           <h1 className="text-xl font-bold text-[#0B1354] sm:text-2xl">
-            {isSalesConversion ? 'Create Sales Campaign' : 'Create Campaign'}
+            {isSalesConversion
+              ? 'Create Sales Campaign'
+              : isEventActivation
+                ? 'Create Event Campaign'
+                : isServiceAlerts
+                  ? 'Create Service Alert'
+                  : 'Create Campaign'}
           </h1>
         </div>
       </div>
@@ -757,6 +786,10 @@ export default function CreateCampaignWizard({
                     onUpdate={update}
                     onBannerChange={handleBannerChange}
                   />
+                ) : isServiceAlerts ? (
+                  <ServiceAlertsMessageStep form={form} errors={errors} onUpdate={update} />
+                ) : isEventActivation ? (
+                  <EventsActivationMessageStep form={form} errors={errors} onUpdate={update} />
                 ) : (
                   <>
                     <div className="grid gap-4 sm:grid-cols-2">
@@ -961,15 +994,21 @@ export default function CreateCampaignWizard({
             ) : null}
 
             {step === 2 && isEventActivation ? (
-              <EventActivationAttachmentStep
+              <EventsActivationCombinedStep
                 attachment={form.attachments[0]}
                 event={form.event}
                 errors={errors}
+                registrationQuestions={form.registrationQuestions}
+                formTitle={form.headline}
                 onVisualChange={handleEventVisualChange}
                 onFileChange={handleEventFileChange}
                 onEventChange={updateEvent}
                 onAddTicket={addEventTicket}
                 onRemoveTicket={removeEventTicket}
+                onAddQuestion={addRegistrationQuestion}
+                onUpdateQuestion={updateRegistrationQuestion}
+                onRemoveQuestion={removeRegistrationQuestion}
+                onReorderQuestions={reorderRegistrationQuestions}
               />
             ) : null}
 
@@ -984,7 +1023,18 @@ export default function CreateCampaignWizard({
               />
             ) : null}
 
-            {step === 2 && !isEventActivation && !isSalesConversion ? (
+            {step === 2 && isServiceAlerts ? (
+              <ServiceAlertsAttachmentStep
+                attachment={form.attachments[0]}
+                supportContact={form.supportContact}
+                errors={errors}
+                onUpdateAttachment={updateAttachment}
+                onFileChange={handleAttachmentFileChange}
+                onSupportContactChange={(value) => update('supportContact', value)}
+              />
+            ) : null}
+
+            {step === 2 && !isEventActivation && !isSalesConversion && !isServiceAlerts ? (
               <div className="space-y-8">
                 {form.attachments.map((attachment, index) => (
                   <div key={attachment.id} className="space-y-5">
@@ -1116,18 +1166,7 @@ export default function CreateCampaignWizard({
               </div>
             ) : null}
 
-            {step === 3 && isEventActivation ? (
-              <EventRegistrationFormStep
-                questions={form.registrationQuestions}
-                formTitle={form.headline}
-                onAddQuestion={addRegistrationQuestion}
-                onUpdateQuestion={updateRegistrationQuestion}
-                onRemoveQuestion={removeRegistrationQuestion}
-                onReorderQuestions={reorderRegistrationQuestions}
-              />
-            ) : null}
-
-            {step === 3 && !isEventActivation ? (
+            {step === 3 ? (
               <CustomerTargetingStep
                 targeting={{
                   customerSource: form.customerSource,
@@ -1151,44 +1190,7 @@ export default function CreateCampaignWizard({
               />
             ) : null}
 
-            {step === 4 && isEventActivation ? (
-              <CustomerTargetingStep
-                targeting={{
-                  customerSource: form.customerSource,
-                  customerCategory: form.customerCategory,
-                  collection: form.collection,
-                  externalListFile: form.externalListFile,
-                  externalListFileName: form.externalListFileName,
-                  segmentFilters: form.segmentFilters,
-                }}
-                errors={errors}
-                onUpdate={update}
-                onExternalFileChange={handleExternalFileChange}
-                onExternalValidationChange={handleExternalValidationChange}
-                onSegmentValueChange={updateSegmentValue}
-                onRemoveSegment={removeSegmentFilter}
-                onAddSegment={addSegmentFilter}
-                onToggleSegmentCustom={toggleSegmentCustom}
-                pendingSegmentType={pendingSegmentType}
-                onPendingSegmentChange={setPendingSegmentType}
-                availableSegmentTypes={availableSegmentTypes}
-              />
-            ) : null}
-
-            {step === 4 && !isEventActivation ? (
-              <CustomerScanningStep
-                stats={scanStats}
-                reachMode={form.reachMode}
-                preferredReach={form.preferredReach}
-                errors={errors}
-                onReachModeChange={handleReachModeChange}
-                onPreferredReachChange={handlePreferredReachChange}
-                onViewValid={() => setListPreviewType('valid')}
-                onViewInvalid={() => setListPreviewType('invalid')}
-              />
-            ) : null}
-
-            {step === 5 && isEventActivation ? (
+            {step === 4 ? (
               <CustomerScanningStep
                 stats={scanStats}
                 reachMode={form.reachMode}

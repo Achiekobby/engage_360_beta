@@ -58,14 +58,13 @@ export default function ChooseCampaignTemplatePage() {
     [categoryId, categoryValid],
   );
 
-  // Shared email templates (no categoryId) show everywhere; category-specific
-  // ones (e.g. Lead Generation) only appear for their matching category.
+  // Email templates are scoped to campaign type the same way SMS/WhatsApp are.
   const emailTemplates = useMemo(
     () =>
-      CAMPAIGN_TEMPLATES.filter(
-        (template) => !template.categoryId || template.categoryId === categoryId,
-      ),
-    [categoryId],
+      categoryValid
+        ? CAMPAIGN_TEMPLATES.filter((template) => template.categoryId === categoryId)
+        : [],
+    [categoryId, categoryValid],
   );
 
   const list =
@@ -143,8 +142,8 @@ export default function ChooseCampaignTemplatePage() {
             </div>
 
             <p className="mt-3 text-sm leading-relaxed text-[#717171] sm:text-base">
-              SMS and WhatsApp templates are filtered for {category.label.toLowerCase()}. Preview a
-              design, then continue into campaign setup.
+              SMS, WhatsApp, and Email templates are filtered for{' '}
+              {category.label.toLowerCase()}. Preview a design, then continue into campaign setup.
             </p>
           </div>
 
@@ -248,7 +247,7 @@ export default function ChooseCampaignTemplatePage() {
                   ? pagedList.map((template) => (
                       <StaggerItem key={template.id}>
                         <TemplateGridCard
-                          eyebrow={template.category}
+                          eyebrow={template.category || category.label}
                           title={template.name}
                           description={template.body}
                           media={<TemplateMiniPreview template={template} />}
@@ -257,7 +256,7 @@ export default function ChooseCampaignTemplatePage() {
                               channel: 'email',
                               template,
                               title: template.name,
-                              subtitle: `${category.label} · Email`,
+                              subtitle: `${template.category || category.label} · Email`,
                               headline: template.headline,
                               body: template.body,
                               cta: template.cta,

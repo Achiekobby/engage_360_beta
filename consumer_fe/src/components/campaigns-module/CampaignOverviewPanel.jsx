@@ -163,41 +163,66 @@ export default function CampaignOverviewPanel({ campaign, onLaunchAgain }) {
             <div className="grid gap-4 sm:grid-cols-2">
               <ReviewField label="Title" value={campaign.headline} />
               <ReviewField label="Call to Action" value={campaign.cta} />
-              <ReviewField label="Description" value={campaign.description} multiline />
-              <MediaField
-                label="Banner (Optional)"
-                attachment={campaign.banner || primaryAttachment}
-                emptyLabel="No banner uploaded"
+              <ReviewField
+                label="Description"
+                value={campaign.description}
+                multiline
+                className={campaign.categoryId === 'service-alerts' ? 'sm:col-span-2' : undefined}
               />
+              {campaign.categoryId === 'service-alerts' ? null : (
+                <MediaField
+                  label="Banner (Optional)"
+                  attachment={campaign.banner || primaryAttachment}
+                  emptyLabel="No banner uploaded"
+                />
+              )}
             </div>
           </div>
         </section>
 
         <section>
           <SectionTitle>Attachment</SectionTitle>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <ReviewField
-              label="Product Visuals"
-              value={
-                PROMO_VISUAL_OPTIONS.find((item) => item.id === primaryAttachment?.promoVisual)
-                  ?.label || 'Image'
-              }
-            />
-            <MediaField
-              label="Attachment"
-              attachment={primaryAttachment}
-              emptyLabel="No attachment uploaded"
-            />
-            <ReviewField label="Price" value={primaryAttachment?.price} />
-            <ReviewField
-              label="Discounted Price (Optional)"
-              value={primaryAttachment?.discountedPrice}
-            />
-            <ReviewField
-              label="End Date"
-              value={formatDisplayDate(primaryAttachment?.promoExpiryDate)}
-            />
-          </div>
+          {campaign.categoryId === 'service-alerts' ? (
+            <div className="grid gap-4 sm:grid-cols-2">
+              <ReviewField
+                label="Ads Visuals"
+                value={
+                  PROMO_VISUAL_OPTIONS.find((item) => item.id === primaryAttachment?.promoVisual)
+                    ?.label || 'Image'
+                }
+              />
+              <MediaField
+                label="Attachment"
+                attachment={primaryAttachment}
+                emptyLabel="No attachment uploaded"
+              />
+              <ReviewField label="Support Contact" value={campaign.supportContact} />
+            </div>
+          ) : (
+            <div className="grid gap-4 sm:grid-cols-2">
+              <ReviewField
+                label="Product Visuals"
+                value={
+                  PROMO_VISUAL_OPTIONS.find((item) => item.id === primaryAttachment?.promoVisual)
+                    ?.label || 'Image'
+                }
+              />
+              <MediaField
+                label="Attachment"
+                attachment={primaryAttachment}
+                emptyLabel="No attachment uploaded"
+              />
+              <ReviewField label="Price" value={primaryAttachment?.price} />
+              <ReviewField
+                label="Discounted Price (Optional)"
+                value={primaryAttachment?.discountedPrice}
+              />
+              <ReviewField
+                label="End Date"
+                value={formatDisplayDate(primaryAttachment?.promoExpiryDate)}
+              />
+            </div>
+          )}
         </section>
 
         <section>

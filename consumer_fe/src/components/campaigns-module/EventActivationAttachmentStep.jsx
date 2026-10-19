@@ -295,6 +295,7 @@ export default function EventActivationAttachmentStep({
   onEventChange,
   onAddTicket,
   onRemoveTicket,
+  hideIntro = false,
 }) {
   const [draft, setDraft] = useState({
     title: '',
@@ -361,18 +362,20 @@ export default function EventActivationAttachmentStep({
 
   return (
     <div className="space-y-8">
-      <div>
-        <h2 className="text-base font-bold text-[#0B1354]">Event details</h2>
-        <p className="mt-1 text-sm text-[#717171]">
-          Add one visual, then tell guests when, where, and how they get in.
-        </p>
-      </div>
+      {hideIntro ? null : (
+        <div>
+          <h2 className="text-base font-bold text-[#0B1354]">Event details</h2>
+          <p className="mt-1 text-sm text-[#717171]">
+            Add one visual, then tell guests when, where, and how they get in.
+          </p>
+        </div>
+      )}
 
       <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(16rem,20rem)]">
         <div className="space-y-5">
           <PromoVisualPicker
             name={`promoVisual-${attachment.id}`}
-            label="Event Visual Creative"
+            label="Event Visual"
             value={attachment.promoVisual}
             onChange={onVisualChange}
             help="Choose image, video, or GIF. The upload accepts all three, and the preview puts the file in the matching panel."
@@ -380,7 +383,7 @@ export default function EventActivationAttachmentStep({
           />
           <FileUploadZone
             id={`attachment-file-${attachment.id}`}
-            label="Creative file"
+            label="Attachment"
             fileName={attachment.fileName}
             previewUrl={attachment.previewUrl}
             promoVisual={attachment.promoVisual}

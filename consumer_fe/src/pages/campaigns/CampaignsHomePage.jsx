@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Megaphone, Plus, ShoppingBag, TrendingUp } from 'lucide-react';
+import { Bell, CalendarDays, Megaphone, Plus, ShoppingBag, TrendingUp } from 'lucide-react';
 import { clsx } from 'clsx';
 import { Reveal } from '../../components/motion';
 import CampaignsSidebar from '../../components/campaigns-module/CampaignsSidebar';
@@ -23,6 +23,24 @@ const CATEGORY_COPY = {
     emptyBody:
       'Turn browsers into buyers. Create a sales campaign with channel messaging, product attachments, discounts, and targeted reach.',
     emptyIcon: ShoppingBag,
+  },
+  'events-activation': {
+    eyebrow: 'Fill the room',
+    description:
+      'Invite guests, set venue and tickets, collect registrations, and track turnout for every activation.',
+    emptyTitle: 'No events & activation campaigns yet',
+    emptyBody:
+      'Launch event invites across SMS, Email, or WhatsApp — with tickets, registration forms, and targeted guest lists.',
+    emptyIcon: CalendarDays,
+  },
+  'service-alerts': {
+    eyebrow: 'Keep customers informed',
+    description:
+      'Send downtime, maintenance, and security notices with a clear message, support contact, and precise audience targeting.',
+    emptyTitle: 'No service alert campaigns yet',
+    emptyBody:
+      'Notify customers about outages, scheduled maintenance, or security issues — with visuals, support contact, and targeted reach.',
+    emptyIcon: Bell,
   },
 };
 
@@ -58,6 +76,28 @@ export default function CampaignsHomePage() {
   const categoryCopy = CATEGORY_COPY[activeCategory];
   const EmptyIcon = categoryCopy?.emptyIcon || Megaphone;
   const isSalesConversion = activeCategory === 'sales-conversion';
+  const isEventsActivation = activeCategory === 'events-activation';
+  const isServiceAlerts = activeCategory === 'service-alerts';
+  const isFeaturedCategory = isSalesConversion || isEventsActivation || isServiceAlerts;
+  const createLabel = isSalesConversion
+    ? 'Create Sales Campaign'
+    : isEventsActivation
+      ? 'Create Event Campaign'
+      : isServiceAlerts
+        ? 'Create Service Alert'
+        : 'Create Campaign';
+  const emptyCtaLabel = isSalesConversion
+    ? 'Start sales campaign'
+    : isEventsActivation
+      ? 'Start event campaign'
+      : isServiceAlerts
+        ? 'Start service alert'
+        : 'Create campaign';
+  const featureChips = isEventsActivation
+    ? ['Invite message', 'Tickets & RSVP', 'Guest targeting']
+    : isServiceAlerts
+      ? ['Alert message', 'Support contact', 'Targeted reach']
+      : ['Message & offer', 'Product visuals', 'Targeted reach'];
 
   return (
     <div className="flex h-full w-full overflow-hidden">
@@ -115,7 +155,7 @@ export default function CampaignsHomePage() {
                 className="inline-flex shrink-0 items-center justify-center gap-2 rounded-sm bg-primary px-4 py-2.5 text-sm font-semibold text-white shadow-[0_4px_16px_rgba(58,16,205,0.28)] transition-all hover:-translate-y-0.5 hover:bg-[#320EB8]"
               >
                 <Plus className="h-4 w-4" strokeWidth={2.5} />
-                {isSalesConversion ? 'Create Sales Campaign' : 'Create Campaign'}
+                {createLabel}
               </Link>
             </div>
           </Reveal>
@@ -133,12 +173,12 @@ export default function CampaignsHomePage() {
                 <div
                   className={clsx(
                     'relative overflow-hidden border border-dashed bg-white px-6 py-20 text-center sm:py-28',
-                    isSalesConversion
+                    isFeaturedCategory
                       ? 'border-primary/20 bg-gradient-to-b from-[#F7F8FF] via-white to-white'
                       : 'border-[#E4E4E7]',
                   )}
                 >
-                  {isSalesConversion ? (
+                  {isFeaturedCategory ? (
                     <div
                       className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-transparent via-primary/40 to-transparent"
                       aria-hidden="true"
@@ -154,14 +194,20 @@ export default function CampaignsHomePage() {
                     {categoryCopy?.emptyBody ||
                       "You haven't created any campaigns in this category. Start from a template or build one from scratch."}
                   </p>
-                  {isSalesConversion ? (
+                  {isFeaturedCategory ? (
                     <div className="mx-auto mt-5 flex max-w-lg flex-wrap items-center justify-center gap-2">
-                      {['Message & offer', 'Product visuals', 'Targeted reach'].map((chip) => (
+                      {featureChips.map((chip) => (
                         <span
                           key={chip}
                           className="inline-flex items-center gap-1.5 rounded-sm bg-white px-2.5 py-1 text-[11px] font-semibold text-[#545454] ring-1 ring-[#EEF0F4]"
                         >
-                          <TrendingUp className="h-3 w-3 text-primary" strokeWidth={2.5} />
+                          {isEventsActivation ? (
+                            <CalendarDays className="h-3 w-3 text-primary" strokeWidth={2.5} />
+                          ) : isServiceAlerts ? (
+                            <Bell className="h-3 w-3 text-primary" strokeWidth={2.5} />
+                          ) : (
+                            <TrendingUp className="h-3 w-3 text-primary" strokeWidth={2.5} />
+                          )}
                           {chip}
                         </span>
                       ))}
@@ -172,7 +218,7 @@ export default function CampaignsHomePage() {
                     className="mt-6 inline-flex items-center gap-2 rounded-sm bg-primary px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#320EB8]"
                   >
                     <Plus className="h-4 w-4" strokeWidth={2.5} />
-                    {isSalesConversion ? 'Start sales campaign' : 'Create campaign'}
+                    {emptyCtaLabel}
                   </Link>
                 </div>
               ) : null}

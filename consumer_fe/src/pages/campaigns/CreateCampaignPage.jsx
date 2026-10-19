@@ -49,6 +49,7 @@ export default function CreateCampaignPage() {
         category: libraryTemplate.categoryLabel,
         headline: libraryTemplate.previewTitle || libraryTemplate.title,
         body: libraryTemplate.whatsappMessage,
+        description: libraryTemplate.description || libraryTemplate.whatsappMessage,
         cta: libraryTemplate.callToAction || 'Learn More',
         channel: 'whatsapp',
         image: libraryTemplate.image,
@@ -60,6 +61,7 @@ export default function CreateCampaignPage() {
           { label: 'Hot', price: 'Popular' },
         ],
         leadQuestions: libraryTemplate.leadQuestions || [],
+        registrationQuestions: libraryTemplate.registrationQuestions || [],
       };
     }
 
@@ -71,6 +73,7 @@ export default function CreateCampaignPage() {
       category: smsLibraryTemplate.categoryLabel,
       headline: smsLibraryTemplate.previewTitle || smsLibraryTemplate.title,
       body: smsLibraryTemplate.smsMessage || smsLibraryTemplate.description,
+      description: smsLibraryTemplate.description || smsLibraryTemplate.smsMessage,
       cta: smsLibraryTemplate.callToAction || 'Learn More',
       channel: channelParam || 'sms',
       accent: 'from-primary to-[#6B4FE0]',
@@ -81,6 +84,7 @@ export default function CreateCampaignPage() {
         { label: 'Hot', price: 'Popular' },
       ],
       leadQuestions: smsLibraryTemplate.leadQuestions || [],
+      registrationQuestions: smsLibraryTemplate.registrationQuestions || [],
     };
   }, [designTemplate, smsLibraryTemplate, whatsappLibraryTemplate, channelParam]);
 

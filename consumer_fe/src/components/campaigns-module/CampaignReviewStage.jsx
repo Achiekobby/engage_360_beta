@@ -181,6 +181,7 @@ export default function CampaignReviewStage({
   isLeadGeneration = false,
   isEventActivation = false,
   isSalesConversion = false,
+  isServiceAlerts = false,
   onBack,
   onEdit,
   onProceed,
@@ -291,10 +292,23 @@ export default function CampaignReviewStage({
                   <ReviewField label={messageLabel} value={form.body} multiline />
 
                   <div className="grid gap-4 sm:grid-cols-2">
-                    <ReviewField label="Title" value={form.headline} />
-                    <ReviewField label="Call to Action" value={form.cta} />
-                    <ReviewField label="Description" value={form.description || form.body} multiline />
-                    {isEventActivation ? null : (
+                    <ReviewField
+                      label={isEventActivation ? 'Call to Action' : 'Title'}
+                      value={isEventActivation ? form.cta : form.headline}
+                    />
+                    <ReviewField
+                      label={isEventActivation ? 'Event Title' : 'Call to Action'}
+                      value={isEventActivation ? form.headline : form.cta}
+                    />
+                    <ReviewField
+                      label={isEventActivation ? 'Event Description' : 'Description'}
+                      value={form.description || form.body}
+                      multiline
+                      className={
+                        isEventActivation || isServiceAlerts ? 'sm:col-span-2' : undefined
+                      }
+                    />
+                    {isEventActivation || isServiceAlerts ? null : (
                       <ReviewBanner
                         attachment={bannerAsset}
                         label="Banner (Optional)"
@@ -406,7 +420,17 @@ export default function CampaignReviewStage({
                   </p>
                 ) : null}
 
-                {isSalesConversion ? (
+                {isServiceAlerts ? (
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <ReviewField label="Ads Visuals" value={promoVisualLabel} />
+                    <ReviewBanner
+                      attachment={attachment}
+                      label="Attachment"
+                      emptyLabel="No attachment uploaded"
+                    />
+                    <ReviewField label="Support Contact" value={form.supportContact} />
+                  </div>
+                ) : isSalesConversion ? (
                   <div className="grid gap-4 sm:grid-cols-2">
                     <ReviewField
                       label="Product Visuals"
