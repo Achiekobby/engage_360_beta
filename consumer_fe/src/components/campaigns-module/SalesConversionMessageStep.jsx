@@ -2,6 +2,7 @@ import { Mail, MessageSquare, Smartphone } from 'lucide-react';
 import { clsx } from 'clsx';
 import { motion } from 'framer-motion';
 import { FieldError, FieldLabel, FileUploadZone, inputClassName } from './WizardFormField';
+import CampaignCtaConfigFields from './CampaignCtaConfigFields';
 import { CAMPAIGN_CHANNELS } from './campaignsData';
 
 const SALES_CHANNELS = CAMPAIGN_CHANNELS.filter((channel) =>
@@ -19,6 +20,9 @@ const FIELD_HELP = {
   body: 'The conversion-focused message your audience will read. Keep it clear and action-oriented.',
   headline: 'A short offer title that grabs attention.',
   cta: 'The action you want customers to take — e.g. Order Now, Buy Now, Shop Deal.',
+  ctaType:
+    'Payments are not processed on Engage 360. Link customers to a URL, phone line, or WhatsApp.',
+  ctaValue: 'Where the call to action sends customers off-platform.',
   description: 'Supporting details that explain the offer, value, or urgency.',
   banner: 'Optional hero image or video that represents this offer.',
 };
@@ -106,35 +110,31 @@ export default function SalesConversionMessageStep({
         <FieldError message={errors.body} />
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div>
-          <FieldLabel htmlFor="sales-headline" help={FIELD_HELP.headline}>
-            Title
-          </FieldLabel>
-          <input
-            id="sales-headline"
-            value={form.headline}
-            onChange={(event) => onUpdate('headline', event.target.value)}
-            placeholder="Clear Offer"
-            className={inputClassName(errors.headline)}
-            aria-invalid={Boolean(errors.headline)}
-          />
-          <FieldError message={errors.headline} />
-        </div>
-
-        <div>
-          <FieldLabel htmlFor="sales-cta" help={FIELD_HELP.cta}>
-            Call to Action
-          </FieldLabel>
-          <input
-            id="sales-cta"
-            value={form.cta}
-            onChange={(event) => onUpdate('cta', event.target.value)}
-            placeholder="Order Now"
-            className={inputClassName(errors.cta)}
-          />
-        </div>
+      <div>
+        <FieldLabel htmlFor="sales-headline" help={FIELD_HELP.headline}>
+          Title
+        </FieldLabel>
+        <input
+          id="sales-headline"
+          value={form.headline}
+          onChange={(event) => onUpdate('headline', event.target.value)}
+          placeholder="Clear Offer"
+          className={inputClassName(errors.headline)}
+          aria-invalid={Boolean(errors.headline)}
+        />
+        <FieldError message={errors.headline} />
       </div>
+
+      <CampaignCtaConfigFields
+        idPrefix="sales-cta"
+        cta={form.cta}
+        ctaType={form.ctaType}
+        ctaValue={form.ctaValue}
+        errors={errors}
+        onUpdate={onUpdate}
+        ctaPlaceholder="Order Now"
+        help={FIELD_HELP}
+      />
 
       <div className="grid gap-5 sm:grid-cols-2 sm:items-start">
         <div>

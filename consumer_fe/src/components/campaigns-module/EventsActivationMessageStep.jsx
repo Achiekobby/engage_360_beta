@@ -2,6 +2,7 @@ import { Mail, MessageSquare, Smartphone } from 'lucide-react';
 import { clsx } from 'clsx';
 import { motion } from 'framer-motion';
 import { FieldError, FieldLabel, inputClassName } from './WizardFormField';
+import CampaignCtaConfigFields from './CampaignCtaConfigFields';
 import { CAMPAIGN_CHANNELS } from './campaignsData';
 
 const EVENT_CHANNELS = CAMPAIGN_CHANNELS.filter((channel) =>
@@ -18,6 +19,9 @@ const FIELD_HELP = {
   channel: 'Choose how guests will receive this event invitation.',
   body: 'The invite message your audience will read. Lead with the event name, date, and why they should come.',
   cta: 'The action you want guests to take — e.g. Reserve your seat, RSVP Now, Get Tickets.',
+  ctaType:
+    'Payments are not processed on Engage 360. Link guests to a ticket URL, phone line, or WhatsApp.',
+  ctaValue: 'Where the call to action sends guests to register or buy tickets off-platform.',
   headline: 'A clear event title guests will recognize.',
   description: 'Supporting details about the event experience, agenda highlights, or what to expect.',
 };
@@ -111,35 +115,31 @@ export default function EventsActivationMessageStep({ form, errors, onUpdate }) 
         <FieldError message={errors.body} />
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div>
-          <FieldLabel htmlFor="event-cta" help={FIELD_HELP.cta}>
-            Call to Action
-          </FieldLabel>
-          <input
-            id="event-cta"
-            value={form.cta}
-            onChange={(event) => onUpdate('cta', event.target.value)}
-            placeholder="Reserve your seat"
-            className={inputClassName(errors.cta)}
-          />
-        </div>
-
-        <div>
-          <FieldLabel htmlFor="event-headline" help={FIELD_HELP.headline}>
-            Event Title
-          </FieldLabel>
-          <input
-            id="event-headline"
-            value={form.headline}
-            onChange={(event) => onUpdate('headline', event.target.value)}
-            placeholder="Summer Brand Experience Night"
-            className={inputClassName(errors.headline)}
-            aria-invalid={Boolean(errors.headline)}
-          />
-          <FieldError message={errors.headline} />
-        </div>
+      <div>
+        <FieldLabel htmlFor="event-headline" help={FIELD_HELP.headline}>
+          Event Title
+        </FieldLabel>
+        <input
+          id="event-headline"
+          value={form.headline}
+          onChange={(event) => onUpdate('headline', event.target.value)}
+          placeholder="Summer Brand Experience Night"
+          className={inputClassName(errors.headline)}
+          aria-invalid={Boolean(errors.headline)}
+        />
+        <FieldError message={errors.headline} />
       </div>
+
+      <CampaignCtaConfigFields
+        idPrefix="event-cta"
+        cta={form.cta}
+        ctaType={form.ctaType}
+        ctaValue={form.ctaValue}
+        errors={errors}
+        onUpdate={onUpdate}
+        ctaPlaceholder="Reserve your seat"
+        help={FIELD_HELP}
+      />
 
       <div>
         <FieldLabel htmlFor="event-description" help={FIELD_HELP.description}>

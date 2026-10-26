@@ -28,10 +28,12 @@ import {
   FileUploadZone,
   inputClassName,
 } from './WizardFormField';
+import CampaignCtaConfigFields from './CampaignCtaConfigFields';
 import {
   CAMPAIGN_CHANNELS,
   CAMPAIGN_OBJECTIVES,
   CAMPAIGNS_BASE,
+  categoryUsesCtaDestination,
   createCampaignFromForm,
   createDefaultSegmentFilters,
   createEmptyBanner,
@@ -43,6 +45,7 @@ import {
   getWizardSteps,
   SAMPLE_SCAN_CUSTOMERS,
   SEGMENTATION_FILTER_TYPES,
+  validateCtaDestination,
   validateEventDetails,
   validateLeadQuestions,
 } from './campaignsData';
@@ -83,6 +86,8 @@ const EMPTY_FORM = {
   body: '',
   description: '',
   cta: '',
+  ctaType: 'url',
+  ctaValue: '',
   banner: createEmptyBanner(),
   attachments: [createEmptyAttachment('attachment-1')],
   supportContact: '',
@@ -110,6 +115,9 @@ const FIELD_HELP = {
   body: 'The main message your audience will read. Keep it concise and action-oriented.',
   headline: 'A short, attention-grabbing title shown with your message.',
   cta: 'The button or link text that prompts the customer to act.',
+  ctaType:
+    'Payments are not processed on Engage 360. Choose a URL, phone number, or WhatsApp for the CTA.',
+  ctaValue: 'The destination linked to this call to action.',
   description: 'Supporting details that give more context about your offer or announcement.',
   promoVisual: 'Choose the type of visual asset for this promo attachment.',
   price: 'The original price before any discount is applied.',
@@ -136,6 +144,7 @@ function validateStep(step, form, options = false) {
   const isEventActivation = Boolean(flags.isEventActivation);
   const isSalesConversion = Boolean(flags.isSalesConversion);
   const isServiceAlerts = Boolean(flags.isServiceAlerts);
+  const usesCtaDestination = Boolean(flags.usesCtaDestination);
   const kind = wizardKind(step);
   const errors = {};
   const skipsNameObjective = isSalesConversion || isEventActivation || isServiceAlerts;
@@ -177,6 +186,13 @@ function validateStep(step, form, options = false) {
       const questionsError = validateLeadQuestions(form.leadQuestions);
       if (questionsError) {
         errors.leadQuestions = questionsError;
+      }
+    }
+
+    if (usesCtaDestination && !isLeadGeneration) {
+      const ctaDestinationError = validateCtaDestination(form.ctaType, form.ctaValue);
+      if (ctaDestinationError) {
+        errors.ctaValue = ctaDestinationError;
       }
     }
   }
@@ -247,6 +263,7 @@ export default function CreateCampaignWizard({
   const isEventActivation = categoryId === 'events-activation';
   const isSalesConversion = categoryId === 'sales-conversion';
   const isServiceAlerts = categoryId === 'service-alerts';
+  const usesCtaDestination = categoryUsesCtaDestination(categoryId);
   const wizardSteps = getWizardSteps(categoryId);
   const scanStep = wizardSteps.length;
   const reviewStep = scanStep + 1;
@@ -255,6 +272,7 @@ export default function CreateCampaignWizard({
     isEventActivation,
     isSalesConversion,
     isServiceAlerts,
+    usesCtaDestination,
   };
 
   const scanStats = computeCustomerScanStats(form);
@@ -292,6 +310,8 @@ export default function CreateCampaignWizard({
       body: template?.body || prev.body,
       description: template?.description || prev.description,
       cta: template?.cta || prev.cta,
+      ctaType: template?.ctaType || prev.ctaType || 'url',
+      ctaValue: template?.ctaValue || prev.ctaValue || '',
       name: prev.name || template?.name || '',
       objective:
         prev.objective || (categoryId ? getDefaultObjectiveForCategory(categoryId) : 'Promote Product'),
@@ -709,6 +729,7 @@ export default function CreateCampaignWizard({
           isEventActivation={isEventActivation}
           isSalesConversion={isSalesConversion}
           isServiceAlerts={isServiceAlerts}
+          usesCtaDestination={usesCtaDestination}
           onBack={() => setStep(scanStep)}
           onEdit={() => setStep(1)}
           onProceed={handleCreateCampaign}
@@ -943,22 +964,33 @@ export default function CreateCampaignWizard({
                           <FieldError message={errors.body} />
                         </div>
 
-                        <div className="grid gap-4 sm:grid-cols-2">
-                          <div>
-                            <FieldLabel htmlFor="headline" help={FIELD_HELP.headline}>
-                              Title
-                            </FieldLabel>
-                            <input
-                              id="headline"
-                              value={form.headline}
-                              onChange={(event) => update('headline', event.target.value)}
-                              placeholder="Exclusive summer flash sales"
-                              className={inputClassName(errors.headline)}
-                              aria-invalid={Boolean(errors.headline)}
-                            />
-                            <FieldError message={errors.headline} />
-                          </div>
+                        <div>
+                          <FieldLabel htmlFor="headline" help={FIELD_HELP.headline}>
+                            Title
+                          </FieldLabel>
+                          <input
+                            id="headline"
+                            value={form.headline}
+                            onChange={(event) => update('headline', event.target.value)}
+                            placeholder="Exclusive summer flash sales"
+                            className={inputClassName(errors.headline)}
+                            aria-invalid={Boolean(errors.headline)}
+                          />
+                          <FieldError message={errors.headline} />
+                        </div>
 
+                        {usesCtaDestination ? (
+                          <CampaignCtaConfigFields
+                            idPrefix="campaign-cta"
+                            cta={form.cta}
+                            ctaType={form.ctaType}
+                            ctaValue={form.ctaValue}
+                            errors={errors}
+                            onUpdate={update}
+                            ctaPlaceholder="Buy Now"
+                            help={FIELD_HELP}
+                          />
+                        ) : (
                           <div>
                             <FieldLabel htmlFor="cta" help={FIELD_HELP.cta}>
                               Call to Action
@@ -971,7 +1003,7 @@ export default function CreateCampaignWizard({
                               className={inputClassName(errors.cta)}
                             />
                           </div>
-                        </div>
+                        )}
 
                         <div>
                           <FieldLabel htmlFor="description" help={FIELD_HELP.description}>

@@ -188,6 +188,10 @@ export function getCampaignDetailFallback(campaign) {
       campaign.body ||
       'Trust is built over time. Choose brands that are transparent, reliable, and committed to serving you better.',
     cta: campaign.cta || (isServiceAlert ? 'Learn More' : 'Buy Now'),
+    ctaType: campaign.ctaType || (isServiceAlert ? 'phone' : 'url'),
+    ctaValue:
+      campaign.ctaValue ||
+      (isServiceAlert ? '0545366373' : 'https://example.com/offer'),
     banner: campaign.banner || null,
     supportContact: campaign.supportContact || (isServiceAlert ? '0545366373' : ''),
     attachments: campaign.attachments || [

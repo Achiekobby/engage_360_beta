@@ -2,6 +2,7 @@ import { Mail, MessageSquare, Smartphone } from 'lucide-react';
 import { clsx } from 'clsx';
 import { motion } from 'framer-motion';
 import { FieldError, FieldLabel, inputClassName } from './WizardFormField';
+import CampaignCtaConfigFields from './CampaignCtaConfigFields';
 import { CAMPAIGN_CHANNELS } from './campaignsData';
 
 const ALERT_CHANNELS = CAMPAIGN_CHANNELS.filter((channel) =>
@@ -19,6 +20,9 @@ const FIELD_HELP = {
   body: 'A clear alert message — state what happened, impact, and what customers should do.',
   headline: 'A short alert title customers will recognize — e.g. Downtime, Maintenance.',
   cta: 'The next action you want customers to take — e.g. Learn More, Call Now, Check Status.',
+  ctaType:
+    'Payments are not processed on Engage 360. Link customers to a status page, phone line, or WhatsApp.',
+  ctaValue: 'Where the call to action sends customers for help or updates.',
   description: 'Extra context such as expected resolution time, affected areas, or workarounds.',
 };
 
@@ -100,35 +104,31 @@ export default function ServiceAlertsMessageStep({ form, errors, onUpdate }) {
         <FieldError message={errors.body} />
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div>
-          <FieldLabel htmlFor="alert-headline" help={FIELD_HELP.headline}>
-            Title
-          </FieldLabel>
-          <input
-            id="alert-headline"
-            value={form.headline}
-            onChange={(event) => onUpdate('headline', event.target.value)}
-            placeholder="Downtime"
-            className={inputClassName(errors.headline)}
-            aria-invalid={Boolean(errors.headline)}
-          />
-          <FieldError message={errors.headline} />
-        </div>
-
-        <div>
-          <FieldLabel htmlFor="alert-cta" help={FIELD_HELP.cta}>
-            Call to Action
-          </FieldLabel>
-          <input
-            id="alert-cta"
-            value={form.cta}
-            onChange={(event) => onUpdate('cta', event.target.value)}
-            placeholder="Learn More"
-            className={inputClassName(errors.cta)}
-          />
-        </div>
+      <div>
+        <FieldLabel htmlFor="alert-headline" help={FIELD_HELP.headline}>
+          Title
+        </FieldLabel>
+        <input
+          id="alert-headline"
+          value={form.headline}
+          onChange={(event) => onUpdate('headline', event.target.value)}
+          placeholder="Downtime"
+          className={inputClassName(errors.headline)}
+          aria-invalid={Boolean(errors.headline)}
+        />
+        <FieldError message={errors.headline} />
       </div>
+
+      <CampaignCtaConfigFields
+        idPrefix="alert-cta"
+        cta={form.cta}
+        ctaType={form.ctaType}
+        ctaValue={form.ctaValue}
+        errors={errors}
+        onUpdate={onUpdate}
+        ctaPlaceholder="Learn More"
+        help={FIELD_HELP}
+      />
 
       <div>
         <FieldLabel htmlFor="alert-description" help={FIELD_HELP.description}>

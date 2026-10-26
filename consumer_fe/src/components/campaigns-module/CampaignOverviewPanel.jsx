@@ -4,7 +4,9 @@ import { clsx } from 'clsx';
 import CampaignMobilePreview from './CampaignMobilePreview';
 import PromoVisualPreview from './PromoVisualPreview';
 import {
+  categoryUsesCtaDestination,
   formatReachCount,
+  getCtaDestinationType,
   PROMO_VISUAL_OPTIONS,
   SEGMENTATION_FILTER_TYPES,
 } from './campaignsData';
@@ -125,6 +127,8 @@ export default function CampaignOverviewPanel({ campaign, onLaunchAgain }) {
         : campaign.channelId === 'push'
           ? 'Push Notification'
           : 'SMS Message';
+  const showCtaDestination = categoryUsesCtaDestination(campaign.categoryId);
+  const ctaDestination = getCtaDestinationType(campaign.ctaType);
 
   const customerSourceLabel =
     campaign.customerSource === 'external'
@@ -163,11 +167,21 @@ export default function CampaignOverviewPanel({ campaign, onLaunchAgain }) {
             <div className="grid gap-4 sm:grid-cols-2">
               <ReviewField label="Title" value={campaign.headline} />
               <ReviewField label="Call to Action" value={campaign.cta} />
+              {showCtaDestination ? (
+                <>
+                  <ReviewField label="CTA Destination" value={ctaDestination.label} />
+                  <ReviewField label={ctaDestination.label} value={campaign.ctaValue} />
+                </>
+              ) : null}
               <ReviewField
                 label="Description"
                 value={campaign.description}
                 multiline
-                className={campaign.categoryId === 'service-alerts' ? 'sm:col-span-2' : undefined}
+                className={
+                  campaign.categoryId === 'service-alerts' || showCtaDestination
+                    ? 'sm:col-span-2'
+                    : undefined
+                }
               />
               {campaign.categoryId === 'service-alerts' ? null : (
                 <MediaField

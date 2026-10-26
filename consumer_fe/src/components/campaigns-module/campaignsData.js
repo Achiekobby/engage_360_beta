@@ -170,6 +170,82 @@ export const PROMO_VISUAL_OPTIONS = [
   { id: 'gif', label: 'GIF' },
 ];
 
+/**
+ * Off-platform CTA destinations. Payments are not processed on Engage 360 —
+ * campaigns link customers out via URL, phone, or WhatsApp instead.
+ */
+export const CTA_DESTINATION_TYPES = [
+  {
+    id: 'url',
+    label: 'Link / URL',
+    placeholder: 'https://example.com/offer',
+    inputType: 'url',
+    help: 'Open a webpage, landing page, or checkout link outside Engage 360.',
+  },
+  {
+    id: 'phone',
+    label: 'Phone number',
+    placeholder: '0545366373',
+    inputType: 'tel',
+    help: 'Customers tap the CTA to call this number.',
+  },
+  {
+    id: 'whatsapp',
+    label: 'WhatsApp number',
+    placeholder: '233545366373',
+    inputType: 'tel',
+    help: 'Customers tap the CTA to chat on WhatsApp.',
+  },
+];
+
+/** Campaign types that use off-platform CTA destinations (no in-app payments). */
+export const CTA_DESTINATION_CATEGORIES = [
+  'promotions',
+  'advertisement',
+  'service-alerts',
+  'sales-conversion',
+  'events-activation',
+];
+
+export function categoryUsesCtaDestination(categoryId) {
+  return CTA_DESTINATION_CATEGORIES.includes(categoryId);
+}
+
+export function getCtaDestinationType(typeId) {
+  return CTA_DESTINATION_TYPES.find((item) => item.id === typeId) || CTA_DESTINATION_TYPES[0];
+}
+
+export function formatCtaDestination(ctaType, ctaValue) {
+  const type = getCtaDestinationType(ctaType);
+  if (!ctaValue?.trim()) return '—';
+  return `${type.label}: ${ctaValue.trim()}`;
+}
+
+export function validateCtaDestination(ctaType, ctaValue) {
+  const value = (ctaValue || '').trim();
+  if (!value) {
+    const type = getCtaDestinationType(ctaType);
+    if (type.id === 'url') return 'Enter the link or URL for this call to action.';
+    if (type.id === 'whatsapp') return 'Enter the WhatsApp number for this call to action.';
+    return 'Enter the phone number for this call to action.';
+  }
+
+  if (ctaType === 'url') {
+    const looksLikeUrl =
+      /^https?:\/\/.+/i.test(value) || /^www\./i.test(value) || /^[a-z0-9.-]+\.[a-z]{2,}(\/.*)?$/i.test(value);
+    if (!looksLikeUrl) return 'Enter a valid link or URL (e.g. https://example.com).';
+  } else if (ctaType === 'phone' || ctaType === 'whatsapp') {
+    const digits = value.replace(/[\s()-]/g, '');
+    if (!/^\+?\d{8,15}$/.test(digits)) {
+      return ctaType === 'whatsapp'
+        ? 'Enter a valid WhatsApp number (8–15 digits).'
+        : 'Enter a valid phone number (8–15 digits).';
+    }
+  }
+
+  return null;
+}
+
 export const WIZARD_STEPS = [
   { id: 1, label: 'Message & Primary Asset' },
   { id: 2, label: 'Attachment' },
@@ -702,6 +778,8 @@ export const CAMPAIGN_TEMPLATES = [
     headline: 'The Perfect Day Sale',
     body: 'Exclusive discounts on your favourite products. Limited time only!',
     cta: 'Shop Now',
+    ctaType: 'url',
+    ctaValue: 'https://shop.example.com/perfect-day-sale',
     accent: 'from-[#E67E22] to-[#F5A623]',
     products: [
       { label: 'Sneakers', price: '40% Off' },
@@ -753,6 +831,8 @@ export const CAMPAIGN_TEMPLATES = [
     headline: 'Discover Our New Collection',
     body: 'Be the first to explore our latest arrivals and signature looks.',
     cta: 'Explore Now',
+    ctaType: 'url',
+    ctaValue: 'https://shop.example.com/new-collection',
     accent: 'from-[#2E7DAD] to-[#5B9FD4]',
     products: [
       { label: 'New', price: 'Just In' },
@@ -806,6 +886,8 @@ export const CAMPAIGN_TEMPLATES = [
     description:
       'Highlight the product, original price, and discounted price so customers can buy with confidence.',
     cta: 'Order Now',
+    ctaType: 'url',
+    ctaValue: 'https://shop.example.com/clear-offer',
     accent: 'from-primary to-[#6B4FE0]',
     products: [
       { label: 'Price', price: 'GHS 599' },
@@ -877,6 +959,8 @@ export const CAMPAIGN_TEMPLATES = [
     description:
       'Expected resolution updates will follow. For urgent help, contact our support line. We apologize for the inconvenience.',
     cta: 'Learn More',
+    ctaType: 'phone',
+    ctaValue: '0545366373',
     accent: 'from-[#C0392B] to-[#E74C3C]',
     products: [
       { label: 'Status', price: 'Down' },
@@ -1063,6 +1147,8 @@ export const CAMPAIGN_TEMPLATES = [
     description:
       'Expect live demos, VIP lounges, and conversations with the people behind the products you love.',
     cta: 'Reserve your seat',
+    ctaType: 'url',
+    ctaValue: 'https://events.example.com/summer-brand-night',
     accent: 'from-primary to-[#6B4FE0]',
     products: [
       { label: 'VIP', price: 'GHS 299' },
@@ -1288,6 +1374,8 @@ export function createCampaignFromForm(form, route = 'direct', templateId = null
     body: form.body,
     description: form.description,
     cta: form.cta,
+    ctaType: form.ctaType || 'url',
+    ctaValue: form.ctaValue || '',
     attachmentName: form.attachments?.[0]?.fileName || '',
     attachments: form.attachments,
     banner: form.banner || null,

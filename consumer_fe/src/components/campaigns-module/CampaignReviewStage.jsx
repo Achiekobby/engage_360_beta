@@ -14,6 +14,7 @@ import {
   CUSTOMER_COLLECTIONS,
   formatEventTime,
   formatReachCount,
+  getCtaDestinationType,
   LEAD_QUESTION_TYPES,
   PROMO_VISUAL_OPTIONS,
   resolvePreferredReach,
@@ -182,6 +183,7 @@ export default function CampaignReviewStage({
   isEventActivation = false,
   isSalesConversion = false,
   isServiceAlerts = false,
+  usesCtaDestination = false,
   onBack,
   onEdit,
   onProceed,
@@ -293,19 +295,30 @@ export default function CampaignReviewStage({
 
                   <div className="grid gap-4 sm:grid-cols-2">
                     <ReviewField
-                      label={isEventActivation ? 'Call to Action' : 'Title'}
-                      value={isEventActivation ? form.cta : form.headline}
+                      label={isEventActivation ? 'Event Title' : 'Title'}
+                      value={form.headline}
                     />
-                    <ReviewField
-                      label={isEventActivation ? 'Event Title' : 'Call to Action'}
-                      value={isEventActivation ? form.headline : form.cta}
-                    />
+                    <ReviewField label="Call to Action" value={form.cta} />
+                    {usesCtaDestination ? (
+                      <>
+                        <ReviewField
+                          label="CTA Destination"
+                          value={getCtaDestinationType(form.ctaType).label}
+                        />
+                        <ReviewField
+                          label={getCtaDestinationType(form.ctaType).label}
+                          value={form.ctaValue}
+                        />
+                      </>
+                    ) : null}
                     <ReviewField
                       label={isEventActivation ? 'Event Description' : 'Description'}
                       value={form.description || form.body}
                       multiline
                       className={
-                        isEventActivation || isServiceAlerts ? 'sm:col-span-2' : undefined
+                        isEventActivation || isServiceAlerts || usesCtaDestination
+                          ? 'sm:col-span-2'
+                          : undefined
                       }
                     />
                     {isEventActivation || isServiceAlerts ? null : (
