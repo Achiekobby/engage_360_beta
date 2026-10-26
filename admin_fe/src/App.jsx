@@ -20,6 +20,9 @@ import TicketAnalyticsPage from './pages/tickets/TicketAnalyticsPage';
 import DashboardPage from './pages/DashboardPage';
 import AutomationsPage from './pages/automations/AutomationsPage';
 import AutomationsAnalyticsPage from './pages/automations/AutomationsAnalyticsPage';
+import RewardsPage from './pages/rewards/RewardsPage';
+import CreateRewardPage from './pages/rewards/CreateRewardPage';
+import RewardActivityPage from './pages/rewards/RewardActivityPage';
 
 function AppShell() {
   const location = useLocation();
@@ -51,6 +54,9 @@ function AppShell() {
               path="/automations/:kindId/analytics"
               element={<AutomationsAnalyticsPage />}
             />
+            <Route path="/rewards/activity" element={<RewardActivityPage />} />
+            <Route path="/rewards/new" element={<CreateRewardPage />} />
+            <Route path="/rewards" element={<RewardsPage />} />
             <Route path="/settings" element={<PlatformSettingsPage />} />
             <Route path="/settings/automations" element={<PlatformAutomationsPage />} />
             <Route path="/tickets" element={<TicketsPage />} />

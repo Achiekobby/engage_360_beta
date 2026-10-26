@@ -11,11 +11,13 @@ import {
   REGISTER,
 } from 'redux-persist';
 import { SEED_BUSINESSES } from '../constants/businesses';
+import { SEED_REDEMPTIONS } from '../constants/rewards';
 import storage from './storage';
 import navReducer from './slices/navSlice';
 import uiReducer from './slices/uiSlice';
 import authReducer from './slices/authSlice';
 import businessesReducer from './slices/businessesSlice';
+import rewardsReducer from './slices/rewardsSlice';
 
 const migrations = {
   2: (state) => {
@@ -46,13 +48,27 @@ const migrations = {
       },
     };
   },
+  4: (state) => {
+    if (!state?.rewards || Array.isArray(state.rewards.redemptions)) return state;
+    return {
+      ...state,
+      rewards: { ...state.rewards, redemptions: SEED_REDEMPTIONS, redemptionSeed: 2 },
+    };
+  },
+  5: (state) => {
+    if (!state?.rewards || state.rewards.redemptionSeed === 2) return state;
+    return {
+      ...state,
+      rewards: { ...state.rewards, redemptions: SEED_REDEMPTIONS, redemptionSeed: 2 },
+    };
+  },
 };
 
 const persistConfig = {
   key: 'engage-admin',
-  version: 3,
+  version: 5,
   storage,
-  whitelist: ['nav', 'auth', 'businesses'],
+  whitelist: ['nav', 'auth', 'businesses', 'rewards'],
   migrate: createMigrate(migrations, { debug: false }),
 };
 
@@ -61,6 +77,7 @@ const rootReducer = combineReducers({
   ui: uiReducer,
   auth: authReducer,
   businesses: businessesReducer,
+  rewards: rewardsReducer,
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);

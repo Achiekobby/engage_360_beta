@@ -99,6 +99,7 @@ export const ADMIN_NAV = [
       end: true,
     })),
   },
+  { label: 'Rewards Management', to: '/rewards', icon: Gift },
   {
     label: 'Platform Settings',
     to: '/settings',

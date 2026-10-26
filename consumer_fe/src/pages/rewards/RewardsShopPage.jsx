@@ -1,7 +1,8 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Smartphone } from 'lucide-react';
 import { formatGhanaPhone } from '../../constants/ghanaNetworks';
 import { REWARDS, TELCO_NETWORKS } from '../../constants/rewardsCatalog';
+import { loadPublishedRewards } from '../../services/publishedRewards';
 import useRecipient from '../../hooks/useRecipient';
 import RewardFlow from '../../components/recipient-offer/reward-flow/RewardFlow';
 import RedeemDialog from '../../components/rewards/redeem/RedeemDialog';
@@ -10,24 +11,38 @@ import ProfileNudge from '../../components/rewards/shop/ProfileNudge';
 import RewardFilterTabs from '../../components/rewards/shop/RewardFilterTabs';
 import RewardGrid from '../../components/rewards/shop/RewardGrid';
 
-const TABS = [
-  { id: 'all', label: 'All Rewards', count: REWARDS.length },
-  ...TELCO_NETWORKS.map((network) => ({
-    id: network.id,
-    label: network.label,
-    count: REWARDS.filter((reward) => reward.network === network.id).length,
-  })),
-];
-
 export default function RewardsShopPage() {
   const { phone, wallet, gaps, now } = useRecipient();
+  const [catalog, setCatalog] = useState(REWARDS);
   const [filter, setFilter] = useState('all');
   const [redeem, setRedeem] = useState({ reward: null, open: false, key: 0 });
   const [profileOpen, setProfileOpen] = useState(false);
 
+  useEffect(() => {
+    let active = true;
+    loadPublishedRewards().then((next) => {
+      if (active) setCatalog(next);
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const tabs = useMemo(
+    () => [
+      { id: 'all', label: 'All Rewards', count: catalog.length },
+      ...TELCO_NETWORKS.map((network) => ({
+        id: network.id,
+        label: network.label,
+        count: catalog.filter((reward) => reward.network === network.id).length,
+      })),
+    ],
+    [catalog],
+  );
+
   const visibleRewards = useMemo(
-    () => (filter === 'all' ? REWARDS : REWARDS.filter((reward) => reward.network === filter)),
-    [filter],
+    () => (filter === 'all' ? catalog : catalog.filter((reward) => reward.network === filter)),
+    [catalog, filter],
   );
 
   const openRedeem = useCallback(
@@ -39,7 +54,7 @@ export default function RewardsShopPage() {
 
   return (
     <div className="space-y-6 sm:space-y-8">
-      <PointsWalletCard wallet={wallet} rewards={REWARDS} now={now} />
+      <PointsWalletCard wallet={wallet} rewards={catalog} now={now} />
 
       {gaps.count > 0 ? <ProfileNudge gaps={gaps} onComplete={() => setProfileOpen(true)} /> : null}
 
@@ -60,7 +75,7 @@ export default function RewardsShopPage() {
           </p>
         </div>
 
-        <RewardFilterTabs tabs={TABS} active={filter} onChange={setFilter} />
+        <RewardFilterTabs tabs={tabs} active={filter} onChange={setFilter} />
 
         <div className="mt-5">
           <RewardGrid rewards={visibleRewards} wallet={wallet} onRedeem={openRedeem} />

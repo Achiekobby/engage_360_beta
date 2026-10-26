@@ -1,5 +1,5 @@
 import { REWARDS_CONFIG } from '../../constants/rewardsConfig';
-import { getRewardById } from '../../constants/rewardsCatalog';
+import { findReward, loadPublishedRewards } from '../publishedRewards';
 import { delay } from './delay';
 import { RecipientError } from './errors';
 import { createId, createReference } from './ids';
@@ -20,8 +20,9 @@ import { allocatePoints, computeWallet } from './wallet';
 export async function redeemReward({ phone, rewardId, requestId, confirmedNetwork }) {
   await delay(900);
   requireSession(phone);
+  await loadPublishedRewards();
 
-  const reward = getRewardById(rewardId);
+  const reward = findReward(rewardId);
   if (!reward) {
     throw new RecipientError('REWARD_UNAVAILABLE', 'This reward is no longer available.');
   }
