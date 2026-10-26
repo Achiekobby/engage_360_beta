@@ -148,6 +148,13 @@ export const NAV_LINK_ITEMS = [
   { label: 'Contact us', path: '/contact' },
 ];
 
+/** Public entry to the recipient offer and rewards shop. */
+export const REWARDS_NAV = {
+  label: 'Rewards',
+  path: '/offer',
+  shopPath: '/rewards',
+};
+
 export const PRODUCT_PATHS = PRODUCT_ITEMS.map((item) => item.path);
 
 export function isProductPathActive(pathname) {

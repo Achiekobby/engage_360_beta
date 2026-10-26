@@ -12,6 +12,7 @@ const FOOTER_LINKS = {
   company: [
     { label: 'About Us', to: '/about' },
     { label: 'Product', to: '/product' },
+    { label: 'Rewards', to: '/offer' },
     { label: 'Resources', to: '/resources' },
   ],
   contact: [

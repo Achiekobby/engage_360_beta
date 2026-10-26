@@ -74,6 +74,15 @@ const Images = {
     sales_management: '/images/services/sales_management.png',
     surveys: '/images/services/surveys.png',
     task_management: '/images/services/task_management.png',
+
+    // Telco logos
+    mtn: "/images/telcos/mtn_logo.png",
+    at: "/images/telcos/at_logo.png",
+    telecel: "/images/telcos/telecel_logo.png",
+
+    // placholders
+    sample_product: "/images/placeholders/sample_product.png",
+    sample_banner: "/images/placeholders/sample_banner.png",
   }
 };
 

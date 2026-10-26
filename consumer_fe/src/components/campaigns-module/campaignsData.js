@@ -1,4 +1,7 @@
 export { CAMPAIGNS_BASE } from './campaignsNavData';
+import { GHANA_REGIONS, REGION_LOCATIONS, getLocationOptions } from '../../constants/ghanaLocations';
+
+export { GHANA_REGIONS, REGION_LOCATIONS, getLocationOptions };
 
 export const CAMPAIGN_CHANNELS = [
   {
@@ -89,48 +92,6 @@ export const CUSTOMER_COLLECTIONS = [
   { id: 'inactive', label: 'Inactive Customers' },
   { id: 'high-value', label: 'High Value Accounts' },
 ];
-
-export const GHANA_REGIONS = [
-  'Ahafo',
-  'Ashanti',
-  'Bono',
-  'Bono East',
-  'Central',
-  'Eastern',
-  'Greater Accra',
-  'North East',
-  'Northern',
-  'Oti',
-  'Savannah',
-  'Upper East',
-  'Upper West',
-  'Volta',
-  'Western',
-  'Western North',
-];
-
-export const REGION_LOCATIONS = {
-  'Greater Accra': ['Accra', 'Tema', 'Madina', 'Ashaiman', 'Adenta', 'Dome'],
-  Ashanti: ['Kumasi', 'Obuasi', 'Ejisu', 'Konongo', 'Bekwai'],
-  Western: ['Takoradi', 'Sekondi', 'Tarkwa', 'Axim'],
-  'Western North': ['Sefwi Wiawso', 'Bibiani', 'Enchi'],
-  Central: ['Cape Coast', 'Winneba', 'Kasoa', 'Elmina'],
-  Eastern: ['Koforidua', 'Nkawkaw', 'Akosombo', 'Suhum'],
-  Volta: ['Ho', 'Hohoe', 'Keta', 'Aflao'],
-  Oti: ['Dambai', 'Kete Krachi', 'Jasikan'],
-  Northern: ['Tamale', 'Yendi', 'Savelugu'],
-  Savannah: ['Damongo', 'Salaga', 'Bole'],
-  'North East': ['Nalerigu', 'Walewale', 'Gambaga'],
-  'Upper East': ['Bolgatanga', 'Bawku', 'Navrongo'],
-  'Upper West': ['Wa', 'Tumu', 'Lawra'],
-  Bono: ['Sunyani', 'Berekum', 'Dormaa Ahenkro'],
-  'Bono East': ['Techiman', 'Kintampo', 'Nkoranza'],
-  Ahafo: ['Goaso', 'Bechem', 'Duayaw Nkwanta'],
-};
-
-export function getLocationOptions(region) {
-  return REGION_LOCATIONS[region] || [];
-}
 
 export const SEGMENTATION_FILTER_TYPES = {
   gender: {

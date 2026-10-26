@@ -10,7 +10,8 @@ import {
   closeMobileMenu,
   toggleMobileMenu,
 } from '../../store/slices/navSlice';
-import { NAV_LINK_ITEMS } from './navData';
+import { NAV_LINK_ITEMS, REWARDS_NAV } from './navData';
+import useRecipient from '../../hooks/useRecipient';
 import {
   ProductNavDropdownDesktop,
   ProductNavDropdownMobile,
@@ -26,6 +27,8 @@ export default function GuestNavbar() {
   const location = useLocation();
   const navigate = useNavigate();
   const reduceMotion = useReducedMotion();
+  const { isVerified } = useRecipient();
+  const rewardsPath = isVerified ? REWARDS_NAV.shopPath : REWARDS_NAV.path;
 
   const handleScroll = useCallback(() => {
     dispatch(setScrolled(window.scrollY > 12));
@@ -129,6 +132,10 @@ export default function GuestNavbar() {
 
             <ResourcesNavDropdownDesktop isScrolled={isScrolled} />
 
+            <NavLink to={rewardsPath} className={({ isActive }) => navLinkClass(isActive)}>
+              {REWARDS_NAV.label}
+            </NavLink>
+
             {NAV_LINK_ITEMS.slice(1).map(({ label, path }) => (
               <NavLink
                 key={path}
@@ -228,6 +235,14 @@ export default function GuestNavbar() {
               <ProductNavDropdownMobile isScrolled={isScrolled} onNavigate={closeMobile} />
 
               <ResourcesNavDropdownMobile isScrolled={isScrolled} onNavigate={closeMobile} />
+
+              <NavLink
+                to={rewardsPath}
+                onClick={closeMobile}
+                className={({ isActive }) => mobileNavLinkClass(isActive)}
+              >
+                {REWARDS_NAV.label}
+              </NavLink>
 
               {NAV_LINK_ITEMS.slice(1).map(({ label, path }) => (
                 <NavLink

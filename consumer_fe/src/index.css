@@ -74,6 +74,7 @@
 @tailwind components;
 @tailwind utilities;
 
+
 @layer base {
   :root {
         --background: #FFFFFF;
@@ -331,3 +332,14 @@
 .scrollbar-thin::-webkit-scrollbar-corner {
   background: transparent;
 }
+
+/* Hides the scrollbar on horizontally scrolling chip rows while keeping them scrollable. */
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+

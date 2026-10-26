@@ -11,6 +11,14 @@ import ScrollToTop from "./components/layout/ScrollToTop";
 import GlobalModals from "./components/GlobalModals";
 import { PageTransition } from "./components/motion";
 import CampaignLandingPage from "./pages/CampaignLandingPage";
+import RecipientOfferPage from "./pages/RecipientOfferPage";
+import RecipientGuard from "./components/rewards/RecipientGuard";
+import RewardsLayout from "./layouts/RewardsLayout";
+import RewardsShopPage from "./pages/rewards/RewardsShopPage";
+import RewardsActivityPage from "./pages/rewards/RewardsActivityPage";
+import RewardsHowItWorksPage from "./pages/rewards/RewardsHowItWorksPage";
+import RewardsFaqPage from "./pages/rewards/RewardsFaqPage";
+import RewardsContactPage from "./pages/rewards/RewardsContactPage";
 import ProductPage from "./pages/ProductPage";
 import SignUpPage from "./pages/SignUpPage";
 import SignInPage from "./pages/SignInPage";
@@ -57,8 +65,15 @@ function shouldHideGuestNavbar(pathname) {
     AUTH_PATHS.includes(pathname) ||
     pathname === "/dashboard" ||
     pathname.startsWith("/customer-engagement") ||
-    pathname.startsWith("/campaigns")
+    pathname.startsWith("/campaigns") ||
+    pathname.startsWith("/offer") ||
+    pathname.startsWith("/rewards")
   );
+}
+
+// Pages inside a shared layout transition as one unit, so the navbar doesn't flash between tabs.
+function getTransitionKey(pathname) {
+  return pathname.startsWith("/rewards") ? "/rewards" : pathname;
 }
 
 function AppShell() {
@@ -71,9 +86,21 @@ function AppShell() {
       {!hideNavbar && <GuestNavbar />}
       <GlobalModals />
       <AnimatePresence mode="wait">
-        <PageTransition key={location.pathname}>
+        <PageTransition key={getTransitionKey(location.pathname)}>
           <Routes location={location}>
             <Route path="/" element={<CampaignLandingPage />} />
+            <Route path="/offer" element={<RecipientOfferPage />} />
+            <Route path="/offer/:campaignId" element={<RecipientOfferPage />} />
+            <Route element={<RecipientGuard />}>
+              <Route path="/rewards" element={<RewardsLayout />}>
+                <Route index element={<RewardsShopPage />} />
+                <Route path="activity" element={<RewardsActivityPage />} />
+                <Route path="how-it-works" element={<RewardsHowItWorksPage />} />
+                <Route path="faq" element={<RewardsFaqPage />} />
+                <Route path="contact" element={<RewardsContactPage />} />
+                <Route path="*" element={<Navigate to="/rewards" replace />} />
+              </Route>
+            </Route>
             <Route path="/product" element={<ProductPage />} />
             <Route path="/product/campaigns" element={<CampaignsPage />} />
             <Route path="/product/:slug" element={<Untitled />} />
