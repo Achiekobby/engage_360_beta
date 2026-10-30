@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
-import { Field, FieldArray, useFormikContext } from 'formik';
+import { ErrorMessage, Field, FieldArray, useFormikContext } from 'formik';
 import { CloudUpload, Plus, Trash2 } from 'lucide-react';
 import AuthFieldLabel from '../AuthFieldLabel';
-import { authInputClass } from '../authStyles';
+import { authErrorClass, authInputClass } from '../authStyles';
 import { SOCIAL_PLATFORMS } from './signupStepsData';
 
 export default function StepAdditionalDetails() {
@@ -53,6 +53,7 @@ export default function StepAdditionalDetails() {
             onChange={handleLogoChange}
           />
         </label>
+        <ErrorMessage name="companyLogo" component="p" className={authErrorClass} />
       </div>
 
       <FieldArray name="socialLinks">
@@ -90,6 +91,7 @@ export default function StepAdditionalDetails() {
                       placeholder="https://"
                       className={authInputClass}
                     />
+                    <ErrorMessage name={`socialLinks.${index}.url`} component="p" className={authErrorClass} />
                   </div>
                 </div>
 

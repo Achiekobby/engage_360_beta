@@ -17,8 +17,8 @@ import {
   authPrimaryBtnClass,
 } from '../components/auth/authStyles';
 import { useAppDispatch } from '../store/hooks';
-import { login } from '../store/slices/authSlice';
-import { DEMO_CREDENTIALS, DEMO_USER, isDemoLogin } from '../constants/demoAuth';
+import { login, setPendingVerification } from '../store/slices/authSlice';
+import { accountNeedsVerification, loginAccount, sessionFromLogin } from '../services/auth/login';
 
 const INITIAL_VALUES = {
   email: '',
@@ -31,7 +31,8 @@ export default function SignInPage() {
   const location = useLocation();
   const dispatch = useAppDispatch();
   const [authError, setAuthError] = useState('');
-  const redirectTo = location.state?.from ?? '/dashboard';
+  const redirectTo =
+    location.state?.from && location.state.from !== '/signin' ? location.state.from : '/dashboard';
 
   return (
     <div className={`flex items-center justify-center px-4 py-10 ${authPageBgClass}`}>
@@ -50,12 +51,7 @@ export default function SignInPage() {
                 <h1 className="mt-4 text-xl font-bold text-[#0B1354] sm:text-2xl">
                   Login into your account
                 </h1>
-                <p className="mt-3 rounded-lg bg-[#F7F8FF] px-3 py-2 text-xs leading-relaxed text-[#717171] sm:text-sm">
-                  Demo guest:{' '}
-                  <span className="font-semibold text-primary">{DEMO_CREDENTIALS.email}</span>
-                  {' / '}
-                  <span className="font-semibold text-primary">{DEMO_CREDENTIALS.password}</span>
-                </p>
+                <p className="mt-2 text-sm text-[#717171]">Use the main email for your account.</p>
               </div>
 
               <Formik
@@ -66,17 +62,24 @@ export default function SignInPage() {
                 onSubmit={async (values, { setSubmitting }) => {
                   setAuthError('');
                   setSubmitting(true);
-                  await new Promise((r) => setTimeout(r, 700));
-
-                  if (!isDemoLogin(values.email, values.password)) {
-                    setAuthError('Invalid email or password. Use the demo guest credentials above.');
+                  try {
+                    const result = await loginAccount(values);
+                    const session = sessionFromLogin(result, values.email.trim());
+                    if (accountNeedsVerification(result)) {
+                      dispatch(setPendingVerification(session));
+                      navigate('/verify-otp', {
+                        replace: true,
+                        state: { email: session.email, requestNewCode: true },
+                      });
+                      return;
+                    }
+                    dispatch(login(session));
+                    navigate(redirectTo, { replace: true });
+                  } catch (error) {
+                    setAuthError(error.message || 'Login could not be completed.');
+                  } finally {
                     setSubmitting(false);
-                    return;
                   }
-
-                  dispatch(login(DEMO_USER));
-                  setSubmitting(false);
-                  navigate(redirectTo, { replace: true });
                 }}
               >
                 {({ isSubmitting }) => (
@@ -110,14 +113,7 @@ export default function SignInPage() {
                       required
                     />
 
-                    <label className="flex cursor-pointer items-center gap-2.5">
-                      <Field
-                        type="checkbox"
-                        name="rememberMe"
-                        className="h-4 w-4 rounded border-[#E4E4E7] text-primary focus:ring-primary/20"
-                      />
-                      <span className="text-sm text-[#717171]">Remember me</span>
-                    </label>
+               
 
                     <button type="submit" disabled={isSubmitting} className={authPrimaryBtnClass}>
                       {isSubmitting ? (

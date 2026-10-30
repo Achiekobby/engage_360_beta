@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { Form, Formik } from 'formik';
 import { Link, useNavigate } from 'react-router-dom';
-import { Loader2 } from 'lucide-react';
+import { AlertCircle, Loader2 } from 'lucide-react';
 import { useAppDispatch } from '../store/hooks';
-import { setPendingVerification } from '../store/slices/authSlice';
+import { completeVerification, setPendingVerification } from '../store/slices/authSlice';
+import { registerAccount, stepForRegisterErrors } from '../services/auth/register';
 import { AnimateStep, Reveal } from '../components/motion';
 import LogoMark from '../components/brand/LogoMark';
 import SignUpLeftPanel from '../components/auth/signup/SignUpLeftPanel';
@@ -28,6 +29,7 @@ export default function SignUpPage() {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const [activeStep, setActiveStep] = useState(0);
+  const [formError, setFormError] = useState('');
   const panel = SIGNUP_STEP_META[activeStep];
   const StepForm = STEP_COMPONENTS[activeStep];
   const completedCount = activeStep;
@@ -62,28 +64,67 @@ export default function SignUpPage() {
             validationSchema={STEP_SCHEMAS[activeStep]}
             validateOnBlur={false}
             validateOnChange={false}
-            onSubmit={async (values, { setSubmitting }) => {
+            onSubmit={async (values, { setSubmitting, setErrors, setFieldTouched }) => {
               if (activeStep < SIGNUP_STEP_META.length - 1) {
+                setFormError('');
                 setActiveStep((s) => s + 1);
                 return;
               }
 
+              setFormError('');
               setSubmitting(true);
-              await new Promise((r) => setTimeout(r, 900));
+              let registered;
+              try {
+                registered = await registerAccount(values);
+              } catch (error) {
+                const flat = error.flat || {};
+                const fieldErrors = error.fieldErrors || {};
+                if (Object.keys(flat).length) {
+                  setActiveStep(stepForRegisterErrors(flat));
+                  setErrors(fieldErrors);
+                  Object.keys(flat).forEach((path) => setFieldTouched(path, true, false));
+                }
+                setFormError(error.message || 'Registration could not be completed.');
+                setSubmitting(false);
+                return;
+              }
               setSubmitting(false);
 
+              const account = registered?.data || {};
+              const companyEmail = values.companyEmail.trim();
+              const returnedEmail = (account.email || '').trim();
+              const email =
+                returnedEmail.toLowerCase() === companyEmail.toLowerCase()
+                  ? returnedEmail || companyEmail
+                  : companyEmail;
               const phone = values.contactPhone || values.companyPhone;
-              const email = values.contactEmail || values.companyEmail;
+              const companyId = account.company_id || null;
 
-              dispatch(setPendingVerification({ phone, email }));
+              dispatch(setPendingVerification({ email, phone, companyId }));
+
+              if (account.verification_required === false) {
+                dispatch(completeVerification());
+                navigate('/dashboard', { replace: true });
+                return;
+              }
 
               navigate('/verify-otp', {
-                state: { phone, email },
+                state: { email, phone, companyId },
               });
             }}
           >
             {({ isSubmitting }) => (
               <Form>
+                {formError ? (
+                  <div
+                    role="alert"
+                    className="mb-4 flex gap-2.5 rounded-xl border border-[#FECACA] bg-[#FEF2F2] px-3.5 py-3 text-sm text-[#B91C1C]"
+                  >
+                    <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" strokeWidth={2.25} aria-hidden="true" />
+                    <p>{formError}</p>
+                  </div>
+                ) : null}
+
                 <AnimateStep stepKey={activeStep}>
                   <StepForm />
                 </AnimateStep>
@@ -107,7 +148,10 @@ export default function SignUpPage() {
                   {activeStep > 0 && (
                     <button
                       type="button"
-                      onClick={() => setActiveStep((s) => s - 1)}
+                      onClick={() => {
+                        setFormError('');
+                        setActiveStep((s) => s - 1);
+                      }}
                       className={authSecondaryBtnClass}
                     >
                       Back

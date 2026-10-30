@@ -4,6 +4,7 @@ export const SIGNUP_STEP_META = [
   {
     id: 'company',
     label: 'Company Details',
+    shortLabel: 'Company',
     icon: Building2,
     image: Images.auth.company_details,
     title: 'Connect More. Engage Smarter. Grow Faster.',
@@ -13,6 +14,7 @@ export const SIGNUP_STEP_META = [
   {
     id: 'additional',
     label: 'Additional Details',
+    shortLabel: 'Details',
     icon: ImagePlus,
     image: Images.auth.additional_details,
     title: 'Every Conversation Counts.',
@@ -22,6 +24,7 @@ export const SIGNUP_STEP_META = [
   {
     id: 'password',
     label: 'Password Setup',
+    shortLabel: 'Password',
     icon: LockKeyhole,
     image: Images.auth.password_setup,
     title: 'One Platform. Endless Engagement.',

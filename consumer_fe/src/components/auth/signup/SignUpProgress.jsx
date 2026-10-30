@@ -18,7 +18,11 @@ export default function SignUpProgress({ steps, activeStep, completedCount }) {
         />
       </div>
 
-      <div className="mt-5 flex flex-wrap items-center justify-center gap-2 sm:gap-3">
+      <div
+        className="mt-5 flex flex-nowrap items-center gap-1.5 sm:justify-center sm:gap-3"
+        role="list"
+        aria-label="Signup steps"
+      >
         {steps.map((step, index) => {
           const Icon = step.icon;
           const isActive = index === activeStep;
@@ -27,15 +31,19 @@ export default function SignUpProgress({ steps, activeStep, completedCount }) {
           return (
             <div
               key={step.id}
+              role="listitem"
+              aria-current={isActive ? 'step' : undefined}
+              aria-label={step.label}
               className={clsx(
-                'flex items-center gap-2 rounded-full border px-3 py-1.5 text-[11px] font-medium transition-colors sm:px-4 sm:py-2 sm:text-xs',
+                'flex min-w-0 flex-1 items-center justify-center gap-1 rounded-full border px-2 py-1.5 text-[11px] font-medium transition-colors sm:flex-none sm:gap-2 sm:px-4 sm:py-2 sm:text-xs',
                 isActive || isComplete
                   ? 'border-primary bg-primary text-white'
                   : 'border-[#E4E4E7] bg-white text-[#717171]',
               )}
             >
               <Icon className="h-3.5 w-3.5 shrink-0 sm:h-4 sm:w-4" strokeWidth={2} />
-              <span className="whitespace-nowrap">{step.label}</span>
+              <span className="truncate sm:hidden">{step.shortLabel || step.label}</span>
+              <span className="hidden whitespace-nowrap sm:inline">{step.label}</span>
             </div>
           );
         })}

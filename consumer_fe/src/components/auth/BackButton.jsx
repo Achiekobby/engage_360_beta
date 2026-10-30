@@ -2,11 +2,15 @@ import { ArrowLeft } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { clsx } from 'clsx';
 
-export default function BackButton({ fallback = '/', label = 'Back', className = '' }) {
+export default function BackButton({ fallback = '/', label = 'Back', className = '', onBack }) {
   const navigate = useNavigate();
   const location = useLocation();
 
   const handleBack = () => {
+    if (onBack) {
+      onBack();
+      return;
+    }
     if (location.key && location.key !== 'default') {
       navigate(-1);
     } else {

@@ -1,7 +1,7 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Form, Formik, ErrorMessage, Field } from 'formik';
 import { Link, useNavigate } from 'react-router-dom';
-import { Loader2 } from 'lucide-react';
+import { AlertCircle, Loader2 } from 'lucide-react';
 import { AnimateStep } from '../components/motion';
 import LogoMark from '../components/brand/LogoMark';
 import PasswordField from '../components/auth/PasswordField';
@@ -18,6 +18,10 @@ import {
   authPageBgClass,
   authPrimaryBtnClass,
 } from '../components/auth/authStyles';
+import { forgotPassword, resetPassword } from '../services/auth/password';
+
+const CODE_LENGTH = 6;
+const RESEND_COOLDOWN_SEC = 60;
 
 function maskEmail(email = '') {
   if (!email || !email.includes('@')) return 'your email';
@@ -26,10 +30,33 @@ function maskEmail(email = '') {
   return `${local[0]}${'*'.repeat(Math.min(local.length - 1, 4))}@${domain}`;
 }
 
-function OtpStep({ email, onComplete }) {
-  const [digits, setDigits] = useState(['', '', '', '']);
+function FormAlert({ children }) {
+  if (!children) return null;
+  return (
+    <div
+      role="alert"
+      className="mb-4 flex gap-2.5 rounded-xl border border-[#FECACA] bg-[#FEF2F2] px-3.5 py-3 text-left text-sm text-[#B91C1C]"
+    >
+      <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" strokeWidth={2.25} aria-hidden="true" />
+      <p>{children}</p>
+    </div>
+  );
+}
+
+function OtpStep({ email, initialError = '', onComplete }) {
+  const [digits, setDigits] = useState(() => Array(CODE_LENGTH).fill(''));
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isResending, setIsResending] = useState(false);
+  const [secondsLeft, setSecondsLeft] = useState(0);
+  const [error, setError] = useState(initialError);
+  const [notice, setNotice] = useState('');
   const inputRefs = useRef([]);
+
+  useEffect(() => {
+    if (secondsLeft <= 0) return undefined;
+    const timer = window.setTimeout(() => setSecondsLeft((value) => value - 1), 1000);
+    return () => window.clearTimeout(timer);
+  }, [secondsLeft]);
 
   const handleChange = (index, value) => {
     if (!/^\d*$/.test(value)) return;
@@ -37,8 +64,10 @@ function OtpStep({ email, onComplete }) {
     const next = [...digits];
     next[index] = value.slice(-1);
     setDigits(next);
+    setError('');
+    setNotice('');
 
-    if (value && index < 3) {
+    if (value && index < CODE_LENGTH - 1) {
       inputRefs.current[index + 1]?.focus();
     }
   };
@@ -50,34 +79,53 @@ function OtpStep({ email, onComplete }) {
   };
 
   const handlePaste = (event) => {
-    const pasted = event.clipboardData.getData('text').replace(/\D/g, '').slice(0, 4);
+    const pasted = event.clipboardData.getData('text').replace(/\D/g, '').slice(0, CODE_LENGTH);
     if (!pasted) return;
     event.preventDefault();
-    const next = pasted.split('').concat(['', '', '', '']).slice(0, 4);
+    const next = pasted.split('').concat(Array(CODE_LENGTH).fill('')).slice(0, CODE_LENGTH);
     setDigits(next);
-    inputRefs.current[Math.min(pasted.length, 3)]?.focus();
+    setError('');
+    inputRefs.current[Math.min(pasted.length, CODE_LENGTH - 1)]?.focus();
   };
 
-  const handleSubmit = async (event) => {
+  const handleSubmit = (event) => {
     event.preventDefault();
-    if (digits.some((d) => !d)) return;
-
+    const code = digits.join('');
+    if (code.length !== CODE_LENGTH) return;
     setIsSubmitting(true);
-    await new Promise((r) => setTimeout(r, 800));
-    setIsSubmitting(false);
-    onComplete();
+    onComplete(code);
+  };
+
+  const handleResend = async () => {
+    if (!email || isResending || secondsLeft > 0) return;
+    setError('');
+    setNotice('');
+    setIsResending(true);
+    try {
+      const result = await forgotPassword({ email });
+      setDigits(Array(CODE_LENGTH).fill(''));
+      setNotice(result?.message || 'A new code has been sent.');
+      setSecondsLeft(RESEND_COOLDOWN_SEC);
+      inputRefs.current[0]?.focus();
+    } catch (resendError) {
+      setError(resendError.message || 'A new code could not be sent.');
+      if (resendError.status === 429) setSecondsLeft(RESEND_COOLDOWN_SEC);
+    } finally {
+      setIsResending(false);
+    }
   };
 
   return (
     <>
       <h1 className="text-xl font-bold text-[#0B1354] sm:text-2xl">Enter your code</h1>
       <p className="mt-2 text-sm text-[#717171]">
-        A verification code has been sent to your email ending in{' '}
+        A verification code has been sent to the main email{' '}
         <span className="font-semibold text-[#0B1354]">{maskEmail(email)}</span>
       </p>
 
       <form onSubmit={handleSubmit} className="mt-8">
-        <div className="flex items-center justify-center gap-3">
+        <FormAlert>{error}</FormAlert>
+        <div className="flex items-center justify-center gap-2 sm:gap-3">
           {digits.map((digit, index) => (
             <input
               key={index}
@@ -91,16 +139,27 @@ function OtpStep({ email, onComplete }) {
               onChange={(e) => handleChange(index, e.target.value)}
               onKeyDown={(e) => handleKeyDown(index, e)}
               onPaste={index === 0 ? handlePaste : undefined}
-              className="h-14 w-14 rounded-xl border border-[#E4E4E7] text-center text-xl font-semibold text-[#0B1354] outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/15"
+              className="h-12 w-10 rounded-xl border border-[#E4E4E7] text-center text-lg font-semibold text-[#0B1354] outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/15 sm:h-14 sm:w-12 sm:text-xl"
               aria-label={`Digit ${index + 1}`}
             />
           ))}
         </div>
 
+        {notice ? (
+          <p role="status" className="mt-6 text-sm font-medium text-[#157A42]">
+            {notice}
+          </p>
+        ) : null}
+
         <p className="mt-6 text-center text-sm text-[#717171]">
           Didn&apos;t receive your code?{' '}
-          <button type="button" className="font-semibold text-primary cursor-pointer">
-            Resend Code
+          <button
+            type="button"
+            onClick={handleResend}
+            disabled={isResending || secondsLeft > 0}
+            className="cursor-pointer font-semibold text-primary tabular-nums disabled:cursor-not-allowed disabled:text-[#717171]"
+          >
+            {isResending ? 'Sending…' : secondsLeft > 0 ? `Resend in ${secondsLeft}s` : 'Resend Code'}
           </button>
         </p>
 
@@ -112,7 +171,7 @@ function OtpStep({ email, onComplete }) {
           {isSubmitting ? (
             <span className="inline-flex items-center justify-center gap-2">
               <Loader2 className="h-4 w-4 animate-spin" />
-              Verifying...
+              Continuing...
             </span>
           ) : (
             'Continue'
@@ -127,6 +186,8 @@ export default function ForgotPasswordPage() {
   const navigate = useNavigate();
   const [step, setStep] = useState(0);
   const [email, setEmail] = useState('');
+  const [code, setCode] = useState('');
+  const [formError, setFormError] = useState('');
 
   return (
     <div className={`flex items-center justify-center px-4 py-10 ${authPageBgClass}`}>
@@ -144,7 +205,7 @@ export default function ForgotPasswordPage() {
             </div>
             <h1 className="text-xl font-bold text-[#0B1354] sm:text-2xl">Forgot Your Password?</h1>
             <p className="mt-2 text-sm text-[#717171]">
-              Enter your email address and we&apos;ll send you a code to reset your password.
+              Enter the main email for your account and we&apos;ll send you a code to reset your password.
             </p>
 
             <Formik
@@ -153,15 +214,21 @@ export default function ForgotPasswordPage() {
               validateOnBlur={false}
               validateOnChange={false}
               onSubmit={async (values, { setSubmitting }) => {
+                setFormError('');
                 setSubmitting(true);
-                await new Promise((r) => setTimeout(r, 800));
-                setEmail(values.email);
-                setSubmitting(false);
-                setStep(1);
+                try {
+                  await forgotPassword({ email: values.email });
+                  setEmail(values.email.trim());
+                  setStep(1);
+                } catch (error) {
+                  setFormError(error.message || 'A reset code could not be sent.');
+                  setSubmitting(false);
+                }
               }}
             >
               {({ isSubmitting }) => (
                 <Form className="mt-8 text-left">
+                  <FormAlert>{formError}</FormAlert>
                   <FormFieldLegend />
 
                   <AuthFieldLabel htmlFor="email" required>
@@ -199,7 +266,17 @@ export default function ForgotPasswordPage() {
           </>
         )}
 
-        {step === 1 && <OtpStep email={email} onComplete={() => setStep(2)} />}
+        {step === 1 && (
+          <OtpStep
+            email={email}
+            initialError={formError}
+            onComplete={(nextCode) => {
+              setCode(nextCode);
+              setFormError('');
+              setStep(2);
+            }}
+          />
+        )}
 
         {step === 2 && (
           <>
@@ -213,15 +290,28 @@ export default function ForgotPasswordPage() {
               validationSchema={resetPasswordSchema}
               validateOnBlur={false}
               validateOnChange={false}
-              onSubmit={async (_values, { setSubmitting }) => {
+              onSubmit={async (values, { setSubmitting, setFieldError }) => {
+                setFormError('');
                 setSubmitting(true);
-                await new Promise((r) => setTimeout(r, 900));
-                setSubmitting(false);
-                navigate('/signin', { replace: true });
+                try {
+                  await resetPassword({ email, code, password: values.password });
+                  navigate('/signin', { replace: true });
+                } catch (error) {
+                  if (error.fieldErrors?.code) {
+                    setFormError(error.fieldErrors.code);
+                    setStep(1);
+                    return;
+                  }
+                  const passwordError = error.fieldErrors?.password;
+                  if (passwordError) setFieldError('password', passwordError);
+                  setFormError(passwordError ? '' : error.message || 'The password could not be reset.');
+                  setSubmitting(false);
+                }
               }}
             >
               {({ isSubmitting }) => (
                 <Form className="mt-8 text-left">
+                  <FormAlert>{formError}</FormAlert>
                   <FormFieldLegend />
 
                   <PasswordField label="New Password" name="password" placeholder="Enter password" required />
