@@ -17,18 +17,29 @@ export default function CollectionsView({
   onDelete,
   onView,
   onAddCollection,
+  emptyTitle,
+  emptyDescription,
+  emptyActionLabel,
+  onEmptyAction,
 }) {
   if (collections.length === 0) {
-    return <CollectionEmptyState />;
+    return (
+      <CollectionEmptyState
+        title={emptyTitle}
+        description={emptyDescription}
+        actionLabel={emptyActionLabel}
+        onAction={onEmptyAction}
+      />
+    );
   }
 
   return (
     <section className="overflow-hidden rounded-sm border border-[#EEF0F4] bg-white shadow-[0_4px_20px_rgba(11,19,84,0.05)]">
       <div className="flex flex-col gap-4 border-b border-[#F0F2F7] px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
         <div>
-          <h2 className="text-base font-bold text-[#0B1354] sm:text-lg">Customer Collections</h2>
+          <h2 className="text-base font-bold text-[#0B1354] sm:text-lg">Collections</h2>
           <p className="mt-0.5 text-sm text-[#717171]">
-            Browse folders as cards or scan everything in table view.
+            Each collection stores the contacts you upload for this category.
           </p>
         </div>
 

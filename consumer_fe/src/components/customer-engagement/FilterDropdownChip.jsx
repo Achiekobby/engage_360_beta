@@ -13,6 +13,12 @@ export default function FilterDropdownChip({ label, options, icon: Icon, align =
   const buttonRef = useRef(null);
   const menuRef = useRef(null);
 
+  useEffect(() => {
+    if (!options.includes(selected)) {
+      setSelected(options[0]);
+    }
+  }, [options, selected]);
+
   const updatePosition = useCallback(() => {
     if (!buttonRef.current) return;
 

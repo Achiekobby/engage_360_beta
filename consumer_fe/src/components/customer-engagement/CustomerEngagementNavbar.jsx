@@ -30,13 +30,7 @@ export default function CustomerEngagementNavbar() {
     <header className="sticky top-0 z-50 bg-primary shadow-[0_4px_24px_rgba(58,16,205,0.2)]">
       <div className="mx-auto flex h-16 w-full max-w-8xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
         <div className="flex shrink-0 items-center gap-3">
-          <Link
-            to={`${CUSTOMER_ENGAGEMENT_BASE}/dashboard`}
-            className="shrink-0"
-            aria-label="Customer engagement home"
-          >
-            <LogoMark size={48} variant="on-primary" />
-          </Link>
+          <LogoMark size={48} variant="on-primary" to={`${CUSTOMER_ENGAGEMENT_BASE}/dashboard`} />
 
           <Link
             to="/dashboard"

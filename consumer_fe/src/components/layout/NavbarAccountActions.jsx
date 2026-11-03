@@ -60,16 +60,16 @@ export default function NavbarAccountActions() {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 8, scale: 0.96 }}
               transition={{ duration: 0.18 }}
-              className="absolute right-0 top-full z-50 mt-2 w-52 overflow-hidden rounded-lg border border-white/10 bg-[#2D0DA3] shadow-[0_16px_40px_rgba(11,19,84,0.25)]"
+              className="absolute right-0 top-full z-50 mt-2 w-56 overflow-hidden rounded-xl border border-[#E4E4E7] bg-white shadow-[0_12px_40px_rgba(11,19,84,0.12)]"
             >
-              <div className="border-b border-white/10 px-4 py-3">
-                <p className="truncate text-sm font-semibold text-white">{user?.name ?? 'User'}</p>
-                <p className="truncate text-xs text-white/70">{user?.email}</p>
+              <div className="border-b border-[#EEF0F4] px-4 py-3">
+                <p className="truncate text-sm font-semibold text-[#0B1354]">{user?.name ?? 'User'}</p>
+                <p className="truncate text-xs text-[#717171]">{user?.email}</p>
               </div>
               <button
                 type="button"
                 onClick={handleLogout}
-                className="flex w-full cursor-pointer items-center gap-2 px-4 py-3 text-sm text-white/90 transition-colors hover:bg-white/10"
+                className="flex w-full cursor-pointer items-center gap-2 px-4 py-3 text-sm font-medium text-[#0B1354] transition-colors hover:bg-[#F7F8FF]"
               >
                 <LogOut className="h-4 w-4" strokeWidth={2} />
                 Sign out

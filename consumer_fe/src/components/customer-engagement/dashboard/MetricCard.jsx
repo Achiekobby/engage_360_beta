@@ -49,7 +49,7 @@ export default function MetricCard({ label, value, change, icon, accent, bar }) 
 
         <div className="mt-auto flex items-center justify-between gap-3 pt-5">
           <div className="flex items-center gap-2">
-            <span className="inline-flex items-center gap-1 rounded-sm bg-[#F7F8FF] px-2.5 py-1 text-sm font-semibold text-primary ring-1 ring-primary/10">
+            <span className={`inline-flex items-center gap-1 rounded-sm px-2.5 py-1 text-sm font-semibold ring-1 ring-black/5 ${accent}`}>
               <TrendingUp className="h-3.5 w-3.5" strokeWidth={2.5} />
               {change}%
             </span>

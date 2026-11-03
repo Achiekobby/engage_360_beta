@@ -1,7 +1,6 @@
 import { Form, Formik, ErrorMessage, Field } from 'formik';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
-import { useState } from 'react';
 import { Reveal } from '../components/motion';
 import LogoMark from '../components/brand/LogoMark';
 import SignInLeftPanel from '../components/auth/signin/SignInLeftPanel';
@@ -13,12 +12,12 @@ import { signInSchema } from '../components/auth/signin/signInValidation';
 import {
   authErrorClass,
   authInputClass,
-  authPageBgClass,
   authPrimaryBtnClass,
 } from '../components/auth/authStyles';
 import { useAppDispatch } from '../store/hooks';
 import { login, setPendingVerification } from '../store/slices/authSlice';
 import { accountNeedsVerification, loginAccount, sessionFromLogin } from '../services/auth/login';
+import { notifyError } from '../utils/toast';
 
 const INITIAL_VALUES = {
   email: '',
@@ -30,114 +29,111 @@ export default function SignInPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const dispatch = useAppDispatch();
-  const [authError, setAuthError] = useState('');
   const redirectTo =
     location.state?.from && location.state.from !== '/signin' ? location.state.from : '/dashboard';
 
   return (
-    <div className={`flex items-center justify-center px-4 py-10 ${authPageBgClass}`}>
-      <div className="w-full max-w-4xl">
-        <div className="mb-4 flex justify-end">
-          <BackButton />
-        </div>
+    <div className="min-h-screen lg:flex lg:h-screen lg:overflow-hidden">
+      <SignInLeftPanel />
 
-        <div className="flex items-stretch max-lg:flex-col overflow-hidden rounded-2xl bg-white shadow-[0_12px_40px_rgba(11,19,84,0.08)] lg:min-h-[520px]">
-          <SignInLeftPanel />
+      <div
+        data-app-scroll
+        className="flex min-h-screen w-full flex-col bg-white lg:h-screen lg:min-h-0 lg:flex-1 lg:overflow-y-auto"
+      >
+        <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col justify-center px-4 py-10 sm:px-8 lg:px-12 xl:px-16">
+          <Reveal when="load" variant="fadeUp" delay={0.08} className="mx-auto w-full max-w-md sm:max-w-lg">
+            <div className="mb-8 flex flex-col items-center text-center">
+              <LogoMark size={56} variant="on-white" />
+              <h1 className="mt-4 text-xl font-bold text-[#0B1354] sm:text-2xl">
+                Login into your account
+              </h1>
+              <p className="mt-2 text-sm text-[#717171]">Use the main email for your account.</p>
+            </div>
 
-          <div className="flex flex-1 flex-col justify-center px-6 py-10 sm:px-10 sm:py-12">
-            <Reveal when="load" variant="fadeUp" delay={0.08} className="mx-auto w-full max-w-sm">
-              <div className="mb-8 flex flex-col items-center text-center">
-                <LogoMark size={56} variant="on-white" />
-                <h1 className="mt-4 text-xl font-bold text-[#0B1354] sm:text-2xl">
-                  Login into your account
-                </h1>
-                <p className="mt-2 text-sm text-[#717171]">Use the main email for your account.</p>
-              </div>
-
-              <Formik
-                initialValues={INITIAL_VALUES}
-                validationSchema={signInSchema}
-                validateOnBlur={false}
-                validateOnChange={false}
-                onSubmit={async (values, { setSubmitting }) => {
-                  setAuthError('');
-                  setSubmitting(true);
-                  try {
-                    const result = await loginAccount(values);
-                    const session = sessionFromLogin(result, values.email.trim());
-                    if (accountNeedsVerification(result)) {
-                      dispatch(setPendingVerification(session));
-                      navigate('/verify-otp', {
-                        replace: true,
-                        state: { email: session.email, requestNewCode: true },
-                      });
-                      return;
-                    }
-                    dispatch(login(session));
-                    navigate(redirectTo, { replace: true });
-                  } catch (error) {
-                    setAuthError(error.message || 'Login could not be completed.');
-                  } finally {
-                    setSubmitting(false);
+            <Formik
+              initialValues={INITIAL_VALUES}
+              validationSchema={signInSchema}
+              validateOnBlur={false}
+              validateOnChange={false}
+              onSubmit={async (values, { setSubmitting }) => {
+                setSubmitting(true);
+                try {
+                  const result = await loginAccount(values);
+                  const session = sessionFromLogin(result, values.email.trim());
+                  if (accountNeedsVerification(result)) {
+                    dispatch(setPendingVerification(session));
+                    navigate('/verify-otp', {
+                      replace: true,
+                      state: { email: session.email, requestNewCode: true },
+                    });
+                    return;
                   }
-                }}
-              >
-                {({ isSubmitting }) => (
-                  <Form className="space-y-4">
-                    {authError ? (
-                      <p className="rounded-lg border border-[#FECACA] bg-[#FEF2F2] px-3 py-2.5 text-sm text-[#B91C1C]">
-                        {authError}
-                      </p>
-                    ) : null}
-                    <FormFieldLegend />
+                  dispatch(login(session));
+                  navigate(redirectTo, { replace: true });
+                } catch (error) {
+                  dispatch(
+                    notifyError(error.message || 'Login could not be completed.', {
+                      title: 'Login failed',
+                    }),
+                  );
+                } finally {
+                  setSubmitting(false);
+                }
+              }}
+            >
+              {({ isSubmitting }) => (
+                <Form className="space-y-4">
+                  <FormFieldLegend />
 
-                    <div>
-                      <AuthFieldLabel htmlFor="email" required>
-                        Email
-                      </AuthFieldLabel>
-                      <Field
-                        id="email"
-                        name="email"
-                        type="email"
-                        placeholder="Enter your email"
-                        className={authInputClass}
-                      />
-                      <ErrorMessage name="email" component="p" className={authErrorClass} />
-                    </div>
-
-                    <PasswordField
-                      label="Password"
-                      name="password"
-                      placeholder="Enter password"
-                      showForgotLink
-                      required
+                  <div>
+                    <AuthFieldLabel htmlFor="email" required>
+                      Email
+                    </AuthFieldLabel>
+                    <Field
+                      id="email"
+                      name="email"
+                      type="email"
+                      placeholder="Enter your email"
+                      className={authInputClass}
                     />
+                    <ErrorMessage name="email" component="p" className={authErrorClass} />
+                  </div>
 
-               
+                  <PasswordField
+                    label="Password"
+                    name="password"
+                    placeholder="Enter password"
+                    showForgotLink
+                    required
+                  />
 
-                    <button type="submit" disabled={isSubmitting} className={authPrimaryBtnClass}>
-                      {isSubmitting ? (
-                        <span className="inline-flex items-center justify-center gap-2">
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                          Logging in...
-                        </span>
-                      ) : (
-                        'Login'
-                      )}
-                    </button>
-                  </Form>
-                )}
-              </Formik>
-            </Reveal>
-          </div>
+                  <button type="submit" disabled={isSubmitting} className={authPrimaryBtnClass}>
+                    {isSubmitting ? (
+                      <span className="inline-flex items-center justify-center gap-2">
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Logging in...
+                      </span>
+                    ) : (
+                      'Login'
+                    )}
+                  </button>
+
+                  <BackButton
+                    label="Go back"
+                    className="mt-1 w-full justify-center rounded-lg border border-[#E4E4E7] bg-white px-4 py-3 text-sm font-semibold text-[#0B1354] shadow-[0_1px_2px_rgba(11,19,84,0.04)] transition-all hover:border-primary/25 hover:bg-[#F7F8FF] hover:text-primary"
+                  />
+                </Form>
+              )}
+            </Formik>
+
+            <p className="mt-8 text-center text-sm text-[#717171] lg:hidden">
+              Don&apos;t have an account?{' '}
+              <Link to="/signup" className="font-semibold text-primary hover:text-primary/80">
+                Sign up
+              </Link>
+            </p>
+          </Reveal>
         </div>
-
-        <p className="mt-6 text-center text-sm text-[#717171]">
-          Don&apos;t have an account?{' '}
-          <Link to="/signup" className="font-semibold text-primary hover:text-primary/80">
-            Sign up
-          </Link>
-        </p>
       </div>
     </div>
   );

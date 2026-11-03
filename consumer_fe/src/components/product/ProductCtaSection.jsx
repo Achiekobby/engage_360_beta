@@ -1,9 +1,11 @@
 import { useNavigate } from 'react-router-dom';
 import { MotionButton, Reveal } from '../motion';
+import { useAppSelector } from '../../store/hooks';
 import { PRODUCT_CTA } from './productBenefitsData';
 
 export default function ProductCtaSection() {
   const navigate = useNavigate();
+  const isAuthenticated = useAppSelector((state) => state.auth.isAuthenticated);
 
   return (
     <section className="bg-primary">
@@ -18,7 +20,7 @@ export default function ProductCtaSection() {
 
           <div className="mt-8 flex flex-wrap items-center justify-center gap-4 sm:mt-10">
             <MotionButton
-              onClick={() => navigate('/signup')}
+              onClick={() => navigate(isAuthenticated ? '/dashboard' : '/signup')}
               className="rounded-lg bg-white px-8 py-3.5 text-sm font-semibold text-primary transition-colors hover:bg-white/95 cursor-pointer sm:px-9 sm:text-base"
             >
               {PRODUCT_CTA.primaryCta}

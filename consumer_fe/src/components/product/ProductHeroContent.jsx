@@ -1,10 +1,12 @@
 import { ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { MotionButton, Reveal } from '../motion';
+import { useAppSelector } from '../../store/hooks';
 import { PRODUCT_HERO } from './productHeroData';
 
 export default function ProductHeroContent() {
   const navigate = useNavigate();
+  const isAuthenticated = useAppSelector((state) => state.auth.isAuthenticated);
 
   return (
     <Reveal when="load" variant="fadeLeft" delay={0.05} className="w-full max-w-2xl lg:max-w-3xl xl:max-w-[44rem]">
@@ -19,7 +21,7 @@ export default function ProductHeroContent() {
 
       <div className="mt-8 flex flex-wrap items-center gap-4 lg:mt-10">
         <MotionButton
-          onClick={() => navigate('/signup')}
+          onClick={() => navigate(isAuthenticated ? '/dashboard' : '/signup')}
           className="inline-flex items-center gap-2 rounded-lg bg-primary px-7 py-3.5 text-sm font-semibold text-white shadow-[0_10px_30px_rgba(58,16,205,0.28)] transition-colors hover:bg-primary/90 cursor-pointer sm:px-8 sm:text-base"
         >
           {PRODUCT_HERO.primaryCta}

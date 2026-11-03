@@ -14,8 +14,8 @@ export const CUSTOMERS_PAGE_METRICS = [
     value: '20',
     change: 0.5,
     icon: 'files',
-    accent: 'bg-[#E8F4FC] text-[#2E7DAD]',
-    bar: 'from-[#2E7DAD] to-[#5B9FD4]',
+    accent: 'bg-[#E6F7F4] text-[#0F766E]',
+    bar: 'from-[#0F766E] to-[#2DD4BF]',
   },
   {
     id: 'growth',
@@ -37,10 +37,100 @@ export const CUSTOMERS_PAGE_METRICS = [
   },
 ];
 
+export const CATEGORY_ACCENT_STYLES = [
+  {
+    accent: 'from-primary to-[#6B4FE0]',
+    iconBg: 'bg-[#EDE8F8] text-primary',
+    chip: 'bg-[#F7F8FF] text-primary ring-primary/10',
+    wash: 'bg-[radial-gradient(circle,rgba(58,16,205,0.10)_0%,transparent_70%)]',
+  },
+  {
+    accent: 'from-[#0F766E] to-[#2DD4BF]',
+    iconBg: 'bg-[#E6F7F4] text-[#0F766E]',
+    chip: 'bg-[#E6F7F4] text-[#0F766E] ring-[#0F766E]/15',
+    wash: 'bg-[radial-gradient(circle,rgba(15,118,110,0.12)_0%,transparent_70%)]',
+  },
+  {
+    accent: 'from-[#1F9D55] to-[#34D399]',
+    iconBg: 'bg-[#E8F8EF] text-[#1F9D55]',
+    chip: 'bg-[#E8F8EF] text-[#1F9D55] ring-[#1F9D55]/15',
+    wash: 'bg-[radial-gradient(circle,rgba(31,157,85,0.12)_0%,transparent_70%)]',
+  },
+  {
+    accent: 'from-[#E67E22] to-[#F5A623]',
+    iconBg: 'bg-[#FFF4E8] text-[#C56A12]',
+    chip: 'bg-[#FFF4E8] text-[#C56A12] ring-[#E67E22]/15',
+    wash: 'bg-[radial-gradient(circle,rgba(230,126,34,0.14)_0%,transparent_70%)]',
+  },
+  {
+    accent: 'from-[#8B2942] to-[#C0396B]',
+    iconBg: 'bg-[#FCE8EF] text-[#8B2942]',
+    chip: 'bg-[#FCE8EF] text-[#8B2942] ring-[#8B2942]/15',
+    wash: 'bg-[radial-gradient(circle,rgba(139,41,66,0.12)_0%,transparent_70%)]',
+  },
+];
+
+export const CUSTOMER_CATEGORIES = [
+  { id: 'promotions', name: 'Promotions', dateCreated: '02-03-26', ...CATEGORY_ACCENT_STYLES[0] },
+  { id: 'vip', name: 'VIP', dateCreated: '18-02-26', ...CATEGORY_ACCENT_STYLES[1] },
+  { id: 'new-leads', name: 'New Leads', dateCreated: '11-04-26', ...CATEGORY_ACCENT_STYLES[2] },
+  { id: 'retail', name: 'Retail', dateCreated: '04-05-26', ...CATEGORY_ACCENT_STYLES[3] },
+  { id: 'loyalty', name: 'Loyalty', dateCreated: '28-04-26', ...CATEGORY_ACCENT_STYLES[4] },
+];
+
+function formatCreatedDate(date = new Date()) {
+  const value = date instanceof Date ? date : new Date(date);
+  const safe = Number.isNaN(value.getTime()) ? new Date() : value;
+
+  return [
+    String(safe.getDate()).padStart(2, '0'),
+    String(safe.getMonth() + 1).padStart(2, '0'),
+    String(safe.getFullYear()).slice(-2),
+  ].join('-');
+}
+
+export function createCategoryEntry({ name, description = '', id, styleIndex = 0 } = {}) {
+  const slug = String(name || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '');
+  const style = CATEGORY_ACCENT_STYLES[styleIndex % CATEGORY_ACCENT_STYLES.length];
+
+  return {
+    id: id ?? `${slug || 'category'}-${Date.now()}`,
+    name,
+    description: description || '',
+    collectionsCount: 0,
+    dateCreated: formatCreatedDate(),
+    ...style,
+  };
+}
+
+export function mapCategoryFromApi(item, index = 0) {
+  const style = CATEGORY_ACCENT_STYLES[index % CATEGORY_ACCENT_STYLES.length];
+  const createdAt = item?.created_at || item?.createdAt || null;
+
+  return {
+    id: item?.id,
+    name: item?.name || '',
+    description: item?.description || '',
+    collectionsCount: Number(item?.collections_count ?? item?.collectionsCount ?? 0),
+    dateCreated: formatCreatedDate(createdAt || new Date()),
+    createdAt,
+    ...style,
+  };
+}
+
+export function mapCategoriesFromApi(list) {
+  if (!Array.isArray(list)) return [];
+  return list.map((item, index) => mapCategoryFromApi(item, index));
+}
+
 export const CUSTOMER_COLLECTIONS = [
   {
     id: 'dealboxx-promotion',
     name: 'DealBoxx Promotion',
+    categoryId: 'promotions',
     category: 'Promotions',
     fileCount: 12,
     customerCount: '12k',
@@ -51,16 +141,18 @@ export const CUSTOMER_COLLECTIONS = [
   {
     id: 'vip-members',
     name: 'VIP Members',
+    categoryId: 'vip',
     category: 'VIP',
     fileCount: 8,
     customerCount: '9.4k',
     dateCreated: '08-04-26',
-    accent: 'from-[#2E7DAD] to-[#5B9FD4]',
-    iconBg: 'bg-[#E8F4FC] text-[#2E7DAD]',
+    accent: 'from-[#0F766E] to-[#2DD4BF]',
+    iconBg: 'bg-[#E6F7F4] text-[#0F766E]',
   },
   {
     id: 'new-leads-q2',
     name: 'New Leads Q2',
+    categoryId: 'new-leads',
     category: 'New Leads',
     fileCount: 15,
     customerCount: '18k',
@@ -71,6 +163,7 @@ export const CUSTOMER_COLLECTIONS = [
   {
     id: 'retail-outreach',
     name: 'Retail Outreach',
+    categoryId: 'retail',
     category: 'Retail',
     fileCount: 6,
     customerCount: '4.2k',
@@ -81,6 +174,7 @@ export const CUSTOMER_COLLECTIONS = [
   {
     id: 'loyalty-program',
     name: 'Loyalty Program',
+    categoryId: 'loyalty',
     category: 'Loyalty',
     fileCount: 10,
     customerCount: '7.8k',
@@ -92,32 +186,27 @@ export const CUSTOMER_COLLECTIONS = [
 
 export const COLLECTION_ACCENT_STYLES = [
   { accent: 'from-primary to-[#6B4FE0]', iconBg: 'bg-[#EDE8F8] text-primary' },
-  { accent: 'from-[#2E7DAD] to-[#5B9FD4]', iconBg: 'bg-[#E8F4FC] text-[#2E7DAD]' },
+  { accent: 'from-[#0F766E] to-[#2DD4BF]', iconBg: 'bg-[#E6F7F4] text-[#0F766E]' },
   { accent: 'from-[#1F9D55] to-[#34D399]', iconBg: 'bg-[#E8F8EF] text-[#1F9D55]' },
   { accent: 'from-[#E67E22] to-[#F5A623]', iconBg: 'bg-[#FFF4E8] text-[#E67E22]' },
   { accent: 'from-[#8B2942] to-[#C0396B]', iconBg: 'bg-[#FCE8EF] text-[#8B2942]' },
 ];
 
-export function createCollectionEntry({ name, category, styleIndex = 0 }) {
+export function createCollectionEntry({ name, category, categoryId, styleIndex = 0 }) {
   const slug = name
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-|-$/g, '');
   const style = COLLECTION_ACCENT_STYLES[styleIndex % COLLECTION_ACCENT_STYLES.length];
-  const now = new Date();
-  const dateCreated = [
-    String(now.getDate()).padStart(2, '0'),
-    String(now.getMonth() + 1).padStart(2, '0'),
-    String(now.getFullYear()).slice(-2),
-  ].join('-');
 
   return {
     id: `${slug || 'collection'}-${Date.now()}`,
     name,
+    categoryId,
     category,
     fileCount: 0,
     customerCount: '0',
-    dateCreated,
+    dateCreated: formatCreatedDate(),
     ...style,
   };
 }

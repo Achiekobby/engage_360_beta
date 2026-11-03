@@ -730,6 +730,7 @@ export default function CreateCampaignWizard({
           isSalesConversion={isSalesConversion}
           isServiceAlerts={isServiceAlerts}
           usesCtaDestination={usesCtaDestination}
+          deviceMockup={categoryId === 'promotions'}
           onBack={() => setStep(scanStep)}
           onEdit={() => setStep(1)}
           onProceed={handleCreateCampaign}
@@ -1250,6 +1251,7 @@ export default function CreateCampaignWizard({
                   templateMode={templateMode}
                   accent={template?.accent}
                   products={template?.products}
+                  deviceMockup={categoryId === 'promotions'}
                 />
               </div>
             </aside>

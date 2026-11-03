@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import { Trash2 } from 'lucide-react';
 import { Reveal } from '../../components/motion';
 import { CUSTOMER_COLLECTIONS } from '../../components/customer-engagement/customers/customersData';
 import { MOCK_COLLECTION_CUSTOMERS } from '../../components/customer-engagement/customers/collectionCustomersData';
@@ -9,6 +10,7 @@ import CustomersDataTable from '../../components/customer-engagement/customers/C
 import OnboardCustomerDrawer from '../../components/customer-engagement/customers/OnboardCustomerDrawer';
 import ViewCustomerDrawer from '../../components/customer-engagement/customers/ViewCustomerDrawer';
 import WriteNoteModal from '../../components/customer-engagement/customers/WriteNoteModal';
+import ActionConfirmModal from '../../components/customer-engagement/customers/ActionConfirmModal';
 import SuccessModal, {
   NOTE_PUBLISHED_SUCCESS,
   ONBOARD_SUCCESS,
@@ -47,6 +49,8 @@ export default function CollectionCustomersPage() {
   const [viewCustomer, setViewCustomer] = useState(null);
   const [noteCustomer, setNoteCustomer] = useState(null);
   const [successModal, setSuccessModal] = useState(null);
+  const [deleteSelectedOpen, setDeleteSelectedOpen] = useState(false);
+  const [isDeletingSelected, setIsDeletingSelected] = useState(false);
 
   useEffect(() => {
     if (location.state?.openOnboard) {
@@ -181,8 +185,20 @@ export default function CollectionCustomersPage() {
   };
 
   const handleDeleteSelected = () => {
-    setCustomers((prev) => prev.filter((item) => !selectedIds.includes(item.id)));
-    setSelectedIds([]);
+    if (!selectedIds.length) return;
+    setDeleteSelectedOpen(true);
+  };
+
+  const handleConfirmDeleteSelected = async () => {
+    setIsDeletingSelected(true);
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 250));
+      setCustomers((prev) => prev.filter((item) => !selectedIds.includes(item.id)));
+      setSelectedIds([]);
+      setDeleteSelectedOpen(false);
+    } finally {
+      setIsDeletingSelected(false);
+    }
   };
 
   return (
@@ -254,6 +270,25 @@ export default function CollectionCustomersPage() {
         onClose={() => setNoteCustomer(null)}
         customer={noteCustomer}
         onPublish={handlePublishNote}
+      />
+
+      <ActionConfirmModal
+        isOpen={deleteSelectedOpen}
+        onClose={() => {
+          if (isDeletingSelected) return;
+          setDeleteSelectedOpen(false);
+        }}
+        onConfirm={handleConfirmDeleteSelected}
+        icon={Trash2}
+        tone="danger"
+        title="Delete selected contacts?"
+        description="The selected contacts will be removed from this collection."
+        entityLabel={`${selectedIds.length} contact${selectedIds.length === 1 ? '' : 's'}`}
+        entityMeta={collection?.name ? `From ${collection.name}` : undefined}
+        warning="This cannot be undone from the current screen."
+        confirmLabel="Delete contacts"
+        cancelLabel="Keep contacts"
+        isLoading={isDeletingSelected}
       />
 
       <SuccessModal

@@ -107,6 +107,7 @@ function CustomerViewModal({ isOpen, onClose, campaign }) {
             headline={campaign.headline}
             body={campaign.body}
             cta={campaign.cta}
+            deviceMockup={campaign.categoryId === 'promotions'}
           />
         </div>
       </div>

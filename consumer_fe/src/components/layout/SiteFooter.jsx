@@ -73,9 +73,7 @@ export default function SiteFooter({ homePath = '/' }) {
       <div className="relative mx-auto w-full max-w-8xl px-4 pb-20 pt-16 sm:px-6 sm:pb-24 sm:pt-20 lg:px-8 lg:pb-28 lg:pt-24">
         <StaggerReveal className="grid grid-cols-2 gap-x-6 gap-y-10 sm:gap-x-8 sm:gap-y-12 lg:grid-cols-5 lg:gap-6 xl:gap-8" stagger={0.07}>
           <StaggerItem className="col-span-2 lg:col-span-1">
-            <Link to={homePath} className="inline-flex items-center">
-              <LogoMark size={52} variant="on-white" />
-            </Link>
+            <LogoMark size={52} variant="on-white" to={homePath} />
             <p className="mt-4 max-w-[13.5rem] text-[14px] leading-[1.55] text-[#717171] sm:text-[15px]">
               Everything You Need to Engage and Grow
             </p>

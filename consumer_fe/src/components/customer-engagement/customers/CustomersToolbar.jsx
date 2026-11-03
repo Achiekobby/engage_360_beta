@@ -7,6 +7,9 @@ export default function CustomersToolbar({
   onSearchChange,
   resultCount,
   categoryOptions = CATEGORY_FILTER_OPTIONS,
+  placeholder = 'Search collections...',
+  resultNoun = 'collection',
+  showCategoryFilter = true,
 }) {
   return (
     <div className="rounded-sm border border-[#EEF0F4] bg-white p-4 shadow-[0_4px_20px_rgba(11,19,84,0.05)] sm:p-5">
@@ -20,21 +23,24 @@ export default function CustomersToolbar({
             type="search"
             value={searchQuery}
             onChange={(event) => onSearchChange(event.target.value)}
-            placeholder="Search collections..."
+            placeholder={placeholder}
             className="w-full rounded-sm border border-[#E4E4E7] bg-[#FAFBFC] py-2.5 pl-10 pr-4 text-sm text-[#0B1354] outline-none transition-all duration-200 placeholder:text-[#717171] focus:border-primary/40 focus:bg-white focus:ring-2 focus:ring-primary/10"
           />
         </div>
 
         <div className="relative z-10 flex flex-wrap items-center gap-2 sm:gap-3">
           <FilterDropdownChip label="Date Filter" options={DATE_FILTER_OPTIONS} icon={CalendarDays} />
-          <FilterDropdownChip label="Category" options={categoryOptions} icon={Layers} />
+          {showCategoryFilter ? (
+            <FilterDropdownChip label="Category" options={categoryOptions} icon={Layers} />
+          ) : null}
         </div>
       </div>
 
       {searchQuery ? (
         <p className="mt-3 text-sm text-[#717171]">
-          Showing <span className="font-semibold text-[#0B1354]">{resultCount}</span> matching
-          collection{resultCount === 1 ? '' : 's'}
+          Showing <span className="font-semibold text-[#0B1354]">{resultCount}</span> matching{' '}
+          {resultNoun}
+          {resultCount === 1 ? '' : 's'}
         </p>
       ) : null}
     </div>

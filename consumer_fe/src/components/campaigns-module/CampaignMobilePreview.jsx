@@ -502,6 +502,31 @@ function TemplatePromoPreview({ headline, body, cta, accent, products }) {
   );
 }
 
+const DEVICE_STATUS_BAR = {
+  sms: '#FFFFFF',
+  email: '#FAFBFC',
+  whatsapp: '#075E54',
+  push: '#F4F5F8',
+};
+
+function DevicePhoneFrame({ channel, templateMode, children }) {
+  const statusbarColor = templateMode ? '#3A10CD' : DEVICE_STATUS_BAR[channel] || '#FFFFFF';
+
+  return (
+    <div className="flex justify-center">
+      <IPhoneMockup
+        screenWidth={200}
+        screenType="island"
+        frameColor="#1C1C1E"
+        statusbarColor={statusbarColor}
+        frameOnly
+      >
+        <div className="h-full min-h-0 w-full overflow-y-auto bg-[#F4F5F8]">{children}</div>
+      </IPhoneMockup>
+    </div>
+  );
+}
+
 export default function CampaignMobilePreview({
   channel = 'sms',
   headline,
@@ -517,6 +542,7 @@ export default function CampaignMobilePreview({
   tall = false,
   fillHeight = false,
   expanded = false,
+  deviceMockup = false,
 }) {
   const meta = CHANNEL_META[channel] || CHANNEL_META.sms;
   const useTall = tall || (!dense && !expanded && (templateMode || channel === 'email'));
@@ -563,9 +589,15 @@ export default function CampaignMobilePreview({
           </span>
         </div>
       ) : null}
-      <PhoneChrome tall={useTall} dense={dense} fillHeight={fillHeight} expanded={expanded}>
-        {content}
-      </PhoneChrome>
+      {deviceMockup ? (
+        <DevicePhoneFrame channel={channel} templateMode={templateMode}>
+          {content}
+        </DevicePhoneFrame>
+      ) : (
+        <PhoneChrome tall={useTall} dense={dense} fillHeight={fillHeight} expanded={expanded}>
+          {content}
+        </PhoneChrome>
+      )}
     </div>
   );
 }

@@ -23,7 +23,7 @@ export default function CollectionCard({ collection, index, onDelete, onView }) 
           >
             <Folder className="h-6 w-6" strokeWidth={2} />
           </div>
-          <span className="inline-flex items-center gap-1 rounded-sm bg-[#F7F8FF] px-2 py-1 text-xs font-semibold text-primary ring-1 ring-primary/10">
+          <span className={`inline-flex items-center gap-1 rounded-sm px-2 py-1 text-xs font-semibold ring-1 ring-black/5 ${iconBg}`}>
             <Tag className="h-3 w-3" strokeWidth={2.5} />
             {category}
           </span>
@@ -57,7 +57,7 @@ export default function CollectionCard({ collection, index, onDelete, onView }) 
         </div>
 
         <div className="mt-auto flex items-center justify-between gap-3 border-t border-[#F0F2F7] pt-4">
-          <span className="text-xs font-medium text-[#717171]">Collection folder</span>
+          <span className="text-xs font-medium text-[#717171]">Stores contacts</span>
           <CollectionActions collection={collection} onDelete={onDelete} onView={onView} compact />
         </div>
       </div>

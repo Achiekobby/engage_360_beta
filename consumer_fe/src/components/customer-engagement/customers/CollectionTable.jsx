@@ -56,7 +56,7 @@ export default function CollectionTable({ collections, onDelete, onView }) {
                 </div>
               </td>
               <td className="px-4 py-4 sm:px-5">
-                <span className="inline-flex rounded-sm bg-[#F7F8FF] px-2.5 py-1 text-sm font-medium text-primary ring-1 ring-primary/10">
+                <span className={`inline-flex rounded-sm px-2.5 py-1 text-sm font-medium ring-1 ring-black/5 ${collection.iconBg}`}>
                   {collection.category}
                 </span>
               </td>

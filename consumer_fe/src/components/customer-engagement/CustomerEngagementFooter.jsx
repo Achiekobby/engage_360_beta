@@ -64,9 +64,7 @@ export default function CustomerEngagementFooter() {
           stagger={0.07}
         >
           <StaggerItem className="col-span-2 lg:col-span-1">
-            <Link to={`${CUSTOMER_ENGAGEMENT_BASE}/dashboard`} className="inline-flex items-center">
-              <LogoMark size={52} variant="on-white" />
-            </Link>
+            <LogoMark size={52} variant="on-white" to={`${CUSTOMER_ENGAGEMENT_BASE}/dashboard`} />
             <p className="mt-3 text-sm font-semibold text-[#0B1354]">{CE_FOOTER_BRAND.module}</p>
             <p className="mt-2 max-w-[14rem] text-[14px] leading-[1.55] text-[#717171] sm:text-[15px]">
               {CE_FOOTER_BRAND.tagline}

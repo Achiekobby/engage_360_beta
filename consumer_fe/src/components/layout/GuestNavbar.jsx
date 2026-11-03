@@ -105,16 +105,11 @@ export default function GuestNavbar() {
         )}
       >
         <div className="mx-auto flex h-16 max-w-8xl items-center justify-between gap-6 px-4 sm:px-6 lg:px-8">
-          <NavLink
-            to="/"
-            className="group relative z-10 flex shrink-0 items-center outline-none focus-visible:ring-2 focus-visible:ring-primary/40 rounded-lg"
-          >
-            <LogoMark
-              size={48}
-              variant={isScrolled ? 'on-white' : 'on-primary'}
-              className="shadow-sm transition-transform duration-300 group-hover:scale-105"
-            />
-          </NavLink>
+          <LogoMark
+            size={48}
+            variant={isScrolled ? 'on-white' : 'on-primary'}
+            className="relative z-10 shadow-sm transition-transform duration-300 hover:scale-105"
+          />
 
           <nav className="absolute left-1/2 hidden -translate-x-1/2 items-center gap-8 lg:flex">
             {NAV_LINK_ITEMS.slice(0, 1).map(({ label, path }) => (

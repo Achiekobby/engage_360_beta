@@ -222,7 +222,7 @@ function EmbeddedTemplateDetail({ template, onBack, onUse }) {
             <div className="mt-7 flex items-center gap-2.5">
               <span className="text-xs text-[#9AA0B0]">Powered by</span>
               <div className="flex items-center gap-2">
-                <LogoMark size={36} variant="on-white" />
+                <LogoMark size={36} variant="on-white" linked={false} />
                 <span className="text-[10px] font-bold uppercase tracking-[0.1em] text-primary">
                   Engage 360
                 </span>
@@ -351,7 +351,7 @@ function PageTemplateDetail({ template, onBack, onUse }) {
           <div className="mt-8 flex items-center gap-3">
             <span className="text-sm text-[#717171]">Powered by</span>
             <div className="flex items-center gap-2">
-              <LogoMark size={36} variant="on-white" />
+              <LogoMark size={36} variant="on-white" linked={false} />
               <span className="text-xs font-bold uppercase tracking-wide text-primary">Engage 360</span>
             </div>
           </div>

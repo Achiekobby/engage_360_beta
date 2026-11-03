@@ -163,7 +163,7 @@ export default function OtpVerificationPage() {
       <div className="min-h-screen lg:flex lg:h-screen lg:overflow-hidden">
       <SignUpLeftPanel panel={VERIFY_OTP_PANEL} showProgress={false} />
 
-      <div className="flex min-h-screen w-full flex-col bg-white lg:h-screen lg:min-h-0 lg:flex-1 lg:overflow-y-auto">
+      <div data-app-scroll className="flex min-h-screen w-full flex-col bg-white lg:h-screen lg:min-h-0 lg:flex-1 lg:overflow-y-auto">
         <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col justify-center px-4 py-10 sm:px-8 lg:px-12 xl:px-16">
           <BackButton onBack={leaveVerification} className="mb-6 ml-auto self-end" />
 

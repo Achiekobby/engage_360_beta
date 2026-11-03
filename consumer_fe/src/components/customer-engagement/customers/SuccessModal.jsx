@@ -80,13 +80,12 @@ export const NOTE_PUBLISHED_SUCCESS = {
 
 export const CATEGORY_CREATED_SUCCESS = {
   title: 'Customer Category Created',
-  description: 'You have successfully created your customer category.',
+  description: 'The category is ready. Create a collection inside it to store contacts.',
   actionLabel: 'Create Collection',
 };
 
 export const COLLECTION_CREATED_SUCCESS = {
   title: 'Collection Creation Successful',
-  description:
-    'You have successfully created your collection. Start onboarding your customers.',
+  description: 'Contacts are stored in this collection. Add customers to start uploading them.',
   actionLabel: 'Add Customers',
 };

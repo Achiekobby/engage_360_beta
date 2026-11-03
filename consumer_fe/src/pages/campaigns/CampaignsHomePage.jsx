@@ -111,6 +111,7 @@ export default function CampaignsHomePage() {
         />
 
         <main
+          data-app-scroll
           data-campaigns-main-scroll
           className="scrollbar-thin min-h-0 min-w-0 flex-1 overflow-y-auto overscroll-y-contain px-4 py-6 sm:px-6 sm:py-8 lg:px-8 lg:py-10"
         >

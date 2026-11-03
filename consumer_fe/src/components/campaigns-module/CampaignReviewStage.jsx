@@ -96,6 +96,7 @@ function CustomerViewModal({
   templateMode,
   isLeadGeneration,
   isEventActivation,
+  deviceMockup = false,
 }) {
   if (!isOpen) return null;
 
@@ -132,6 +133,7 @@ function CustomerViewModal({
               templateMode={templateMode}
               accent={template?.accent}
               products={template?.products}
+              deviceMockup={deviceMockup}
             />
           )}
         </div>
@@ -184,6 +186,7 @@ export default function CampaignReviewStage({
   isSalesConversion = false,
   isServiceAlerts = false,
   usesCtaDestination = false,
+  deviceMockup = false,
   onBack,
   onEdit,
   onProceed,
@@ -586,6 +589,7 @@ export default function CampaignReviewStage({
         templateMode={templateMode}
         isLeadGeneration={isLeadGeneration}
         isEventActivation={isEventActivation}
+        deviceMockup={deviceMockup}
       />
 
       <TestBlastModal

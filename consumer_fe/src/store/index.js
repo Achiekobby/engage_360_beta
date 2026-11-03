@@ -9,6 +9,7 @@ import {
   PURGE,
   REGISTER,
 } from 'redux-persist';
+import { reducer as notificationsReducer } from 'reapop';
 import storage from './storage';
 import navReducer from './slices/navSlice';
 import uiReducer from './slices/uiSlice';
@@ -25,6 +26,7 @@ const rootReducer = combineReducers({
   nav: navReducer,
   ui: uiReducer,
   auth: authReducer,
+  notifications: notificationsReducer(),
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);

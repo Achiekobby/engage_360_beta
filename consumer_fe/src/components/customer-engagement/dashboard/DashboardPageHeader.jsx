@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import {
   CalendarDays,
   Filter,
@@ -7,10 +8,13 @@ import {
 } from 'lucide-react';
 import { DASHBOARD_FILTERS } from './customerDashboardData';
 import FilterDropdownChip from '../FilterDropdownChip';
+import { useCustomerCategories } from '../../../hooks/useCustomerCategories';
 
-const FILTER_META = {
-  Category: { icon: Layers, options: ['All Categories', 'Retail', 'Hospitality', 'Finance', 'Telecom'] },
-  Collection: { icon: FolderOpen, options: ['All Collections', 'VIP', 'New Leads', 'Dormant', 'High Value'] },
+const STATIC_FILTER_META = {
+  Collection: {
+    icon: FolderOpen,
+    options: ['All Collections', 'VIP', 'New Leads', 'Dormant', 'High Value'],
+  },
   'Advanced Filter': {
     icon: Filter,
     options: ['All Filters', 'Active Only', 'Incomplete Profiles', 'Has Phone', 'Has Email'],
@@ -22,6 +26,21 @@ const FILTER_META = {
 };
 
 export default function DashboardPageHeader() {
+  const { categories } = useCustomerCategories();
+
+  const categoryOptions = useMemo(
+    () => ['All Categories', ...categories.map((category) => category.name).filter(Boolean)],
+    [categories],
+  );
+
+  const filterMeta = useMemo(
+    () => ({
+      Category: { icon: Layers, options: categoryOptions },
+      ...STATIC_FILTER_META,
+    }),
+    [categoryOptions],
+  );
+
   return (
     <header className="relative overflow-hidden rounded-sm border border-[#EEF0F4] bg-white shadow-[0_4px_20px_rgba(11,19,84,0.04)]">
       <div
@@ -54,10 +73,10 @@ export default function DashboardPageHeader() {
 
         <div className="relative z-10 flex flex-wrap items-center gap-2 sm:justify-end lg:max-w-[28rem] xl:max-w-none">
           {DASHBOARD_FILTERS.map((filter) => {
-            const meta = FILTER_META[filter];
+            const meta = filterMeta[filter];
             return (
               <FilterDropdownChip
-                key={filter}
+                key={filter === 'Category' ? `Category-${categoryOptions.length}` : filter}
                 label={filter}
                 options={meta.options}
                 icon={meta.icon}

@@ -7,6 +7,8 @@ import {
 } from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
 import GuestNavbar from "./components/layout/GuestNavbar";
+import AuthNavbar from "./components/layout/AuthNavbar";
+import { useAppSelector } from "./store/hooks";
 import ScrollToTop from "./components/layout/ScrollToTop";
 import GlobalModals from "./components/GlobalModals";
 import { PageTransition } from "./components/motion";
@@ -56,6 +58,7 @@ import CustomerEngagementAutomationsPage from "./pages/customer-engagement/Custo
 import CustomerEngagementAutomationSettingsPage from "./pages/customer-engagement/CustomerEngagementAutomationSettingsPage";
 import CustomerEngagementAutomationAnalyticsPage from "./pages/customer-engagement/CustomerEngagementAutomationAnalyticsPage";
 import Untitled from "./pages/Untitled";
+import GuestRoute from "./components/auth/GuestRoute";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 
 const AUTH_PATHS = ["/signup", "/signin", "/verify-otp", "/forgot-password"];
@@ -76,19 +79,30 @@ function getTransitionKey(pathname) {
   return pathname.startsWith("/rewards") ? "/rewards" : pathname;
 }
 
+function hasOwnAuthChrome(pathname) {
+  return (
+    pathname === "/dashboard" ||
+    pathname.startsWith("/customer-engagement") ||
+    pathname.startsWith("/campaigns")
+  );
+}
+
 function AppShell() {
   const location = useLocation();
-  const hideNavbar = shouldHideGuestNavbar(location.pathname);
+  const isAuthenticated = useAppSelector((state) => state.auth.isAuthenticated);
+  const hideGuestNavbar = shouldHideGuestNavbar(location.pathname);
+  const showAuthNavbar =
+    isAuthenticated && !hideGuestNavbar && !hasOwnAuthChrome(location.pathname);
 
   return (
     <>
       <ScrollToTop />
-      {!hideNavbar && <GuestNavbar />}
+      {!hideGuestNavbar && !isAuthenticated && <GuestNavbar />}
+      {showAuthNavbar && <AuthNavbar />}
       <GlobalModals />
       <AnimatePresence mode="wait">
         <PageTransition key={getTransitionKey(location.pathname)}>
           <Routes location={location}>
-            <Route path="/" element={<CampaignLandingPage />} />
             <Route path="/offer" element={<RecipientOfferPage />} />
             <Route path="/offer/:campaignId" element={<RecipientOfferPage />} />
             <Route element={<RecipientGuard />}>
@@ -106,26 +120,16 @@ function AppShell() {
             <Route path="/product/:slug" element={<Untitled />} />
             <Route path="/about" element={<AboutPage />} />
             <Route path="/contact" element={<ContactPage />} />
-            <Route path="/signup" element={<SignUpPage />} />
-            <Route path="/signin" element={<SignInPage />} />
-            <Route path="/verify-otp" element={<OtpVerificationPage />} />
-            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-            <Route
-              path="/dashboard"
-              element={
-                <ProtectedRoute>
-                  <DashboardPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/campaigns"
-              element={
-                <ProtectedRoute>
-                  <CampaignsLayout />
-                </ProtectedRoute>
-              }
-            >
+            <Route element={<GuestRoute />}>
+              <Route path="/" element={<CampaignLandingPage />} />
+              <Route path="/signup" element={<SignUpPage />} />
+              <Route path="/signin" element={<SignInPage />} />
+              <Route path="/verify-otp" element={<OtpVerificationPage />} />
+              <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+            </Route>
+            <Route element={<ProtectedRoute />}>
+            <Route path="/dashboard" element={<DashboardPage />} />
+            <Route path="/campaigns" element={<CampaignsLayout />}>
               <Route index element={<CampaignsHomePage />} />
               <Route path="management" element={<CampaignManagementPage />} />
               <Route
@@ -164,14 +168,7 @@ function AppShell() {
               <Route path="reports" element={<CampaignsReportsRedirect />} />
               <Route path=":campaignId" element={<CampaignDetailPage />} />
             </Route>
-            <Route
-              path="/customer-engagement"
-              element={
-                <ProtectedRoute>
-                  <CustomerEngagementLayout />
-                </ProtectedRoute>
-              }
-            >
+            <Route path="/customer-engagement" element={<CustomerEngagementLayout />}>
               <Route index element={<Navigate to="dashboard" replace />} />
               <Route
                 path="dashboard"
@@ -201,6 +198,7 @@ function AppShell() {
                 path="automations/:kindId/analytics"
                 element={<CustomerEngagementAutomationAnalyticsPage />}
               />
+            </Route>
             </Route>
             <Route path="/resources" element={<HelpCenterPage />} />
             <Route path="/blogs" element={<BlogsPage />} />
