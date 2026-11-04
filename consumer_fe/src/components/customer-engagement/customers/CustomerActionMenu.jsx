@@ -21,7 +21,7 @@ export default function CustomerActionMenu({
 }) {
   const [open, setOpen] = useState(false);
   const [segmentOpen, setSegmentOpen] = useState(false);
-  const [menuStyle, setMenuStyle] = useState({ top: 0, left: 0 });
+  const [placement, setPlacement] = useState({ top: 0, left: 0, openUp: false });
   const buttonRef = useRef(null);
   const menuRef = useRef(null);
 
@@ -29,11 +29,33 @@ export default function CustomerActionMenu({
     if (!buttonRef.current) return;
     const rect = buttonRef.current.getBoundingClientRect();
     const menuWidth = 220;
-    setMenuStyle({
-      top: rect.bottom + 8,
-      left: Math.max(8, rect.right - menuWidth),
+    const gap = 8;
+    const estimatedHeight = segmentOpen ? 280 : 196;
+    const spaceBelow = window.innerHeight - rect.bottom - gap;
+    const spaceAbove = rect.top - gap;
+    const openUp = spaceBelow < estimatedHeight && spaceAbove > spaceBelow;
+    const left = Math.min(
+      Math.max(8, rect.right - menuWidth),
+      window.innerWidth - menuWidth - 8,
+    );
+
+    if (openUp) {
+      setPlacement({
+        openUp: true,
+        bottom: window.innerHeight - rect.top + gap,
+        left,
+        maxHeight: Math.max(120, spaceAbove),
+      });
+      return;
+    }
+
+    setPlacement({
+      openUp: false,
+      top: rect.bottom + gap,
+      left,
+      maxHeight: Math.max(120, spaceBelow),
     });
-  }, []);
+  }, [segmentOpen]);
 
   useLayoutEffect(() => {
     if (!open) return undefined;
@@ -44,7 +66,7 @@ export default function CustomerActionMenu({
       window.removeEventListener('resize', updatePosition);
       window.removeEventListener('scroll', updatePosition, true);
     };
-  }, [open, updatePosition]);
+  }, [open, segmentOpen, updatePosition]);
 
   useEffect(() => {
     if (!open) return undefined;
@@ -69,20 +91,24 @@ export default function CustomerActionMenu({
     setSegmentOpen(false);
   };
 
+  const slideY = placement.openUp ? -6 : 6;
+
   const menu = (
     <AnimatePresence>
       {open ? (
         <motion.div
           ref={menuRef}
-          initial={{ opacity: 0, y: 6, scale: 0.98 }}
+          initial={{ opacity: 0, y: slideY, scale: 0.98 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
-          exit={{ opacity: 0, y: 6, scale: 0.98 }}
+          exit={{ opacity: 0, y: slideY, scale: 0.98 }}
           transition={{ duration: 0.16 }}
           style={{
             position: 'fixed',
-            top: menuStyle.top,
-            left: menuStyle.left,
+            top: placement.openUp ? undefined : placement.top,
+            bottom: placement.openUp ? placement.bottom : undefined,
+            left: placement.left,
             width: 220,
+            maxHeight: placement.maxHeight,
             zIndex: 9999,
           }}
           className="overflow-hidden rounded-sm border border-[#EEF0F4] bg-white shadow-[0_12px_32px_rgba(11,19,84,0.14)]"

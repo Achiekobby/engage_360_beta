@@ -2,7 +2,7 @@ import { motion } from 'framer-motion';
 import { Calendar, FileStack, Folder, Tag, Users } from 'lucide-react';
 import { CollectionActions } from './CollectionActions';
 
-export default function CollectionCard({ collection, index, onDelete, onView }) {
+export default function CollectionCard({ collection, index, onDelete, onEdit, onView }) {
   const { name, category, fileCount, customerCount, dateCreated, accent, iconBg } = collection;
 
   return (
@@ -58,7 +58,13 @@ export default function CollectionCard({ collection, index, onDelete, onView }) 
 
         <div className="mt-auto flex items-center justify-between gap-3 border-t border-[#F0F2F7] pt-4">
           <span className="text-xs font-medium text-[#717171]">Stores contacts</span>
-          <CollectionActions collection={collection} onDelete={onDelete} onView={onView} compact />
+          <CollectionActions
+            collection={collection}
+            onDelete={onDelete}
+            onEdit={onEdit}
+            onView={onView}
+            compact
+          />
         </div>
       </div>
     </motion.article>

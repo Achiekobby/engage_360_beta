@@ -4,34 +4,41 @@ import { clsx } from 'clsx';
 import SlideDrawer from './SlideDrawer';
 import { createCollectionSchema } from './customersFormValidation';
 
-const INITIAL_VALUES = {
-  name: '',
-};
-
 const fieldClass =
   'w-full rounded-sm border bg-white px-3.5 py-2.5 text-sm text-[#0B1354] outline-none transition-all placeholder:text-[#717171] focus:ring-2 disabled:cursor-not-allowed disabled:bg-[#FAFBFC]';
 
-export default function AddCollectionDrawer({ isOpen, onClose, onSubmit, categoryName }) {
+export default function AddCollectionDrawer({
+  isOpen,
+  onClose,
+  onSubmit,
+  categoryName,
+  initialCollection = null,
+}) {
+  const isEdit = Boolean(initialCollection?.id);
+  const initialValues = {
+    name: initialCollection?.name || '',
+  };
+
   return (
     <Formik
-      initialValues={INITIAL_VALUES}
+      initialValues={initialValues}
       validationSchema={createCollectionSchema}
       validateOnBlur={false}
       validateOnChange={false}
       enableReinitialize
       onSubmit={async (values, { setSubmitting, resetForm, setFieldError }) => {
         if (!categoryName) {
-          setFieldError('name', 'Open a category before creating a collection.');
+          setFieldError('name', 'Open a category before saving a collection.');
           setSubmitting(false);
           return;
         }
 
         try {
-          await onSubmit?.(values.name.trim());
+          await onSubmit?.(values.name.trim(), initialCollection);
           resetForm();
           onClose();
         } catch {
-          // Keep the drawer open if the parent rejects the create.
+          // Keep the drawer open if the parent rejects the save.
         } finally {
           setSubmitting(false);
         }
@@ -48,7 +55,7 @@ export default function AddCollectionDrawer({ isOpen, onClose, onSubmit, categor
           <SlideDrawer
             isOpen={isOpen}
             onClose={closeDrawer}
-            title="Add Collection"
+            title={isEdit ? 'Edit Collection' : 'Add Collection'}
             footer={
               <button
                 type="button"
@@ -61,6 +68,8 @@ export default function AddCollectionDrawer({ isOpen, onClose, onSubmit, categor
                     <Loader2 className="h-4 w-4 animate-spin" strokeWidth={2.5} />
                     Saving...
                   </>
+                ) : isEdit ? (
+                  'Update Collection'
                 ) : (
                   'Save'
                 )}
@@ -76,8 +85,9 @@ export default function AddCollectionDrawer({ isOpen, onClose, onSubmit, categor
                   {categoryName || 'Select a category first'}
                 </div>
                 <p className="mt-1.5 text-xs leading-relaxed text-[#717171]">
-                  This collection is created inside the category. Contacts are stored in the
-                  collection.
+                  {isEdit
+                    ? 'This collection stays inside the category. Contacts remain stored in it.'
+                    : 'This collection is created inside the category. Contacts are stored in the collection.'}
                 </p>
               </div>
 

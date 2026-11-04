@@ -10,6 +10,7 @@ export default function SlideDrawer({
   children,
   footer,
   maxWidth = 'max-w-lg',
+  bodyRef = null,
 }) {
   const reduceMotion = useReducedMotion();
 
@@ -76,7 +77,9 @@ export default function SlideDrawer({
               </div>
             </div>
 
-            <div className="flex-1 overflow-y-auto px-5 py-5 sm:px-6">{children}</div>
+            <div ref={bodyRef} className="flex-1 overflow-y-auto px-5 py-5 sm:px-6">
+              {children}
+            </div>
 
             {footer ? (
               <div className="border-t border-[#F0F2F7] px-5 py-4 sm:px-6">{footer}</div>

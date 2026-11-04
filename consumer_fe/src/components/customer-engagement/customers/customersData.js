@@ -192,6 +192,29 @@ export const COLLECTION_ACCENT_STYLES = [
   { accent: 'from-[#8B2942] to-[#C0396B]', iconBg: 'bg-[#FCE8EF] text-[#8B2942]' },
 ];
 
+function formatCountLabel(value) {
+  const count = Number(value);
+  if (!Number.isFinite(count) || count < 0) return '0';
+  if (count >= 1000) {
+    const compact = count / 1000;
+    const label = Number.isInteger(compact) ? String(compact) : compact.toFixed(1).replace(/\.0$/, '');
+    return `${label}k`;
+  }
+  return String(count);
+}
+
+const COLLECTION_ID_PREFIX = 'ENG-CLC-';
+
+export function formatCollectionDisplayId(collectionId, { maxLength = 18 } = {}) {
+  const raw = String(collectionId ?? '').trim();
+  if (!raw) return `${COLLECTION_ID_PREFIX}—`;
+
+  const full = `${COLLECTION_ID_PREFIX}${raw}`;
+  if (full.length <= maxLength) return full;
+
+  return `${full.slice(0, Math.max(0, maxLength - 1))}…`;
+}
+
 export function createCollectionEntry({ name, category, categoryId, styleIndex = 0 }) {
   const slug = name
     .toLowerCase()
@@ -209,6 +232,40 @@ export function createCollectionEntry({ name, category, categoryId, styleIndex =
     dateCreated: formatCreatedDate(),
     ...style,
   };
+}
+
+export function mapCollectionFromApi(item, index = 0, fallbackCategory = null) {
+  const style = COLLECTION_ACCENT_STYLES[index % COLLECTION_ACCENT_STYLES.length];
+  const createdAt = item?.created_at || item?.createdAt || null;
+  const categoryId = item?.category_id ?? item?.categoryId ?? fallbackCategory?.id ?? null;
+  const categoryName =
+    item?.category_name ||
+    item?.categoryName ||
+    item?.category ||
+    fallbackCategory?.name ||
+    '';
+
+  return {
+    id: item?.id,
+    name: item?.name || '',
+    categoryId,
+    category: categoryName,
+    fileCount: Number(item?.files_count ?? item?.fileCount ?? item?.filesCount ?? 0),
+    customerCount: formatCountLabel(
+      item?.customers_count ?? item?.customerCount ?? item?.customersCount ?? 0,
+    ),
+    customersCountRaw: Number(
+      item?.customers_count ?? item?.customerCount ?? item?.customersCount ?? 0,
+    ),
+    dateCreated: formatCreatedDate(createdAt || new Date()),
+    createdAt,
+    ...style,
+  };
+}
+
+export function mapCollectionsFromApi(list, fallbackCategory = null) {
+  if (!Array.isArray(list)) return [];
+  return list.map((item, index) => mapCollectionFromApi(item, index, fallbackCategory));
 }
 
 export const CATEGORY_FILTER_OPTIONS = [

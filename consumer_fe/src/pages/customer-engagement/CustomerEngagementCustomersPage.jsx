@@ -16,9 +16,9 @@ import SuccessModal, {
 } from '../../components/customer-engagement/customers/SuccessModal';
 import {
   CUSTOMERS_PAGE_METRICS,
-  CUSTOMER_COLLECTIONS,
   createCollectionEntry,
   mapCategoryFromApi,
+  mapCollectionFromApi,
 } from '../../components/customer-engagement/customers/customersData';
 import {
   createCategory,
@@ -27,10 +27,19 @@ import {
   updateCategory,
 } from '../../services/customer-engagement/categories';
 import {
+  createCollection,
+  deleteCollection,
+  updateCollection,
+} from '../../services/customer-engagement/collections';
+import {
   CUSTOMER_CATEGORIES_QUERY_KEY,
   useCustomerCategories,
   useCustomerCategoriesClient,
 } from '../../hooks/useCustomerCategories';
+import {
+  CATEGORY_COLLECTIONS_QUERY_KEY,
+  useCategoryCollections,
+} from '../../hooks/useCategoryCollections';
 import { useAppDispatch } from '../../store/hooks';
 import { notifyError, notifySuccess } from '../../utils/toast';
 
@@ -51,16 +60,16 @@ export default function CustomerEngagementCustomersPage() {
   } = useCustomerCategories();
 
   const [searchQuery, setSearchQuery] = useState('');
-  const [viewMode, setViewMode] = useState('cards');
+  const [viewMode, setViewMode] = useState('table');
   const [categoryDrawerOpen, setCategoryDrawerOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState(null);
   const [categoryToDelete, setCategoryToDelete] = useState(null);
   const [collectionToDelete, setCollectionToDelete] = useState(null);
+  const [editingCollection, setEditingCollection] = useState(null);
   const [isDeletingCategory, setIsDeletingCategory] = useState(false);
   const [isDeletingCollection, setIsDeletingCollection] = useState(false);
   const [collectionDrawerOpen, setCollectionDrawerOpen] = useState(false);
   const [successModal, setSuccessModal] = useState(null);
-  const [collections, setCollections] = useState(CUSTOMER_COLLECTIONS);
   const [activeCategoryId, setActiveCategoryId] = useState(location.state?.categoryId ?? null);
   const [pendingCategory, setPendingCategory] = useState(null);
   const [lastCreatedCollection, setLastCreatedCollection] = useState(null);
@@ -80,6 +89,19 @@ export default function CustomerEngagementCustomersPage() {
     [categories, activeCategoryId],
   );
 
+  const {
+    collections,
+    isLoading: collectionsLoading,
+    isFetching: collectionsFetching,
+    isError: collectionsIsError,
+    error: collectionsError,
+    refetch: refetchCollections,
+  } = useCategoryCollections(activeCategoryId, activeCategory);
+
+  const collectionsErrorMessage = collectionsIsError
+    ? collectionsError?.message || 'Could not load collections.'
+    : '';
+
   const collectionCountById = useMemo(() => {
     const counts = {};
 
@@ -87,14 +109,12 @@ export default function CustomerEngagementCustomersPage() {
       counts[category.id] = category.collectionsCount || 0;
     });
 
-    collections.forEach((collection) => {
-      const key = collection.categoryId;
-      if (key == null || counts[key] != null) return;
-      counts[key] = (counts[key] || 0) + 1;
-    });
+    if (activeCategoryId != null) {
+      counts[activeCategoryId] = collections.length;
+    }
 
     return counts;
-  }, [categories, collections]);
+  }, [categories, collections.length, activeCategoryId]);
 
   const pageMetrics = useMemo(() => {
     const totalFiles = collections.reduce((sum, item) => sum + (item.fileCount || 0), 0);
@@ -104,39 +124,32 @@ export default function CustomerEngagementCustomersPage() {
         return { ...metric, value: String(categories.length) };
       }
       if (metric.id === 'files') {
-        return { ...metric, value: String(totalFiles) };
+        return {
+          ...metric,
+          value: String(activeCategory ? totalFiles : categories.reduce((sum, item) => sum + (item.collectionsCount || 0), 0)),
+        };
       }
       return metric;
     });
-  }, [categories.length, collections]);
+  }, [activeCategory, categories, collections]);
 
   const filteredCategories = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
     if (!query) return categories;
 
-    return categories.filter((category) => {
-      if (category.name.toLowerCase().includes(query)) return true;
-      return collections.some(
-        (collection) =>
-          String(collection.categoryId) === String(category.id) &&
-          collection.name.toLowerCase().includes(query),
-      );
-    });
-  }, [categories, collections, searchQuery]);
-
-  const categoryCollections = useMemo(() => {
-    if (!activeCategory) return [];
-    return collections.filter(
-      (collection) => String(collection.categoryId) === String(activeCategory.id),
+    return categories.filter(
+      (category) =>
+        category.name.toLowerCase().includes(query) ||
+        (category.description || '').toLowerCase().includes(query),
     );
-  }, [activeCategory, collections]);
+  }, [categories, searchQuery]);
 
   const filteredCollections = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
-    if (!query) return categoryCollections;
+    if (!query) return collections;
 
-    return categoryCollections.filter((collection) => collection.name.toLowerCase().includes(query));
-  }, [categoryCollections, searchQuery]);
+    return collections.filter((collection) => collection.name.toLowerCase().includes(query));
+  }, [collections, searchQuery]);
 
   const openCategory = (category) => {
     setSearchQuery('');
@@ -155,6 +168,17 @@ export default function CustomerEngagementCustomersPage() {
 
   const handleOpenCollectionDrawer = (category) => {
     if (!category) return;
+    setEditingCollection(null);
+    setPendingCategory(category);
+    setCollectionDrawerOpen(true);
+  };
+
+  const handleOpenEditCollection = (collection) => {
+    if (!collection) return;
+    const category =
+      categories.find((item) => String(item.id) === String(collection.categoryId)) ||
+      activeCategory;
+    setEditingCollection(collection);
     setPendingCategory(category);
     setCollectionDrawerOpen(true);
   };
@@ -162,6 +186,14 @@ export default function CustomerEngagementCustomersPage() {
   const setCachedCategories = (updater) => {
     queryClient.setQueryData([...CUSTOMER_CATEGORIES_QUERY_KEY, token || 'guest'], (prev = []) =>
       typeof updater === 'function' ? updater(prev) : updater,
+    );
+  };
+
+  const setCachedCollections = (updater) => {
+    if (activeCategoryId == null) return;
+    queryClient.setQueryData(
+      [...CATEGORY_COLLECTIONS_QUERY_KEY, String(activeCategoryId), token || 'guest'],
+      (prev = []) => (typeof updater === 'function' ? updater(prev) : updater),
     );
   };
 
@@ -331,38 +363,171 @@ export default function CustomerEngagementCustomersPage() {
     }
   };
 
-  const handleCreateCollection = (name) => {
+  const handleSaveCollection = async (name, collectionBeingEdited = null) => {
+    const editing = collectionBeingEdited || editingCollection;
+    const isEdit = Boolean(editing?.id);
     const category = pendingCategory || activeCategory;
-    if (!category) return;
+    const trimmedName = String(name || '').trim();
+    if (!trimmedName) return;
+    if (!isEdit && !category?.id) return;
 
-    const newCollection = createCollectionEntry({
-      name,
-      category: category.name,
-      categoryId: category.id,
-      styleIndex: collections.length,
-    });
-
-    setCollections((prev) => [newCollection, ...prev]);
-    setCachedCategories((prev) =>
-      prev.map((item) =>
-        String(item.id) === String(category.id)
-          ? { ...item, collectionsCount: (item.collectionsCount || 0) + 1 }
-          : item,
-      ),
+    const exists = collections.some(
+      (item) =>
+        item.name.toLowerCase() === trimmedName.toLowerCase() &&
+        (!isEdit || String(item.id) !== String(editing.id)),
     );
-    setLastCreatedCollection(newCollection);
-    setPendingCategory(null);
-    setSuccessModal('collection');
+    if (exists) {
+      const saveError = new Error('A collection with this name already exists in this category.');
+      dispatch(
+        notifyError(saveError.message, {
+          title: isEdit ? 'Collection not updated' : 'Collection not created',
+        }),
+      );
+      throw saveError;
+    }
+
+    if (!token) {
+      const saveError = new Error(
+        isEdit ? 'Sign in to update a collection.' : 'Sign in to create a collection.',
+      );
+      dispatch(
+        notifyError(saveError.message, {
+          title: isEdit ? 'Collection not updated' : 'Collection not created',
+        }),
+      );
+      throw saveError;
+    }
+
+    try {
+      if (isEdit) {
+        const categoryId = editing.categoryId ?? category?.id;
+        const result = await updateCollection(
+          editing.id,
+          { name: trimmedName, categoryId },
+          { token, tokenType },
+        );
+        const payload =
+          result?.data && typeof result.data === 'object' && !Array.isArray(result.data)
+            ? result.data
+            : {
+                ...editing,
+                name: trimmedName,
+                category_id: categoryId,
+              };
+        const styleIndex = Math.max(
+          0,
+          collections.findIndex((item) => String(item.id) === String(editing.id)),
+        );
+        const fallbackCategory =
+          categories.find((item) => String(item.id) === String(categoryId)) ||
+          category ||
+          activeCategory;
+        const updated = {
+          ...editing,
+          ...mapCollectionFromApi(payload, styleIndex, fallbackCategory),
+          id: editing.id,
+          name: payload.name || trimmedName,
+          categoryId: payload.category_id ?? payload.categoryId ?? categoryId,
+          category:
+            payload.category_name ||
+            payload.categoryName ||
+            payload.category ||
+            fallbackCategory?.name ||
+            editing.category,
+        };
+
+        setCachedCollections((prev) =>
+          prev.map((item) => (String(item.id) === String(editing.id) ? { ...item, ...updated } : item)),
+        );
+        setEditingCollection(null);
+        setPendingCategory(null);
+        dispatch(
+          notifySuccess(result?.message || 'Collection updated successfully.', {
+            title: 'Collection updated',
+          }),
+        );
+        return;
+      }
+
+      const result = await createCollection(
+        { categoryId: category.id, name: trimmedName },
+        { token, tokenType },
+      );
+      const payload =
+        result?.data && typeof result.data === 'object' && !Array.isArray(result.data)
+          ? result.data
+          : {
+              name: trimmedName,
+              category_id: category.id,
+              files_count: 0,
+              customers_count: 0,
+              created_at: new Date().toISOString(),
+            };
+
+      const mapped = mapCollectionFromApi(payload, collections.length, category);
+      const newCollection = {
+        ...mapped,
+        name: mapped.name || trimmedName,
+        categoryId: mapped.categoryId ?? category.id,
+        category: mapped.category || category.name,
+      };
+
+      const collection =
+        newCollection.id != null
+          ? newCollection
+          : createCollectionEntry({
+              name: trimmedName,
+              category: category.name,
+              categoryId: category.id,
+              styleIndex: collections.length,
+            });
+
+      setCachedCollections((prev) => [collection, ...prev]);
+      setCachedCategories((prev) =>
+        prev.map((item) =>
+          String(item.id) === String(category.id)
+            ? { ...item, collectionsCount: (item.collectionsCount || 0) + 1 }
+            : item,
+        ),
+      );
+      setLastCreatedCollection(collection);
+      setPendingCategory(null);
+      dispatch(
+        notifySuccess(result?.message || 'Collection created successfully.', {
+          title: 'Collection created',
+        }),
+      );
+      setSuccessModal('collection');
+    } catch (saveError) {
+      dispatch(
+        notifyError(
+          saveError?.message ||
+            (isEdit ? 'Could not update the collection.' : 'Could not create the collection.'),
+          {
+            title: isEdit ? 'Collection not updated' : 'Collection not created',
+          },
+        ),
+      );
+      throw saveError;
+    }
   };
 
   const handleConfirmDeleteCollection = async () => {
     if (!collectionToDelete?.id) return;
 
+    if (!token) {
+      dispatch(
+        notifyError('Sign in to delete a collection.', {
+          title: 'Collection not deleted',
+        }),
+      );
+      return;
+    }
+
     setIsDeletingCollection(true);
     try {
-      // Local removal until the collections delete endpoint is wired.
-      await new Promise((resolve) => setTimeout(resolve, 250));
-      setCollections((prev) =>
+      const result = await deleteCollection(collectionToDelete.id, { token, tokenType });
+      setCachedCollections((prev) =>
         prev.filter((item) => String(item.id) !== String(collectionToDelete.id)),
       );
       setCachedCategories((prev) =>
@@ -376,7 +541,7 @@ export default function CustomerEngagementCustomersPage() {
         ),
       );
       dispatch(
-        notifySuccess('Collection deleted successfully.', {
+        notifySuccess(result?.message || 'Collection deleted successfully.', {
           title: 'Collection deleted',
         }),
       );
@@ -405,17 +570,15 @@ export default function CustomerEngagementCustomersPage() {
 
   const categoryForDrawer = pendingCategory || activeCategory;
   const showCategoriesLoading = Boolean(token) && categoriesLoading && categories.length === 0;
+  const showCollectionsLoading =
+    Boolean(activeCategory) && collectionsLoading && collections.length === 0;
 
   return (
     <main className="mx-auto w-full max-w-8xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8 lg:py-10">
       <Reveal variant="fadeUp" amount={0.15}>
         <CustomersPageHeader
           category={activeCategory}
-          collectionCount={
-            activeCategory
-              ? activeCategory.collectionsCount ?? categoryCollections.length
-              : 0
-          }
+          collectionCount={activeCategory ? collections.length : 0}
           categoryCount={categories.length}
           onAddCategory={() => {
             setEditingCategory(null);
@@ -462,26 +625,50 @@ export default function CustomerEngagementCustomersPage() {
         </div>
       ) : null}
 
+      {activeCategory && collectionsErrorMessage ? (
+        <div className="mt-4 flex flex-col items-start gap-3 rounded-sm border border-[#F5D0D0] bg-[#FFF7F7] px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-sm text-[#B42318]">{collectionsErrorMessage}</p>
+          <button
+            type="button"
+            onClick={() => refetchCollections()}
+            disabled={collectionsFetching}
+            className="cursor-pointer rounded-sm border border-[#F5D0D0] bg-white px-3 py-2 text-sm font-semibold text-[#B42318] transition-colors hover:bg-[#FFF1F1] disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {collectionsFetching ? 'Retrying...' : 'Try again'}
+          </button>
+        </div>
+      ) : null}
+
       <Reveal variant="fadeUp" amount={0.15} delay={0.12} className="mt-4">
         {activeCategory ? (
-          <CollectionsView
-            collections={filteredCollections}
-            viewMode={viewMode}
-            onViewModeChange={setViewMode}
-            onDelete={setCollectionToDelete}
-            onView={handleView}
-            onAddCollection={() => handleOpenCollectionDrawer(activeCategory)}
-            emptyTitle={searchQuery ? 'No collections found' : 'No collections in this category'}
-            emptyDescription={
-              searchQuery
-                ? 'Try a different collection name in this category.'
-                : 'Add a collection here. Contacts are uploaded and stored inside it.'
-            }
-            emptyActionLabel={searchQuery ? undefined : 'Add Collection'}
-            onEmptyAction={
-              searchQuery ? undefined : () => handleOpenCollectionDrawer(activeCategory)
-            }
-          />
+          showCollectionsLoading ? (
+            <div className="rounded-sm border border-[#EEF0F4] bg-white px-6 py-16 text-center shadow-[0_4px_20px_rgba(11,19,84,0.05)]">
+              <p className="text-sm font-semibold text-[#0B1354]">Loading collections...</p>
+              <p className="mt-1 text-sm text-[#717171]">
+                Fetching collections in {activeCategory.name}.
+              </p>
+            </div>
+          ) : (
+            <CollectionsView
+              collections={filteredCollections}
+              viewMode={viewMode}
+              onViewModeChange={setViewMode}
+              onDelete={setCollectionToDelete}
+              onEdit={handleOpenEditCollection}
+              onView={handleView}
+              onAddCollection={() => handleOpenCollectionDrawer(activeCategory)}
+              emptyTitle={searchQuery ? 'No collections found' : 'No collections in this category'}
+              emptyDescription={
+                searchQuery
+                  ? 'Try a different collection name in this category.'
+                  : 'Add a collection here. Contacts are uploaded and stored inside it.'
+              }
+              emptyActionLabel={searchQuery ? undefined : 'Add Collection'}
+              onEmptyAction={
+                searchQuery ? undefined : () => handleOpenCollectionDrawer(activeCategory)
+              }
+            />
+          )
         ) : showCategoriesLoading ? (
           <div className="rounded-sm border border-[#EEF0F4] bg-white px-6 py-16 text-center shadow-[0_4px_20px_rgba(11,19,84,0.05)]">
             <p className="text-sm font-semibold text-[#0B1354]">Loading categories...</p>
@@ -570,12 +757,16 @@ export default function CustomerEngagementCustomersPage() {
 
       <AddCollectionDrawer
         isOpen={collectionDrawerOpen}
-        categoryName={categoryForDrawer?.name}
+        categoryName={
+          editingCollection?.category || categoryForDrawer?.name || activeCategory?.name
+        }
+        initialCollection={editingCollection}
         onClose={() => {
           setCollectionDrawerOpen(false);
           setPendingCategory(null);
+          setEditingCollection(null);
         }}
-        onSubmit={handleCreateCollection}
+        onSubmit={handleSaveCollection}
       />
 
       <SuccessModal

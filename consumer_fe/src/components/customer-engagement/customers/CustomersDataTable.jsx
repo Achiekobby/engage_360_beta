@@ -1,5 +1,4 @@
-import { ChevronDown } from 'lucide-react';
-import SegmentBadge from './SegmentBadge';
+import { ChevronDown, Layers } from 'lucide-react';
 import CustomerActionMenu from './CustomerActionMenu';
 
 const COLUMNS = [
@@ -11,8 +10,6 @@ const COLUMNS = [
   'Region',
   'Location',
   'Category',
-  'Sub-Category',
-  'Customer Segment',
   'Registration Date',
   'Action',
 ];
@@ -26,13 +23,14 @@ export default function CustomersDataTable({
   onEdit,
   onWriteNote,
   onSegmentChange,
+  footer = null,
 }) {
   const allSelected = customers.length > 0 && selectedIds.length === customers.length;
 
   return (
     <div className="overflow-hidden rounded-sm border border-[#EEF0F4] bg-white shadow-[0_4px_20px_rgba(11,19,84,0.05)]">
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[1200px] border-collapse">
+        <table className="w-full min-w-[1040px] border-collapse">
           <thead>
             <tr className="border-b border-[#F0F2F7] bg-[#FAFBFC]">
               <th scope="col" className="w-10 px-3 py-3.5 first:pl-4 sm:pl-6">
@@ -103,14 +101,15 @@ export default function CustomersDataTable({
                   <td className="whitespace-nowrap px-3 py-3.5 text-sm text-[#717171] sm:px-4">
                     {customer.location}
                   </td>
-                  <td className="whitespace-nowrap px-3 py-3.5 text-sm text-[#717171] sm:px-4">
-                    {customer.category}
-                  </td>
-                  <td className="whitespace-nowrap px-3 py-3.5 text-sm text-[#717171] sm:px-4">
-                    {customer.subCategory}
-                  </td>
                   <td className="whitespace-nowrap px-3 py-3.5 sm:px-4">
-                    <SegmentBadge segment={customer.segment} />
+                    {customer.category ? (
+                      <span className="inline-flex max-w-full items-center gap-1.5 rounded-sm bg-[#F7F8FF] px-2.5 py-1.5 text-xs font-semibold text-primary ring-1 ring-inset ring-primary/15">
+                        <Layers className="h-3 w-3 shrink-0" strokeWidth={2.5} aria-hidden="true" />
+                        <span className="truncate">{customer.category}</span>
+                      </span>
+                    ) : (
+                      <span className="text-sm text-[#9AA0B0]">—</span>
+                    )}
                   </td>
                   <td className="whitespace-nowrap px-3 py-3.5 text-sm text-[#717171] sm:px-4">
                     {customer.registeredAt}
@@ -130,6 +129,7 @@ export default function CustomersDataTable({
           </tbody>
         </table>
       </div>
+      {footer}
     </div>
   );
 }

@@ -15,6 +15,7 @@ export default function CollectionsView({
   viewMode,
   onViewModeChange,
   onDelete,
+  onEdit,
   onView,
   onAddCollection,
   emptyTitle,
@@ -111,6 +112,7 @@ export default function CollectionsView({
                 collection={collection}
                 index={index}
                 onDelete={onDelete}
+                onEdit={onEdit}
                 onView={onView}
               />
             ))}
@@ -122,11 +124,12 @@ export default function CollectionsView({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.22 }}
-            className="pb-2 pt-1"
+            className="border-t border-[#F0F2F7]"
           >
             <CollectionTable
               collections={collections}
               onDelete={onDelete}
+              onEdit={onEdit}
               onView={onView}
             />
           </motion.div>

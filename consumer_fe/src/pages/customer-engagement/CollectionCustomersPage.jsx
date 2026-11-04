@@ -1,76 +1,141 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
-import { Trash2 } from 'lucide-react';
 import { Reveal } from '../../components/motion';
 import { CUSTOMER_COLLECTIONS } from '../../components/customer-engagement/customers/customersData';
-import { MOCK_COLLECTION_CUSTOMERS } from '../../components/customer-engagement/customers/collectionCustomersData';
 import CollectionCustomersHeader from '../../components/customer-engagement/customers/CollectionCustomersHeader';
-import CollectionCustomersToolbar from '../../components/customer-engagement/customers/CollectionCustomersToolbar';
-import CustomersDataTable from '../../components/customer-engagement/customers/CustomersDataTable';
+import CollectionBulkUploadsPanel from '../../components/customer-engagement/customers/CollectionBulkUploadsPanel';
+import BulkImportDrawer from '../../components/customer-engagement/customers/bulk-import/BulkImportDrawer';
 import OnboardCustomerDrawer from '../../components/customer-engagement/customers/OnboardCustomerDrawer';
-import ViewCustomerDrawer from '../../components/customer-engagement/customers/ViewCustomerDrawer';
-import WriteNoteModal from '../../components/customer-engagement/customers/WriteNoteModal';
-import ActionConfirmModal from '../../components/customer-engagement/customers/ActionConfirmModal';
 import SuccessModal, {
-  NOTE_PUBLISHED_SUCCESS,
   ONBOARD_SUCCESS,
 } from '../../components/customer-engagement/customers/SuccessModal';
+import { createCollectionContact } from '../../services/customer-engagement/contacts';
+import {
+  invalidateCollectionContacts,
+  useCollectionContactsClient,
+} from '../../hooks/useCollectionContacts';
+import { useAppDispatch } from '../../store/hooks';
+import { notifyError, notifySuccess } from '../../utils/toast';
 
 function formatRegisteredAt() {
   const now = new Date();
-  return now.toLocaleString('en-GB', {
-    day: '2-digit',
-    month: '2-digit',
-    year: '2-digit',
-    hour: 'numeric',
-    minute: '2-digit',
-    hour12: true,
-  }).replace(',', ', ');
+  return now
+    .toLocaleString('en-GB', {
+      day: '2-digit',
+      month: '2-digit',
+      year: '2-digit',
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+    })
+    .replace(',', ', ');
 }
 
 export default function CollectionCustomersPage() {
   const { collectionId } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
+  const dispatch = useAppDispatch();
+  const queryClient = useCollectionContactsClient();
 
   const collection = useMemo(() => {
     const fromState = location.state?.collection;
     if (fromState?.id === collectionId) return fromState;
-
     return CUSTOMER_COLLECTIONS.find((item) => item.id === collectionId);
   }, [collectionId, location.state]);
 
-  const [customers, setCustomers] = useState(MOCK_COLLECTION_CUSTOMERS);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedIds, setSelectedIds] = useState([]);
-
+  const [uploads, setUploads] = useState([]);
+  const [bulkImportOpen, setBulkImportOpen] = useState(false);
   const [onboardOpen, setOnboardOpen] = useState(false);
   const [editCustomer, setEditCustomer] = useState(null);
-  const [viewCustomer, setViewCustomer] = useState(null);
-  const [noteCustomer, setNoteCustomer] = useState(null);
   const [successModal, setSuccessModal] = useState(null);
-  const [deleteSelectedOpen, setDeleteSelectedOpen] = useState(false);
-  const [isDeletingSelected, setIsDeletingSelected] = useState(false);
+
+  const contactsPath = `/customer-engagement/customers/${collectionId}/contacts`;
 
   useEffect(() => {
-    if (location.state?.openOnboard) {
-      setEditCustomer(null);
-      setOnboardOpen(true);
-      navigate(location.pathname, { replace: true, state: { collection: location.state.collection } });
-    }
-  }, [location.pathname, location.state, navigate]);
+    if (!location.state?.openBulkImport) return;
+    setBulkImportOpen(true);
+    navigate(location.pathname, {
+      replace: true,
+      state: {
+        ...location.state,
+        openBulkImport: undefined,
+      },
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- open import once from contacts empty CTA
+  }, [location.state?.openBulkImport]);
 
-  const filteredCustomers = useMemo(() => {
-    const query = searchQuery.trim().toLowerCase();
-    if (!query) return customers;
+  const goToContacts = (params = {}, state = {}) => {
+    const query = new URLSearchParams();
+    Object.entries(params).forEach(([key, value]) => {
+      if (value != null && value !== '') query.set(key, String(value));
+    });
+    const suffix = query.toString() ? `?${query.toString()}` : '';
+    navigate(`${contactsPath}${suffix}`, {
+      state: {
+        collection,
+        categoryId: collection?.categoryId,
+        ...state,
+      },
+    });
+  };
 
-    return customers.filter(
-      (customer) =>
-        customer.fullName.toLowerCase().includes(query) ||
-        customer.email.toLowerCase().includes(query) ||
-        customer.segment.toLowerCase().includes(query),
+  const handleOpenBulkUpload = () => setBulkImportOpen(true);
+
+  const handleBulkImported = async (result, validation) => {
+    const uploadedAt = formatRegisteredAt();
+    const importedCount = validation?.validRows || result?.data?.total || 0;
+    const created = {
+      id: result?.data?.id || result?.data?.upload_id || `upl-${Date.now()}`,
+      fileName: result?.data?.file_name || 'contacts-import.xlsx',
+      uploadedAt,
+      uploadedBy: 'You',
+      rowCount: importedCount,
+      successCount: importedCount,
+      failedCount: 0,
+      status: 'completed',
+      fileSizeLabel: '—',
+    };
+
+    setUploads((prev) => [created, ...prev]);
+    // Contacts are already stored by local importCollectionContacts.
+    await invalidateCollectionContacts(queryClient, collectionId);
+
+    goToContacts(
+      { uploadId: created.id },
+      { upload: created, importedCount },
     );
-  }, [customers, searchQuery]);
+  };
+
+  const handleSubmitCustomer = async (formData) => {
+    const phoneDigits = String(formData.phone || '').replace(/\D/g, '');
+
+    try {
+      await createCollectionContact(collectionId, {
+        first_name: String(formData.fullName || '').split(' ')[0] || '',
+        last_name: String(formData.fullName || '').split(' ').slice(1).join(' ') || '',
+        email: formData.email,
+        gender: formData.gender,
+        phone_number: phoneDigits,
+        location: formData.location,
+        region: formData.region,
+        segment: formData.segment || 'New Customer',
+        category: formData.category,
+        sub_category: formData.subCategory,
+      });
+      await invalidateCollectionContacts(queryClient, collectionId);
+      setEditCustomer(null);
+      setOnboardOpen(false);
+      setSuccessModal('onboard');
+      dispatch(notifySuccess('Customer onboarded successfully.', { title: 'Success' }));
+    } catch (submitError) {
+      dispatch(
+        notifyError(submitError?.message || 'Could not add this customer.', {
+          title: 'Add failed',
+        }),
+      );
+    }
+  };
 
   if (!collection) {
     return (
@@ -87,125 +152,12 @@ export default function CollectionCustomersPage() {
     );
   }
 
-  const toggleSelect = (id) => {
-    setSelectedIds((prev) =>
-      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id],
-    );
-  };
-
-  const toggleSelectAll = () => {
-    setSelectedIds((prev) =>
-      prev.length === filteredCustomers.length
-        ? []
-        : filteredCustomers.map((customer) => customer.id),
-    );
-  };
-
-  const handleSegmentChange = (customer, segment) => {
-    setCustomers((prev) =>
-      prev.map((item) => (item.id === customer.id ? { ...item, segment } : item)),
-    );
-    if (viewCustomer?.id === customer.id) {
-      setViewCustomer((prev) => (prev ? { ...prev, segment } : prev));
-    }
-  };
-
-  const handleSubmitCustomer = (formData) => {
-    const phoneDigits = String(formData.phone || '').replace(/\D/g, '');
-    const whatsappDigits = String(formData.whatsapp || '').replace(/\D/g, '');
-
-    if (formData.id) {
-      setCustomers((prev) =>
-        prev.map((item) =>
-          item.id === formData.id
-            ? {
-                ...item,
-                fullName: formData.fullName,
-                email: formData.email,
-                gender: formData.gender,
-                phone: phoneDigits,
-                whatsapp: whatsappDigits,
-                region: formData.region,
-                location: formData.location,
-                segment: formData.segment,
-                category: formData.category,
-                subCategory: formData.subCategory,
-              }
-            : item,
-        ),
-      );
-      setEditCustomer(null);
-      return;
-    }
-
-    const newCustomer = {
-      id: `c${Date.now()}`,
-      fullName: formData.fullName,
-      gender: formData.gender,
-      age: '18 - 30',
-      phone: phoneDigits,
-      email: formData.email,
-      region: formData.region,
-      location: formData.location,
-      category: formData.category,
-      subCategory: formData.subCategory,
-      segment: formData.segment || 'New Customer',
-      registeredAt: formatRegisteredAt(),
-      customerSince: new Date().toLocaleString('en-US', { month: 'short', year: 'numeric' }),
-      whatsapp: whatsappDigits,
-      imageUrl: null,
-      notes: [],
-    };
-
-    setCustomers((prev) => [newCustomer, ...prev]);
-    setSuccessModal('onboard');
-  };
-
-  const handlePublishNote = (customer, body) => {
-    const note = {
-      id: `n${Date.now()}`,
-      title: `Note ${ (customer.notes?.length || 0) + 1 }`,
-      date: new Date().toLocaleDateString('en-GB').replace(/\//g, '-'),
-      body,
-    };
-
-    setCustomers((prev) =>
-      prev.map((item) =>
-        item.id === customer.id ? { ...item, notes: [note, ...(item.notes || [])] } : item,
-      ),
-    );
-
-    if (viewCustomer?.id === customer.id) {
-      setViewCustomer((prev) =>
-        prev ? { ...prev, notes: [note, ...(prev.notes || [])] } : prev,
-      );
-    }
-
-    setSuccessModal('note');
-  };
-
-  const handleDeleteSelected = () => {
-    if (!selectedIds.length) return;
-    setDeleteSelectedOpen(true);
-  };
-
-  const handleConfirmDeleteSelected = async () => {
-    setIsDeletingSelected(true);
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 250));
-      setCustomers((prev) => prev.filter((item) => !selectedIds.includes(item.id)));
-      setSelectedIds([]);
-      setDeleteSelectedOpen(false);
-    } finally {
-      setIsDeletingSelected(false);
-    }
-  };
-
   return (
     <main className="mx-auto w-full max-w-8xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8 lg:py-10">
       <Reveal variant="fadeUp" amount={0.15}>
         <CollectionCustomersHeader
           collection={collection}
+          onBulkUpload={handleOpenBulkUpload}
           onAddCustomer={() => {
             setEditCustomer(null);
             setOnboardOpen(true);
@@ -214,32 +166,22 @@ export default function CollectionCustomersPage() {
       </Reveal>
 
       <Reveal variant="fadeUp" amount={0.15} delay={0.06} className="mt-6">
-        <CollectionCustomersToolbar
-          searchQuery={searchQuery}
-          onSearchChange={setSearchQuery}
-          selectedCount={selectedIds.length}
-          onRefresh={() => setCustomers([...MOCK_COLLECTION_CUSTOMERS])}
-          onDeleteSelected={handleDeleteSelected}
-          onFilter={() => {}}
-          onExport={() => {}}
+        <CollectionBulkUploadsPanel
+          uploads={uploads}
+          onSelectUpload={(upload) =>
+            goToContacts({ uploadId: upload.id }, { upload })
+          }
+          onViewAll={uploads.length ? () => goToContacts() : undefined}
+          onBulkUpload={handleOpenBulkUpload}
         />
       </Reveal>
 
-      <Reveal variant="fadeUp" amount={0.15} delay={0.1} className="mt-4">
-        <CustomersDataTable
-          customers={filteredCustomers}
-          selectedIds={selectedIds}
-          onToggleSelect={toggleSelect}
-          onToggleSelectAll={toggleSelectAll}
-          onView={setViewCustomer}
-          onEdit={(customer) => {
-            setEditCustomer(customer);
-            setOnboardOpen(true);
-          }}
-          onWriteNote={setNoteCustomer}
-          onSegmentChange={handleSegmentChange}
-        />
-      </Reveal>
+      <BulkImportDrawer
+        isOpen={bulkImportOpen}
+        onClose={() => setBulkImportOpen(false)}
+        collection={collection}
+        onImported={handleBulkImported}
+      />
 
       <OnboardCustomerDrawer
         isOpen={onboardOpen}
@@ -251,62 +193,15 @@ export default function CollectionCustomersPage() {
         initialData={editCustomer}
       />
 
-      <ViewCustomerDrawer
-        customer={viewCustomer}
-        isOpen={Boolean(viewCustomer)}
-        onClose={() => setViewCustomer(null)}
-        onWriteNote={(customer) => {
-          setNoteCustomer(customer);
-        }}
-        onEdit={(customer) => {
-          setViewCustomer(null);
-          setEditCustomer(customer);
-          setOnboardOpen(true);
-        }}
-      />
-
-      <WriteNoteModal
-        isOpen={Boolean(noteCustomer)}
-        onClose={() => setNoteCustomer(null)}
-        customer={noteCustomer}
-        onPublish={handlePublishNote}
-      />
-
-      <ActionConfirmModal
-        isOpen={deleteSelectedOpen}
-        onClose={() => {
-          if (isDeletingSelected) return;
-          setDeleteSelectedOpen(false);
-        }}
-        onConfirm={handleConfirmDeleteSelected}
-        icon={Trash2}
-        tone="danger"
-        title="Delete selected contacts?"
-        description="The selected contacts will be removed from this collection."
-        entityLabel={`${selectedIds.length} contact${selectedIds.length === 1 ? '' : 's'}`}
-        entityMeta={collection?.name ? `From ${collection.name}` : undefined}
-        warning="This cannot be undone from the current screen."
-        confirmLabel="Delete contacts"
-        cancelLabel="Keep contacts"
-        isLoading={isDeletingSelected}
-      />
-
       <SuccessModal
         isOpen={successModal === 'onboard'}
         onClose={() => setSuccessModal(null)}
         {...ONBOARD_SUCCESS}
+        actionLabel="View Contacts"
         onAction={() => {
           setSuccessModal(null);
-          setEditCustomer(null);
-          setOnboardOpen(true);
+          goToContacts();
         }}
-      />
-
-      <SuccessModal
-        isOpen={successModal === 'note'}
-        onClose={() => setSuccessModal(null)}
-        {...NOTE_PUBLISHED_SUCCESS}
-        onAction={() => setSuccessModal(null)}
       />
     </main>
   );

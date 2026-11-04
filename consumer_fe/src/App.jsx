@@ -41,6 +41,7 @@ import CustomerEngagementLayout from "./layouts/CustomerEngagementLayout";
 import CustomerEngagementDashboardPage from "./pages/customer-engagement/CustomerEngagementDashboardPage";
 import CustomerEngagementCustomersPage from "./pages/customer-engagement/CustomerEngagementCustomersPage";
 import CollectionCustomersPage from "./pages/customer-engagement/CollectionCustomersPage";
+import CollectionContactsPage from "./pages/customer-engagement/CollectionContactsPage";
 import CustomerEngagementReportsPage from "./pages/customer-engagement/CustomerEngagementReportsPage";
 import CampaignsLayout from "./layouts/CampaignsLayout";
 import CampaignsHomePage from "./pages/campaigns/CampaignsHomePage";
@@ -181,6 +182,10 @@ function AppShell() {
               <Route
                 path="customers/:collectionId"
                 element={<CollectionCustomersPage />}
+              />
+              <Route
+                path="customers/:collectionId/contacts"
+                element={<CollectionContactsPage />}
               />
               <Route
                 path="reports"
