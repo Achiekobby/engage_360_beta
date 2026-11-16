@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Form, Formik } from 'formik';
 import { Link, useNavigate } from 'react-router-dom';
 import { AlertCircle, Loader2 } from 'lucide-react';
+import { useBusinessCategories } from '../hooks/useBusinessCategories';
 import { useAppDispatch } from '../store/hooks';
 import { completeVerification, setPendingVerification } from '../store/slices/authSlice';
 import { registerAccount, stepForRegisterErrors } from '../services/auth/register';
@@ -28,6 +29,7 @@ const STEP_COMPONENTS = [StepCompanyDetails, StepAdditionalDetails, StepPassword
 export default function SignUpPage() {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
+  useBusinessCategories();
   const [activeStep, setActiveStep] = useState(0);
   const [formError, setFormError] = useState('');
   const panel = SIGNUP_STEP_META[activeStep];

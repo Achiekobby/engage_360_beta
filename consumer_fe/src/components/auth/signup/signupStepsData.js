@@ -58,6 +58,7 @@ export const SIGNUP_INITIAL_VALUES = {
   contactPersonName: '',
   contactPhone: '',
   contactEmail: '',
+  businessCategoryId: '',
   companyLogo: null,
   socialLinks: [{ platform: '', url: '' }],
   password: '',

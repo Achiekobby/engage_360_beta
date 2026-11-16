@@ -8,6 +8,7 @@ const FIELD_MAP = {
   contact_phone: 'contactPhone',
   contact_email: 'contactEmail',
   company_logo: 'companyLogo',
+  business_category_id: 'businessCategoryId',
   password: 'password',
   password_confirmation: 'confirmPassword',
 };
@@ -66,6 +67,7 @@ export function buildRegisterFormData(values) {
   body.append('contact_person_name', values.contactPersonName.trim());
   body.append('contact_phone', values.contactPhone);
   body.append('contact_email', values.contactEmail.trim());
+  body.append('business_category_id', values.businessCategoryId);
   body.append('password', values.password);
   body.append('password_confirmation', values.confirmPassword);
 
@@ -87,7 +89,7 @@ export function stepForRegisterErrors(flat) {
   const keys = Object.keys(flat);
   if (!keys.length) return 2;
   const stepFor = (key) => {
-    if (key.startsWith('socialLinks') || key === 'companyLogo') return 1;
+    if (key.startsWith('socialLinks') || key === 'companyLogo' || key === 'businessCategoryId') return 1;
     if (key === 'password' || key === 'confirmPassword') return 2;
     return 0;
   };

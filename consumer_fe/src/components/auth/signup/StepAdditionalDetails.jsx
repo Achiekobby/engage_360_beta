@@ -2,7 +2,9 @@ import { useEffect, useState } from 'react';
 import { ErrorMessage, Field, FieldArray, useFormikContext } from 'formik';
 import { CloudUpload, Plus, Trash2 } from 'lucide-react';
 import AuthFieldLabel from '../AuthFieldLabel';
+import FormFieldLegend from '../FormFieldLegend';
 import { authErrorClass, authInputClass } from '../authStyles';
+import BusinessCategoryField from './BusinessCategoryField';
 import { SOCIAL_PLATFORMS } from './signupStepsData';
 
 export default function StepAdditionalDetails() {
@@ -28,7 +30,9 @@ export default function StepAdditionalDetails() {
 
   return (
     <div className="space-y-5">
-      <p className="text-xs text-[#717171]">All fields on this step are optional.</p>
+      <FormFieldLegend />
+
+      <BusinessCategoryField />
 
       <div>
         <AuthFieldLabel optional>Company Logo</AuthFieldLabel>

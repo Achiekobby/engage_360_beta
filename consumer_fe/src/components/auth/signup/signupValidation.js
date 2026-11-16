@@ -18,6 +18,7 @@ export const step1Schema = Yup.object({
 });
 
 export const step2Schema = Yup.object({
+  businessCategoryId: Yup.string().trim().required('Select a business category'),
   socialLinks: Yup.array().of(
     Yup.object({
       platform: Yup.string(),

@@ -2,8 +2,8 @@ export const CUSTOMERS_PAGE_METRICS = [
   {
     id: 'categories',
     label: 'Total Customer Category',
-    value: '12',
-    change: 0.5,
+    value: '0',
+    change: 0.0,
     icon: 'folderTree',
     accent: 'bg-[#EDE8F8] text-primary',
     bar: 'from-primary to-[#6B4FE0]',
@@ -11,8 +11,8 @@ export const CUSTOMERS_PAGE_METRICS = [
   {
     id: 'files',
     label: 'Total Collection Files',
-    value: '20',
-    change: 0.5,
+    value: '0',
+    change: 0.0,
     icon: 'files',
     accent: 'bg-[#E6F7F4] text-[#0F766E]',
     bar: 'from-[#0F766E] to-[#2DD4BF]',
@@ -20,8 +20,8 @@ export const CUSTOMERS_PAGE_METRICS = [
   {
     id: 'growth',
     label: 'Customer Growth Rate',
-    value: '12%',
-    change: 0.5,
+    value: '0%',
+    change: 0.0,
     icon: 'trending',
     accent: 'bg-[#E8F8EF] text-[#1F9D55]',
     bar: 'from-[#1F9D55] to-[#34D399]',
@@ -29,8 +29,8 @@ export const CUSTOMERS_PAGE_METRICS = [
   {
     id: 'total',
     label: 'Total Customers',
-    value: '52k',
-    change: 0.5,
+    value: '0',
+    change: 0.0,
     icon: 'users',
     accent: 'bg-[#FFF4E8] text-[#E67E22]',
     bar: 'from-[#E67E22] to-[#F5A623]',
