@@ -77,7 +77,9 @@ self.onmessage = async (event) => {
         columns: parsed.columns,
         rows: parsed.rows,
         duplicateColumns: parsed.duplicates,
+        emptyHeadings: (parsed.headingPreview?.headings || []).filter((heading) => heading.empty),
       });
+      validation.headingPreview = parsed.headingPreview || null;
 
       setSessionFromValidation(fileName || 'contacts.xlsx', validation, parsed.duplicates);
 

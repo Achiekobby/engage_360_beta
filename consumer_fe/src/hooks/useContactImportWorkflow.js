@@ -1,11 +1,29 @@
 import { useCallback, useMemo, useRef, useState } from 'react';
-import { IMPORT_STATUSES, ISSUE_TYPES } from '../utils/contact-import/constants';
+import {
+  CONTACT_UPLOAD_STATUSES,
+  IMPORT_STATUSES,
+  ISSUE_TYPES,
+  isContactUploadInProgress,
+  normalizeContactUploadStatus,
+} from '../utils/contact-import/constants';
 import {
   formatFileSize,
-  importCollectionContacts,
   isAcceptedExcelFile,
+  uploadContactsFile,
+  waitForContactUpload,
 } from '../services/customer-engagement/contactImport';
+import { STANDARD_FIELD_KEYS } from '../services/customer-engagement/contactFields';
 import { useExcelValidationWorker } from './useExcelValidationWorker';
+
+function progressMessageForUploadStatus(status) {
+  const normalized = normalizeContactUploadStatus(status);
+  if (normalized === CONTACT_UPLOAD_STATUSES.PROCESSING) return 'Import underway…';
+  if (normalized === CONTACT_UPLOAD_STATUSES.PENDING) return 'Waiting for processing…';
+  if (normalized === CONTACT_UPLOAD_STATUSES.PARTIAL) return 'Import finished with some failures';
+  if (normalized === CONTACT_UPLOAD_STATUSES.COMPLETED) return 'Import complete';
+  if (normalized === CONTACT_UPLOAD_STATUSES.FAILED) return 'Import unsuccessful';
+  return 'Checking upload status…';
+}
 
 const INITIAL_STATE = {
   status: IMPORT_STATUSES.IDLE,
@@ -19,11 +37,22 @@ const INITIAL_STATE = {
   importResult: null,
 };
 
+function buildColumnMapping(configuredKeys = [], fileColumns = []) {
+  const available = new Set((fileColumns || []).map(String));
+  const mapping = {};
+  configuredKeys.forEach((key) => {
+    if (!key || !available.has(key)) return;
+    mapping[key] = key;
+  });
+  return mapping;
+}
+
 export function useContactImportWorkflow({ collectionId, token, tokenType } = {}) {
   const { callWorker, reset: resetWorker, terminate } = useExcelValidationWorker();
   const [state, setState] = useState(INITIAL_STATE);
   const importingRef = useRef(false);
   const generationRef = useRef(0);
+  const fileRef = useRef(null);
 
   const setSafeState = useCallback((updater) => {
     setState((prev) => (typeof updater === 'function' ? updater(prev) : updater));
@@ -32,6 +61,7 @@ export function useContactImportWorkflow({ collectionId, token, tokenType } = {}
   const reset = useCallback(async () => {
     generationRef.current += 1;
     importingRef.current = false;
+    fileRef.current = null;
     terminate();
     await resetWorker().catch(() => undefined);
     setSafeState({ ...INITIAL_STATE });
@@ -61,15 +91,17 @@ export function useContactImportWorkflow({ collectionId, token, tokenType } = {}
     async (file) => {
       if (!file) return;
       if (!isAcceptedExcelFile(file)) {
+        fileRef.current = null;
         setSafeState({
           ...INITIAL_STATE,
           status: IMPORT_STATUSES.FAILED,
-          error: 'Only .xlsx or .xls Excel files are supported.',
+          error: 'Only .xlsx, .xls, or .csv files are supported.',
         });
         return;
       }
 
       const generation = ++generationRef.current;
+      fileRef.current = file;
       setSafeState({
         ...INITIAL_STATE,
         status: IMPORT_STATUSES.PARSING,
@@ -204,66 +236,139 @@ export function useContactImportWorkflow({ collectionId, token, tokenType } = {}
     URL.revokeObjectURL(url);
   }, [callWorker]);
 
-  const importContacts = useCallback(async () => {
-    if (!collectionId) {
-      throw new Error('Missing collection id.');
-    }
-    if (!token) {
-      throw new Error('Sign in to import contacts.');
-    }
-    if (importingRef.current) return null;
-    if (!state.validation?.readyToImport) {
-      throw new Error('Fix validation issues before importing.');
-    }
+  const importContacts = useCallback(
+    async ({ configuredKeys = [] } = {}) => {
+      if (!collectionId) {
+        throw new Error('Missing collection id.');
+      }
+      if (!token) {
+        throw new Error('Sign in to import contacts.');
+      }
+      if (importingRef.current) return null;
+      if (!state.validation?.readyToImport) {
+        throw new Error('Fix validation issues before importing.');
+      }
+      if (!fileRef.current) {
+        throw new Error('Choose a file to upload.');
+      }
 
-    importingRef.current = true;
-    setSafeState((prev) => ({
-      ...prev,
-      status: IMPORT_STATUSES.UPLOADING,
-      progressMessage: 'Uploading contacts…',
-      error: '',
-    }));
-
-    try {
-      const payloadResult = await callWorker('GET_IMPORT_PAYLOAD');
-      const apiResult = await importCollectionContacts(
-        collectionId,
-        {
-          fileName: payloadResult.payload.file_name,
-          columns: payloadResult.payload.columns,
-          customColumns: payloadResult.payload.custom_columns,
-          contacts: payloadResult.payload.contacts,
-        },
-        { token, tokenType },
+      const keys = (configuredKeys.length ? configuredKeys : state.validation?.columns || []).filter(
+        Boolean,
       );
+      const columnMapping = buildColumnMapping(keys, state.validation?.columns || []);
+      const missingRequired = STANDARD_FIELD_KEYS.filter((key) => !columnMapping[key]);
+      if (missingRequired.length) {
+        throw new Error(
+          `The file is missing required column${missingRequired.length === 1 ? '' : 's'}: ${missingRequired.join(', ')}.`,
+        );
+      }
 
+      importingRef.current = true;
       setSafeState((prev) => ({
         ...prev,
-        status: IMPORT_STATUSES.COMPLETE,
-        progress: 100,
-        progressMessage: 'Import complete',
-        importResult: apiResult,
+        status: IMPORT_STATUSES.UPLOADING,
+        progressMessage: 'Uploading contacts…',
+        error: '',
       }));
 
-      return apiResult;
-    } catch (error) {
-      setSafeState((prev) => ({
-        ...prev,
-        status: IMPORT_STATUSES.FAILED,
-        error: error?.message || 'Import failed.',
-      }));
-      throw error;
-    } finally {
-      importingRef.current = false;
-    }
-  }, [
-    callWorker,
-    collectionId,
-    setSafeState,
-    state.validation?.readyToImport,
-    token,
-    tokenType,
-  ]);
+      const generation = generationRef.current;
+
+      try {
+        const apiResult = await uploadContactsFile(
+          {
+            collectionId,
+            file: fileRef.current,
+            columnMapping,
+          },
+          { token, tokenType },
+        );
+
+        if (generation !== generationRef.current) return null;
+
+        const uploadId = apiResult?.data?.upload_id || apiResult?.data?.id;
+        let finalResult = apiResult;
+        const initialStatus = normalizeContactUploadStatus(apiResult?.data?.status);
+
+        if (uploadId && isContactUploadInProgress(initialStatus || CONTACT_UPLOAD_STATUSES.PENDING)) {
+          setSafeState((prev) => ({
+            ...prev,
+            status: IMPORT_STATUSES.PROCESSING,
+            progress: 70,
+            progressMessage: progressMessageForUploadStatus(
+              initialStatus || CONTACT_UPLOAD_STATUSES.PENDING,
+            ),
+            importResult: apiResult,
+          }));
+
+          finalResult = await waitForContactUpload(uploadId, {
+            token,
+            tokenType,
+            intervalMs: 5000,
+            shouldContinue: () => generation === generationRef.current,
+            onUpdate: (result) => {
+              if (generation !== generationRef.current) return;
+              setSafeState((prev) => ({
+                ...prev,
+                status: IMPORT_STATUSES.PROCESSING,
+                progress: Math.min(95, Math.max(prev.progress || 70, 75)),
+                progressMessage: progressMessageForUploadStatus(result?.data?.status),
+                importResult: result,
+              }));
+            },
+          });
+        }
+
+        if (generation !== generationRef.current) return null;
+
+        const finalStatus = normalizeContactUploadStatus(finalResult?.data?.status);
+        if (finalStatus === CONTACT_UPLOAD_STATUSES.FAILED) {
+          const message = finalResult?.message || 'Import unsuccessful.';
+          setSafeState((prev) => ({
+            ...prev,
+            status: IMPORT_STATUSES.FAILED,
+            progress: 100,
+            progressMessage: progressMessageForUploadStatus(finalStatus),
+            importResult: finalResult,
+            error: message,
+          }));
+          throw new Error(message);
+        }
+
+        setSafeState((prev) => ({
+          ...prev,
+          status: IMPORT_STATUSES.COMPLETE,
+          progress: 100,
+          progressMessage: progressMessageForUploadStatus(
+            finalStatus || CONTACT_UPLOAD_STATUSES.COMPLETED,
+          ),
+          importResult: finalResult,
+          error: '',
+        }));
+
+        return finalResult;
+      } catch (error) {
+        if (error?.name === 'UploadPollCancelled' || generation !== generationRef.current) {
+          return null;
+        }
+        setSafeState((prev) => ({
+          ...prev,
+          status: IMPORT_STATUSES.FAILED,
+          error: error?.message || 'Import failed.',
+        }));
+        throw error;
+      } finally {
+        importingRef.current = false;
+      }
+    },
+    [
+      collectionId,
+      setSafeState,
+      state.validation?.columns,
+      state.validation?.readyToImport,
+      token,
+      tokenType,
+    ],
+  );
 
   const issueCounts = useMemo(() => {
     const counts = {
@@ -292,7 +397,10 @@ export function useContactImportWorkflow({ collectionId, token, tokenType } = {}
   return {
     ...state,
     issueCounts,
-    canImport: Boolean(state.validation?.readyToImport) && state.status !== IMPORT_STATUSES.UPLOADING,
+    canImport:
+      Boolean(state.validation?.readyToImport) &&
+      state.status !== IMPORT_STATUSES.UPLOADING &&
+      state.status !== IMPORT_STATUSES.PROCESSING,
     canAutoFix: (state.validation?.autoFixableCount || 0) > 0,
     validateFile,
     autoFix,

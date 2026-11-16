@@ -19,7 +19,7 @@ export default function ExcelUploader({
       const file = fileList?.[0];
       if (!file) return;
       if (!isAcceptedExcelFile(file)) {
-        onRejected?.('Only .xlsx or .xls Excel files are supported.');
+        onRejected?.('Only .xlsx, .xls, or .csv files are supported.');
         return;
       }
       onFileSelected?.(file);
@@ -65,7 +65,7 @@ export default function ExcelUploader({
             <input
               ref={replaceInputRef}
               type="file"
-              accept=".xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel"
+              accept=".xlsx,.xls,.csv,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel"
               className="hidden"
               disabled={disabled}
               onChange={(event) => {
@@ -76,7 +76,7 @@ export default function ExcelUploader({
           </div>
         </div>
         <p className="text-xs text-[#717171]">
-          Remove this file to start over, or replace it with another Excel spreadsheet.
+          Remove this file to start over, or replace it with another spreadsheet.
         </p>
       </div>
     );
@@ -118,16 +118,17 @@ export default function ExcelUploader({
           <UploadCloud className="h-6 w-6" strokeWidth={2.25} />
         </span>
         <p className="mt-4 text-base font-bold text-[#0B1354]">
-          Drag & drop your Excel file here
+          Drag & drop your contact file here
         </p>
         <p className="mt-1 max-w-md text-sm text-[#5C7A76]">
-          or click to browse. Accepts <span className="font-semibold">.xlsx</span> and{' '}
-          <span className="font-semibold">.xls</span> only.
+          or click to browse. Accepts <span className="font-semibold">.xlsx</span>,{' '}
+          <span className="font-semibold">.xls</span>, and{' '}
+          <span className="font-semibold">.csv</span>.
         </p>
         <input
           ref={inputRef}
           type="file"
-          accept=".xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel"
+          accept=".xlsx,.xls,.csv,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel"
           className="hidden"
           disabled={disabled}
           onChange={(event) => {

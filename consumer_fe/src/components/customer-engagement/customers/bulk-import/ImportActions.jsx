@@ -14,14 +14,14 @@ export default function ImportActions({
   canImport,
   validation,
   fileSelected = false,
-  onDownloadTemplate,
   onAutoFix,
   onDownloadCleaned,
   onReupload,
   onImport,
   busy = false,
 }) {
-  const importing = status === IMPORT_STATUSES.UPLOADING;
+  const importing =
+    status === IMPORT_STATUSES.UPLOADING || status === IMPORT_STATUSES.PROCESSING;
   const hasValidation = Boolean(validation);
   const hasInvalidRows =
     (validation?.invalidRows || 0) > 0 || (validation?.emptyRows || 0) > 0;
@@ -50,16 +50,6 @@ export default function ImportActions({
       ) : null}
 
       <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
-        <button
-          type="button"
-          onClick={onDownloadTemplate}
-          disabled={busy}
-          className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-sm border border-[#E4E4E7] bg-white px-3.5 py-2.5 text-sm font-semibold text-[#0B1354] transition-colors hover:border-primary/30 hover:bg-[#F7F8FF] hover:text-primary disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          <Download className="h-4 w-4" strokeWidth={2} />
-          Download template
-        </button>
-
         {hasValidation && hasInvalidRows && canAutoFix ? (
           <button
             type="button"
@@ -116,7 +106,11 @@ export default function ImportActions({
           ) : (
             <Upload className="h-4 w-4" strokeWidth={2.5} />
           )}
-          {importing ? 'Importing…' : 'Import contacts'}
+          {status === IMPORT_STATUSES.PROCESSING
+            ? 'Processing…'
+            : importing
+              ? 'Uploading…'
+              : 'Import contacts'}
         </button>
       </div>
     </div>

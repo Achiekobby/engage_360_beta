@@ -42,6 +42,11 @@ const STATUS_META = {
     className: 'bg-[#EDE8F8] text-primary',
     spinning: true,
   },
+  [IMPORT_STATUSES.PROCESSING]: {
+    label: 'Processing',
+    className: 'bg-[#E8F4FC] text-[#2E7DAD]',
+    spinning: true,
+  },
   [IMPORT_STATUSES.COMPLETE]: { label: 'Complete', className: 'bg-[#E8F8EF] text-[#1F9D55]' },
   [IMPORT_STATUSES.FAILED]: { label: 'Failed', className: 'bg-[#FEECEC] text-[#E53935]' },
 };
@@ -80,7 +85,8 @@ export default function ValidationSummary({
     status === IMPORT_STATUSES.PARSING ||
     status === IMPORT_STATUSES.VALIDATING ||
     status === IMPORT_STATUSES.FIXING ||
-    status === IMPORT_STATUSES.UPLOADING;
+    status === IMPORT_STATUSES.UPLOADING ||
+    status === IMPORT_STATUSES.PROCESSING;
 
   return (
     <section className="space-y-4 rounded-sm border border-[#EEF0F4] bg-[#FAFBFC] p-4 sm:p-5">

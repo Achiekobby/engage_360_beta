@@ -22,10 +22,13 @@ const COLUMNS = [
 ];
 
 function StatusIcon({ status }) {
-  if (status === 'processing') {
+  if (status === 'pending' || status === 'processing') {
     return <Loader2 className="h-3.5 w-3.5 animate-spin" strokeWidth={2.25} aria-hidden="true" />;
   }
   if (status === 'failed') {
+    return <AlertCircle className="h-3.5 w-3.5" strokeWidth={2.25} aria-hidden="true" />;
+  }
+  if (status === 'partial') {
     return <AlertCircle className="h-3.5 w-3.5" strokeWidth={2.25} aria-hidden="true" />;
   }
   return <CheckCircle2 className="h-3.5 w-3.5" strokeWidth={2.25} aria-hidden="true" />;

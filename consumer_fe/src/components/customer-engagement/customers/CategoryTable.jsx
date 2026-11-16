@@ -56,11 +56,14 @@ export default function CategoryTable({
                     >
                       <Layers className="h-5 w-5" strokeWidth={2} />
                     </div>
-                    <div className="min-w-0">
-                      <p className="truncate text-base font-semibold text-[#0B1354]">
+                    <div className="w-52 min-w-0 sm:w-64 lg:w-72">
+                      <p className="truncate text-base font-semibold text-[#0B1354]" title={category.name}>
                         {category.name}
                       </p>
-                      <p className="truncate text-xs text-[#717171]">
+                      <p
+                        className="truncate text-xs text-[#717171]"
+                        title={category.description || undefined}
+                      >
                         {category.description || 'Contacts live in its collections'}
                       </p>
                     </div>

@@ -1,18 +1,34 @@
 import * as XLSX from 'xlsx';
-import {
-  DEFAULT_CONTACT_COLUMNS,
-  normalizeHeaderName,
-} from './constants';
+import { HEADING_PREVIEW_ROW_COUNT, inspectHeadings, normalizeHeaderName } from './constants';
 import { createRowUid, stripRowMeta } from './workbookValidation';
 
-export function createContactTemplateWorkbook() {
-  const worksheet = XLSX.utils.aoa_to_sheet([
-    DEFAULT_CONTACT_COLUMNS,
-    ['Ama', 'Mensah', 'ama@example.com', 'Female', 'Accra', '233241234567'],
-  ]);
+const SAMPLE_BY_KEY = {
+  first_name: 'Ama',
+  last_name: 'Mensah',
+  phone_number: '233241234567',
+  email: 'ama@example.com',
+  gender: 'Female',
+  region: 'Greater Accra',
+  location: 'Accra',
+  residential_location: 'Accra',
+  residential_address: '12 Independence Ave',
+  customer_type: 'Individual',
+  date_of_birth: '1992-04-18',
+  age_range: '25-34',
+};
 
-  worksheet['!cols'] = DEFAULT_CONTACT_COLUMNS.map((column) => ({
-    wch: Math.max(14, column.length + 2),
+function templateHeader(column) {
+  if (typeof column === 'string') return normalizeHeaderName(column);
+  return normalizeHeaderName(column?.key || column?.label || '');
+}
+
+export function createContactTemplateWorkbook(columns = []) {
+  const headers = columns.map(templateHeader).filter(Boolean);
+  const sample = headers.map((key) => SAMPLE_BY_KEY[key] ?? '');
+  const worksheet = XLSX.utils.aoa_to_sheet([headers, sample]);
+
+  worksheet['!cols'] = headers.map((column) => ({
+    wch: Math.max(16, column.length + 2),
   }));
 
   const workbook = XLSX.utils.book_new();
@@ -20,8 +36,8 @@ export function createContactTemplateWorkbook() {
   return workbook;
 }
 
-export function downloadContactTemplate(fileName = 'engage360-contacts-template.xlsx') {
-  const workbook = createContactTemplateWorkbook();
+export function downloadContactTemplate(fileName = 'engage360-contacts-template.xlsx', columns = []) {
+  const workbook = createContactTemplateWorkbook(columns);
   XLSX.writeFile(workbook, fileName);
 }
 
@@ -48,6 +64,35 @@ export function buildHeaderMap(rawHeaders = []) {
     columns: [...seen.keys()],
     duplicates: [...new Set(duplicates)],
     rawHeaders,
+  };
+}
+
+function formatPreviewCell(value) {
+  if (value == null || value === '') return '';
+  if (value instanceof Date) {
+    const year = value.getFullYear();
+    const month = String(value.getMonth() + 1).padStart(2, '0');
+    const day = String(value.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+  if (typeof value === 'number') {
+    return value.toLocaleString('en-US', { useGrouping: false, maximumFractionDigits: 0 });
+  }
+  return String(value);
+}
+
+export function buildHeadingPreview(rawHeaders = [], dataRows = []) {
+  const headings = inspectHeadings(rawHeaders);
+  const rows = dataRows.slice(0, HEADING_PREVIEW_ROW_COUNT).map((line, rowIndex) => ({
+    rowNumber: rowIndex + 2,
+    values: headings.map((heading) => formatPreviewCell(line?.[heading.index])),
+  }));
+
+  return {
+    headings,
+    rows,
+    emptyCount: headings.filter((heading) => heading.empty).length,
+    repeatedKeys: [...new Set(headings.filter((heading) => heading.repeated).map((heading) => heading.key))],
   };
 }
 
@@ -81,10 +126,11 @@ export function parseWorkbookArrayBuffer(arrayBuffer) {
   const rawHeaders = (matrix[0] || []).map((value) =>
     value == null ? '' : String(value),
   );
+  const headingPreview = buildHeadingPreview(rawHeaders, matrix.slice(1));
   const { headerMap, columns, duplicates } = buildHeaderMap(rawHeaders);
 
-  if (!columns.length) {
-    throw new Error('Could not find any column headers in the first row.');
+  if (!rawHeaders.length) {
+    throw new Error('Could not find a heading row in the first row of the file.');
   }
 
   const rows = [];
@@ -128,6 +174,7 @@ export function parseWorkbookArrayBuffer(arrayBuffer) {
     duplicates,
     rows,
     headerMap,
+    headingPreview,
   };
 }
 

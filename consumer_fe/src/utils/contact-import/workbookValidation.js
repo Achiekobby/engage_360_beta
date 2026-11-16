@@ -51,8 +51,20 @@ export function detectDuplicateHeaders(rawHeaders = []) {
  * Validate a workbook already parsed into canonical column keys.
  * `rows` are data rows only (no header). Excel row numbers use header = 1.
  */
-export function validateWorkbook({ columns, rows, duplicateColumns = [] }) {
+export function validateWorkbook({ columns, rows, duplicateColumns = [], emptyHeadings = [] }) {
   const issues = [];
+  emptyHeadings.forEach((heading) => {
+    const columnNumber = (heading.index ?? 0) + 1;
+    issues.push({
+      rowNumber: 1,
+      column: `column_${columnNumber}`,
+      value: '',
+      type: ISSUE_TYPES.EMPTY_HEADING,
+      message: `Column ${columnNumber} has an empty heading. Name it or remove it before uploading.`,
+      autoFixable: false,
+    });
+  });
+
   const normalizedColumns = columns.map((column) => normalizeHeaderName(column));
   const { customColumns } = splitColumns(normalizedColumns);
 

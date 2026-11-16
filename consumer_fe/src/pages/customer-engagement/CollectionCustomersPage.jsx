@@ -84,26 +84,37 @@ export default function CollectionCustomersPage() {
 
   const handleBulkImported = async (result, validation) => {
     const uploadedAt = formatRegisteredAt();
-    const importedCount = validation?.validRows || result?.data?.total || 0;
+    const uploadStatus = String(result?.data?.status || 'completed').toLowerCase();
+    const importedCount =
+      result?.data?.success_count ??
+      result?.data?.imported_count ??
+      result?.data?.total ??
+      validation?.validRows ??
+      0;
+    const failedCount =
+      result?.data?.failed_count ??
+      result?.data?.failure_count ??
+      (uploadStatus === 'partial' || uploadStatus === 'failed' ? Math.max(0, (validation?.invalidRows || 0)) : 0);
     const created = {
       id: result?.data?.id || result?.data?.upload_id || `upl-${Date.now()}`,
       fileName: result?.data?.file_name || 'contacts-import.xlsx',
       uploadedAt,
       uploadedBy: 'You',
-      rowCount: importedCount,
-      successCount: importedCount,
-      failedCount: 0,
-      status: 'completed',
+      rowCount: result?.data?.total_rows ?? result?.data?.total ?? importedCount + failedCount,
+      successCount: uploadStatus === 'failed' ? 0 : importedCount,
+      failedCount: uploadStatus === 'failed' ? Math.max(failedCount, importedCount || 0) : failedCount,
+      status: uploadStatus,
       fileSizeLabel: '—',
     };
 
     setUploads((prev) => [created, ...prev]);
-    // Contacts are already stored by local importCollectionContacts.
-    await invalidateCollectionContacts(queryClient, collectionId);
+    if (uploadStatus === 'completed' || uploadStatus === 'partial') {
+      await invalidateCollectionContacts(queryClient, collectionId);
+    }
 
     goToContacts(
       { uploadId: created.id },
-      { upload: created, importedCount },
+      { upload: created, importedCount: created.successCount },
     );
   };
 
