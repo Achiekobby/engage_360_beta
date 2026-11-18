@@ -114,7 +114,8 @@ export function mapCategoryFromApi(item, index = 0) {
     id: item?.id,
     name: item?.name || '',
     description: item?.description || '',
-    collectionsCount: Number(item?.collections_count ?? item?.collectionsCount ?? 0),
+    collectionsCount: Number(item?.collections_count ?? item?.collectionsCount ?? 0) || 0,
+    contactsCount: Number(item?.contacts_count ?? item?.contactsCount ?? 0) || 0,
     dateCreated: formatCreatedDate(createdAt || new Date()),
     createdAt,
     ...style,
@@ -250,13 +251,23 @@ export function mapCollectionFromApi(item, index = 0, fallbackCategory = null) {
     name: item?.name || '',
     categoryId,
     category: categoryName,
-    fileCount: Number(item?.files_count ?? item?.fileCount ?? item?.filesCount ?? 0),
+    fileCount: Number(item?.files_count ?? item?.fileCount ?? item?.filesCount ?? 0) || 0,
     customerCount: formatCountLabel(
-      item?.customers_count ?? item?.customerCount ?? item?.customersCount ?? 0,
+      item?.contacts_count ??
+        item?.customers_count ??
+        item?.customersCountRaw ??
+        item?.customerCount ??
+        item?.customersCount ??
+        0,
     ),
     customersCountRaw: Number(
-      item?.customers_count ?? item?.customerCount ?? item?.customersCount ?? 0,
-    ),
+      item?.contacts_count ??
+        item?.customers_count ??
+        item?.customersCountRaw ??
+        item?.customerCount ??
+        item?.customersCount ??
+        0,
+    ) || 0,
     dateCreated: formatCreatedDate(createdAt || new Date()),
     createdAt,
     ...style,

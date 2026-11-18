@@ -5,6 +5,8 @@ import {
   isContactUploadTerminal,
   normalizeContactUploadStatus,
 } from '../../utils/contact-import/constants';
+
+export const COLLECTION_UPLOADS_QUERY_KEY = ['collection-uploads', 'records'];
 import { appendImportedContacts } from './contacts';
 
 const DEFAULT_UPLOAD_POLL_MS = 5000;
@@ -153,6 +155,93 @@ export async function importCollectionContacts(
       total: (contacts || []).length,
     },
   };
+}
+
+function asCount(value) {
+  const number = Number(value);
+  return Number.isFinite(number) ? number : 0;
+}
+
+function formatUploadDate(value) {
+  if (!value) return '—';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return String(value);
+  return date.toLocaleString('en-GB', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}
+
+function uploadRowsFrom(payload) {
+  const data = payload?.data ?? payload ?? [];
+  if (Array.isArray(data)) return data;
+  if (Array.isArray(data.uploads)) return data.uploads;
+  if (Array.isArray(data.data)) return data.data;
+  return [];
+}
+
+export function mapCollectionUpload(item = {}) {
+  const successCount = asCount(
+    item.successful_records ??
+      item.success_count ??
+      item.imported_count ??
+      item.successful_rows ??
+      item.processed_count,
+  );
+  const failedCount = asCount(
+    item.failed_records ?? item.failed_count ?? item.failure_count ?? item.failed_rows,
+  );
+  const rowCount = asCount(
+    item.total_records ??
+      item.total_rows ??
+      item.rows_count ??
+      item.total ??
+      item.row_count ??
+      item.contacts_count,
+  );
+  const bytes = asCount(item.file_size ?? item.size_bytes ?? item.size);
+  const uploader = item.uploaded_by || item.user_name || item.user?.name || 'You';
+  const originalName = item.original_file_name || item.original_filename || item.original_name;
+  const storedName = item.file_name || item.filename || item.name;
+
+  return {
+    id: String(item.upload_id || item.id || ''),
+    collectionId: item.collection_id || item.collectionId || null,
+    fileName: originalName || storedName || 'contacts-import.xlsx',
+    storedFileName: storedName || '',
+    fileType: item.file_type || item.fileType || '',
+    uploadedAt: formatUploadDate(item.created_at || item.uploaded_at || item.updated_at),
+    processedAt: item.processed_at ? formatUploadDate(item.processed_at) : '',
+    uploadedBy: typeof uploader === 'string' ? uploader : 'You',
+    rowCount: rowCount || successCount + failedCount,
+    successCount,
+    failedCount,
+    status: normalizeContactUploadStatus(item.status) || 'pending',
+    errorMessage: item.error_message || item.errorMessage || '',
+    fileSizeLabel: bytes ? formatFileSize(bytes) : '—',
+  };
+}
+
+/**
+ * Uploads for one collection.
+ * GET /api/contacts/{collection_id}/uploads
+ */
+export async function listCollectionUploads(collectionId, { token, tokenType } = {}) {
+  if (!collectionId) return [];
+  if (!token) throw new Error('Sign in to view uploads.');
+
+  const params = new URLSearchParams({ page: '1', per_page: '100' });
+  const result = await apiRequest(
+    `/api/contacts/${encodeURIComponent(collectionId)}/uploads?${params}`,
+    { token, tokenType },
+  );
+
+  return uploadRowsFrom(result)
+    .map(mapCollectionUpload)
+    .filter((upload) => upload.id);
 }
 
 export function formatFileSize(bytes = 0) {

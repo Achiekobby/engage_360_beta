@@ -1,11 +1,10 @@
 import { useNavigate } from 'react-router-dom';
-import { FolderOpen, Plus } from 'lucide-react';
+import { FolderOpen } from 'lucide-react';
 import BulkUploadCustomersButton from './BulkUploadCustomersButton';
 import PageBackButton from './PageBackButton';
 
 export default function CollectionCustomersHeader({
   collection,
-  onAddCustomer,
   onBulkUpload,
 }) {
   const navigate = useNavigate();
@@ -58,14 +57,6 @@ export default function CollectionCustomersHeader({
           />
 
           <BulkUploadCustomersButton onClick={onBulkUpload} className="w-full sm:w-auto" />
-          <button
-            type="button"
-            onClick={onAddCustomer}
-            className="inline-flex shrink-0 cursor-pointer items-center justify-center gap-2 rounded-sm bg-primary px-4 py-2.5 text-sm font-semibold text-white shadow-[0_4px_16px_rgba(58,16,205,0.28)] transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#320EB8]"
-          >
-            <Plus className="h-4 w-4" strokeWidth={2.5} />
-            Add Customer
-          </button>
         </div>
       </div>
     </header>

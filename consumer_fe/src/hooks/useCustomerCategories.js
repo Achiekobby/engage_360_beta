@@ -3,7 +3,7 @@ import { getCategories } from '../services/customer-engagement/categories';
 import { mapCategoriesFromApi } from '../components/customer-engagement/customers/customersData';
 import { useAppSelector } from '../store/hooks';
 
-export const CUSTOMER_CATEGORIES_QUERY_KEY = ['customer-categories'];
+export const CUSTOMER_CATEGORIES_QUERY_KEY = ['customer-categories', 'counts'];
 
 export function useCustomerCategories() {
   const token = useAppSelector((state) => state.auth.user?.token);

@@ -1,53 +1,51 @@
-import { Eye, Pencil, Trash2 } from 'lucide-react';
-import { clsx } from 'clsx';
+import { Eye, Pencil, Trash2, UserPlus } from 'lucide-react';
+import RowActionMenu from './RowActionMenu';
 
 export function CollectionActions({
   collection,
   onDelete,
   onEdit,
   onView,
-  compact = false,
+  onAddCustomer,
 }) {
   return (
-    <div className={clsx('flex items-center', compact ? 'gap-1' : 'gap-2')}>
-      <button
-        type="button"
-        onClick={() => onDelete?.(collection)}
-        aria-label={`Delete ${collection.name}`}
-        className={clsx(
-          'inline-flex cursor-pointer items-center justify-center rounded-sm text-[#717171] transition-colors hover:bg-[#FEECEC] hover:text-[#E53935]',
-          compact ? 'h-9 w-9' : 'gap-1.5 px-3 py-2 text-sm font-medium',
-        )}
-      >
-        <Trash2 className="h-4 w-4" strokeWidth={2} />
-        {!compact && 'Delete'}
-      </button>
-      {onEdit ? (
-        <button
-          type="button"
-          onClick={() => onEdit(collection)}
-          aria-label={`Edit ${collection.name}`}
-          className={clsx(
-            'inline-flex cursor-pointer items-center justify-center rounded-sm border border-[#E4E4E7] bg-white font-semibold text-[#0B1354] shadow-sm transition-all duration-200 hover:border-primary/30 hover:bg-[#F7F8FF] hover:text-primary',
-            compact ? 'h-9 w-9' : 'gap-1.5 px-3 py-2 text-sm',
-          )}
-        >
-          <Pencil className="h-4 w-4" strokeWidth={2} />
-          {!compact && 'Edit'}
-        </button>
-      ) : null}
-      <button
-        type="button"
-        onClick={() => onView?.(collection)}
-        aria-label={`View ${collection.name}`}
-        className={clsx(
-          'inline-flex cursor-pointer items-center justify-center rounded-sm border border-[#E4E4E7] bg-white font-semibold text-[#0B1354] shadow-sm transition-all duration-200 hover:border-primary/30 hover:bg-[#F7F8FF] hover:text-primary',
-          compact ? 'h-9 w-9' : 'gap-1.5 px-3.5 py-2 text-sm',
-        )}
-      >
-        <Eye className="h-4 w-4" strokeWidth={2} />
-        {!compact && 'View'}
-      </button>
+    <div className="flex justify-end">
+      <RowActionMenu
+        label={`Actions for ${collection.name}`}
+        items={[
+          onAddCustomer
+            ? {
+                key: 'add',
+                label: 'Add customer',
+                icon: UserPlus,
+                onSelect: () => onAddCustomer(collection),
+              }
+            : null,
+          onView
+            ? {
+                key: 'view',
+                label: 'View',
+                icon: Eye,
+                onSelect: () => onView(collection),
+              }
+            : null,
+          onEdit
+            ? {
+                key: 'edit',
+                label: 'Edit',
+                icon: Pencil,
+                onSelect: () => onEdit(collection),
+              }
+            : null,
+          {
+            key: 'delete',
+            label: 'Delete',
+            icon: Trash2,
+            tone: 'danger',
+            onSelect: () => onDelete?.(collection),
+          },
+        ]}
+      />
     </div>
   );
 }

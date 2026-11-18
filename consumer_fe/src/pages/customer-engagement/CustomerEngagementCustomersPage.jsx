@@ -10,6 +10,7 @@ import { FolderOpen, Trash2 } from 'lucide-react';
 import CreateCustomerCategoryDrawer from '../../components/customer-engagement/customers/CreateCustomerCategoryDrawer';
 import AddCollectionDrawer from '../../components/customer-engagement/customers/AddCollectionDrawer';
 import ActionConfirmModal from '../../components/customer-engagement/customers/ActionConfirmModal';
+import OnboardCustomerDrawer from '../../components/customer-engagement/customers/OnboardCustomerDrawer';
 import SuccessModal, {
   CATEGORY_CREATED_SUCCESS,
   COLLECTION_CREATED_SUCCESS,
@@ -40,6 +41,12 @@ import {
   CATEGORY_COLLECTIONS_QUERY_KEY,
   useCategoryCollections,
 } from '../../hooks/useCategoryCollections';
+import {
+  invalidateContactStatistics,
+  useContactStatistics,
+} from '../../hooks/useContactStatistics';
+import { invalidateCollectionContacts } from '../../hooks/useCollectionContacts';
+import { createCollectionContact } from '../../services/customer-engagement/contacts';
 import { useAppDispatch } from '../../store/hooks';
 import { notifyError, notifySuccess } from '../../utils/toast';
 
@@ -73,6 +80,7 @@ export default function CustomerEngagementCustomersPage() {
   const [activeCategoryId, setActiveCategoryId] = useState(location.state?.categoryId ?? null);
   const [pendingCategory, setPendingCategory] = useState(null);
   const [lastCreatedCollection, setLastCreatedCollection] = useState(null);
+  const [customerCollection, setCustomerCollection] = useState(null);
 
   useEffect(() => {
     setActiveCategoryId(location.state?.categoryId ?? null);
@@ -109,29 +117,62 @@ export default function CustomerEngagementCustomersPage() {
       counts[category.id] = category.collectionsCount || 0;
     });
 
-    if (activeCategoryId != null) {
+    if (activeCategoryId != null && !collectionsLoading) {
       counts[activeCategoryId] = collections.length;
     }
 
     return counts;
   }, [categories, collections.length, activeCategoryId]);
 
+  const { statistics } = useContactStatistics();
+
+  const refreshStatistics = () => invalidateContactStatistics(queryClient);
+
   const pageMetrics = useMemo(() => {
-    const totalFiles = collections.reduce((sum, item) => sum + (item.fileCount || 0), 0);
+    const growth = statistics?.growth;
+    const growthRate = growth?.growthRate;
+    const growthValue =
+      growthRate == null || Number.isNaN(growthRate)
+        ? '—'
+        : `${Number.isInteger(growthRate) ? growthRate : growthRate.toFixed(1)}%`;
+    const count = (value) => (statistics ? Number(value || 0).toLocaleString() : '—');
 
     return CUSTOMERS_PAGE_METRICS.map((metric) => {
       if (metric.id === 'categories') {
-        return { ...metric, value: String(categories.length) };
+        return {
+          ...metric,
+          value: count(statistics?.totalCategories),
+          change: null,
+          hint: 'All categories',
+        };
       }
       if (metric.id === 'files') {
         return {
           ...metric,
-          value: String(activeCategory ? totalFiles : categories.reduce((sum, item) => sum + (item.collectionsCount || 0), 0)),
+          value: count(statistics?.totalCollections),
+          change: null,
+          hint: 'All collections',
         };
       }
-      return metric;
+      if (metric.id === 'growth') {
+        return {
+          ...metric,
+          value: statistics ? growthValue : '—',
+          change: null,
+          hint: statistics ? `${growth?.currentMonth || 0} this month` : 'Monthly',
+        };
+      }
+      if (metric.id === 'total') {
+        return {
+          ...metric,
+          value: count(statistics?.totalContacts),
+          change: null,
+          hint: 'All contacts',
+        };
+      }
+      return { ...metric, change: null };
     });
-  }, [activeCategory, categories, collections]);
+  }, [statistics]);
 
   const filteredCategories = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
@@ -187,6 +228,28 @@ export default function CustomerEngagementCustomersPage() {
     queryClient.setQueryData([...CUSTOMER_CATEGORIES_QUERY_KEY, token || 'guest'], (prev = []) =>
       typeof updater === 'function' ? updater(prev) : updater,
     );
+  };
+
+  const handleAddCollectionCustomer = async (formData) => {
+    if (!customerCollection?.id) return;
+    const values = formData.values || {};
+    try {
+      await createCollectionContact(customerCollection.id, {
+        ...values,
+        collection_id: customerCollection.id,
+      });
+      await invalidateCollectionContacts(queryClient, customerCollection.id);
+      await refreshStatistics();
+      setCustomerCollection(null);
+      dispatch(notifySuccess('Customer added to this collection.', { title: 'Customer added' }));
+    } catch (submitError) {
+      dispatch(
+        notifyError(submitError?.message || 'Could not add this customer.', {
+          title: 'Add failed',
+        }),
+      );
+      throw submitError;
+    }
   };
 
   const setCachedCollections = (updater) => {
@@ -260,6 +323,10 @@ export default function CustomerEngagementCustomersPage() {
                 payload.collectionsCount ??
                 editingCategory.collectionsCount,
             ) || 0,
+          contactsCount:
+            Number(
+              payload.contacts_count ?? payload.contactsCount ?? editingCategory.contactsCount,
+            ) || 0,
         };
 
         setCachedCategories((prev) =>
@@ -271,6 +338,7 @@ export default function CustomerEngagementCustomersPage() {
         if (pendingCategory && String(pendingCategory.id) === String(editingId)) {
           setPendingCategory(updated);
         }
+        await refreshStatistics();
         dispatch(
           notifySuccess(result?.message || 'Customer category updated successfully.', {
             title: 'Category updated',
@@ -309,6 +377,7 @@ export default function CustomerEngagementCustomersPage() {
         replace: true,
         state: { categoryId: category.id },
       });
+      await refreshStatistics();
       dispatch(
         notifySuccess(result?.message || 'Customer category created successfully.', {
           title: 'Category created',
@@ -346,6 +415,7 @@ export default function CustomerEngagementCustomersPage() {
       if (String(activeCategoryId) === String(categoryToDelete.id)) {
         closeCategory();
       }
+      await refreshStatistics();
       dispatch(
         notifySuccess(result?.message || 'Customer category deleted successfully.', {
           title: 'Category deleted',
@@ -434,6 +504,15 @@ export default function CustomerEngagementCustomersPage() {
             payload.category ||
             fallbackCategory?.name ||
             editing.category,
+          ...(payload.files_count == null && payload.fileCount == null
+            ? { fileCount: editing.fileCount }
+            : {}),
+          ...(payload.contacts_count == null && payload.customers_count == null
+            ? {
+                customerCount: editing.customerCount,
+                customersCountRaw: editing.customersCountRaw,
+              }
+            : {}),
         };
 
         setCachedCollections((prev) =>
@@ -441,6 +520,7 @@ export default function CustomerEngagementCustomersPage() {
         );
         setEditingCollection(null);
         setPendingCategory(null);
+        await refreshStatistics();
         dispatch(
           notifySuccess(result?.message || 'Collection updated successfully.', {
             title: 'Collection updated',
@@ -492,6 +572,7 @@ export default function CustomerEngagementCustomersPage() {
       );
       setLastCreatedCollection(collection);
       setPendingCategory(null);
+      await refreshStatistics();
       dispatch(
         notifySuccess(result?.message || 'Collection created successfully.', {
           title: 'Collection created',
@@ -540,6 +621,7 @@ export default function CustomerEngagementCustomersPage() {
             : item,
         ),
       );
+      await refreshStatistics();
       dispatch(
         notifySuccess(result?.message || 'Collection deleted successfully.', {
           title: 'Collection deleted',
@@ -656,6 +738,7 @@ export default function CustomerEngagementCustomersPage() {
               onDelete={setCollectionToDelete}
               onEdit={handleOpenEditCollection}
               onView={handleView}
+              onAddCustomer={setCustomerCollection}
               onAddCollection={() => handleOpenCollectionDrawer(activeCategory)}
               emptyTitle={searchQuery ? 'No collections found' : 'No collections in this category'}
               emptyDescription={
@@ -694,6 +777,13 @@ export default function CustomerEngagementCustomersPage() {
           />
         )}
       </Reveal>
+
+      <OnboardCustomerDrawer
+        isOpen={Boolean(customerCollection)}
+        onClose={() => setCustomerCollection(null)}
+        onSubmit={handleAddCollectionCustomer}
+        contextLabel={customerCollection?.name || ''}
+      />
 
       <CreateCustomerCategoryDrawer
         isOpen={categoryDrawerOpen}

@@ -140,6 +140,7 @@ function toChoice(field, key, group) {
     group,
     required: group === 'standard' || Boolean(field?.is_required || field?.required),
     enabled: field?.is_enabled !== false && field?.enabled !== false,
+    selected: field?.is_enabled === true || field?.selected === true,
     sensitive: key === 'religion' || Boolean(field?.sensitive),
     exclusiveWith: exclusiveWith ? normalizeHeaderName(exclusiveWith) : null,
     options,
@@ -202,6 +203,42 @@ let contactFieldsCache = null;
 let contactFieldsCachedAt = 0;
 let contactFieldsInFlight = null;
 const CONTACT_FIELDS_CACHE_MS = 1000 * 60 * 5;
+
+export function fieldsForCustomerForm(catalog) {
+  const standard = catalog?.standard?.length ? catalog.standard : STANDARD_FIELDS;
+  const added = [...(catalog?.recommended || []), ...(catalog?.custom || [])].filter((field) => {
+    if (field?.selected === true || field?.is_enabled === true) return true;
+    return field?.selected == null && field?.group === 'custom' && field?.enabled !== false;
+  });
+  const seen = new Set();
+
+  return [...standard, ...added].filter((field) => {
+    if (!field?.key || seen.has(field.key)) return false;
+    seen.add(field.key);
+    return true;
+  });
+}
+
+export function markConfiguredContactFields(catalog, keys = []) {
+  if (!catalog) return catalog;
+  const selected = new Set(keys);
+  const mark = (field) =>
+    field ? { ...field, selected: selected.has(field.key), enabled: selected.has(field.key) } : field;
+
+  return {
+    ...catalog,
+    standard: (catalog.standard || []).map(mark),
+    recommended: (catalog.recommended || []).map(mark),
+    custom: (catalog.custom || []).map(mark),
+  };
+}
+
+export function rememberConfiguredContactFields(keys = []) {
+  if (!contactFieldsCache) return null;
+  contactFieldsCache = markConfiguredContactFields(contactFieldsCache, keys);
+  contactFieldsCachedAt = Date.now();
+  return contactFieldsCache;
+}
 
 export function rememberContactField(field) {
   if (!contactFieldsCache || !field?.key) return;

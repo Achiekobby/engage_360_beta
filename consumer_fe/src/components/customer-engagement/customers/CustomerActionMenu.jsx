@@ -6,8 +6,9 @@ import {
   Edit3,
   Eye,
   MoreHorizontal,
-  StickyNote,
+  Power,
   Tag,
+  Trash2,
 } from 'lucide-react';
 import { clsx } from 'clsx';
 import { SEGMENT_TAGS } from './collectionCustomersData';
@@ -16,8 +17,9 @@ export default function CustomerActionMenu({
   customer,
   onView,
   onEdit,
-  onWriteNote,
   onSegmentChange,
+  onDelete,
+  onToggleActive,
 }) {
   const [open, setOpen] = useState(false);
   const [segmentOpen, setSegmentOpen] = useState(false);
@@ -30,7 +32,7 @@ export default function CustomerActionMenu({
     const rect = buttonRef.current.getBoundingClientRect();
     const menuWidth = 220;
     const gap = 8;
-    const estimatedHeight = segmentOpen ? 280 : 196;
+    const estimatedHeight = segmentOpen ? 280 : 240;
     const spaceBelow = window.innerHeight - rect.bottom - gap;
     const spaceAbove = rect.top - gap;
     const openUp = spaceBelow < estimatedHeight && spaceAbove > spaceBelow;
@@ -117,21 +119,38 @@ export default function CustomerActionMenu({
           {!segmentOpen ? (
             <div className="py-1">
               {[
-                { label: 'View', icon: Eye, action: () => { onView(customer); close(); } },
-                { label: 'Edit', icon: Edit3, action: () => { onEdit(customer); close(); } },
-                { label: 'Write Note', icon: StickyNote, action: () => { onWriteNote(customer); close(); } },
-              ].map(({ label, icon: Icon, action }) => (
+                { label: 'View', icon: Eye, action: () => { onView(customer); close(); }, danger: false },
+                { label: 'Edit', icon: Edit3, action: () => { onEdit(customer); close(); }, danger: false },
+                {
+                  label: customer.isActive === false ? 'Activate' : 'Deactivate',
+                  icon: Power,
+                  action: () => { onToggleActive?.(customer); close(); },
+                  danger: false,
+                },
+              ].map(({ label, icon: Icon, action, danger }) => (
                 <button
                   key={label}
                   type="button"
                   role="menuitem"
                   onClick={action}
-                  className="flex w-full cursor-pointer items-center gap-2.5 px-3.5 py-2.5 text-left text-sm text-[#0B1354] transition-colors hover:bg-[#F7F8FF]"
+                  className={clsx(
+                    'flex w-full cursor-pointer items-center gap-2.5 px-3.5 py-2.5 text-left text-sm transition-colors',
+                    danger ? 'text-[#E53935] hover:bg-[#FEECEC]' : 'text-[#0B1354] hover:bg-[#F7F8FF]',
+                  )}
                 >
-                  <Icon className="h-4 w-4 text-[#717171]" strokeWidth={2} />
+                  <Icon className={clsx('h-4 w-4', danger ? 'text-[#E53935]' : 'text-[#717171]')} strokeWidth={2} />
                   {label}
                 </button>
               ))}
+              <button
+                type="button"
+                role="menuitem"
+                onClick={() => { onDelete?.(customer); close(); }}
+                className="flex w-full cursor-pointer items-center gap-2.5 px-3.5 py-2.5 text-left text-sm text-[#E53935] transition-colors hover:bg-[#FEECEC]"
+              >
+                <Trash2 className="h-4 w-4" strokeWidth={2} />
+                Delete
+              </button>
               <button
                 type="button"
                 role="menuitem"

@@ -1,4 +1,4 @@
-import { Edit3, StickyNote } from 'lucide-react';
+import { Edit3 } from 'lucide-react';
 import SlideDrawer from './SlideDrawer';
 import CustomerAvatar from './CustomerAvatar';
 import SegmentBadge from './SegmentBadge';
@@ -16,7 +16,6 @@ export default function ViewCustomerDrawer({
   customer,
   isOpen,
   onClose,
-  onWriteNote,
   onEdit,
 }) {
   if (!customer) return null;
@@ -54,14 +53,6 @@ export default function ViewCustomerDrawer({
               <div className="mt-4 flex flex-wrap gap-2">
                 <button
                   type="button"
-                  onClick={() => onWriteNote(customer)}
-                  className="inline-flex cursor-pointer items-center gap-1.5 rounded-sm bg-[#2E7DAD] px-3.5 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#256892]"
-                >
-                  <StickyNote className="h-4 w-4" strokeWidth={2} />
-                  Write Notes
-                </button>
-                <button
-                  type="button"
                   onClick={() => onEdit(customer)}
                   className="inline-flex cursor-pointer items-center gap-1.5 rounded-sm border border-[#2E7DAD]/40 bg-white px-3.5 py-2 text-sm font-semibold text-[#2E7DAD] transition-colors hover:bg-[#E8F4FC]"
                 >
@@ -88,27 +79,6 @@ export default function ViewCustomerDrawer({
           </div>
         </div>
 
-        <div className="space-y-3">
-          <h4 className="text-base font-bold text-[#0B1354]">Notes</h4>
-          {customer.notes?.length ? (
-            customer.notes.map((note) => (
-              <article
-                key={note.id}
-                className="rounded-sm border border-[#EEF0F4] bg-white p-4 shadow-sm"
-              >
-                <div className="flex items-center justify-between gap-3 border-b border-[#F0F2F7] pb-3">
-                  <span className="text-sm font-semibold text-[#0B1354]">{note.title}</span>
-                  <span className="text-xs text-[#717171]">{note.date}</span>
-                </div>
-                <p className="mt-3 text-sm leading-relaxed text-[#717171]">{note.body}</p>
-              </article>
-            ))
-          ) : (
-            <p className="rounded-sm border border-dashed border-[#E4E4E7] bg-[#FAFBFC] px-4 py-6 text-center text-sm text-[#717171]">
-              No notes yet. Use Write Notes to add the first one.
-            </p>
-          )}
-        </div>
       </div>
     </SlideDrawer>
   );

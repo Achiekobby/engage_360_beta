@@ -14,6 +14,10 @@ import {
   invalidateCollectionContacts,
   useCollectionContactsClient,
 } from '../../hooks/useCollectionContacts';
+import {
+  invalidateCollectionUploads,
+  useCollectionUploads,
+} from '../../hooks/useCollectionUploads';
 import { useAppDispatch } from '../../store/hooks';
 import { notifyError, notifySuccess } from '../../utils/toast';
 
@@ -44,13 +48,20 @@ export default function CollectionCustomersPage() {
     return CUSTOMER_COLLECTIONS.find((item) => item.id === collectionId);
   }, [collectionId, location.state]);
 
-  const [uploads, setUploads] = useState([]);
   const [bulkImportOpen, setBulkImportOpen] = useState(false);
   const [onboardOpen, setOnboardOpen] = useState(false);
+  const [addUpload, setAddUpload] = useState(null);
   const [editCustomer, setEditCustomer] = useState(null);
   const [successModal, setSuccessModal] = useState(null);
 
   const contactsPath = `/customer-engagement/customers/${collectionId}/contacts`;
+  const {
+    uploads,
+    isLoading: uploadsLoading,
+    isError: uploadsIsError,
+    error: uploadsError,
+    refetch: refetchUploads,
+  } = useCollectionUploads(collectionId);
 
   useEffect(() => {
     if (!location.state?.openBulkImport) return;
@@ -62,7 +73,6 @@ export default function CollectionCustomersPage() {
         openBulkImport: undefined,
       },
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- open import once from contacts empty CTA
   }, [location.state?.openBulkImport]);
 
   const goToContacts = (params = {}, state = {}) => {
@@ -107,7 +117,7 @@ export default function CollectionCustomersPage() {
       fileSizeLabel: '—',
     };
 
-    setUploads((prev) => [created, ...prev]);
+    await invalidateCollectionUploads(queryClient, collectionId);
     if (uploadStatus === 'completed' || uploadStatus === 'partial') {
       await invalidateCollectionContacts(queryClient, collectionId);
     }
@@ -119,23 +129,16 @@ export default function CollectionCustomersPage() {
   };
 
   const handleSubmitCustomer = async (formData) => {
-    const phoneDigits = String(formData.phone || '').replace(/\D/g, '');
-
+    const values = formData.values || {};
     try {
       await createCollectionContact(collectionId, {
-        first_name: String(formData.fullName || '').split(' ')[0] || '',
-        last_name: String(formData.fullName || '').split(' ').slice(1).join(' ') || '',
-        email: formData.email,
-        gender: formData.gender,
-        phone_number: phoneDigits,
-        location: formData.location,
-        region: formData.region,
-        segment: formData.segment || 'New Customer',
-        category: formData.category,
-        sub_category: formData.subCategory,
+        ...values,
+        collection_id: collectionId,
+        contact_file_id: formData.uploadId || addUpload?.id || null,
       });
       await invalidateCollectionContacts(queryClient, collectionId);
       setEditCustomer(null);
+      setAddUpload(null);
       setOnboardOpen(false);
       setSuccessModal('onboard');
       dispatch(notifySuccess('Customer onboarded successfully.', { title: 'Success' }));
@@ -145,6 +148,7 @@ export default function CollectionCustomersPage() {
           title: 'Add failed',
         }),
       );
+      throw submitError;
     }
   };
 
@@ -169,19 +173,23 @@ export default function CollectionCustomersPage() {
         <CollectionCustomersHeader
           collection={collection}
           onBulkUpload={handleOpenBulkUpload}
-          onAddCustomer={() => {
-            setEditCustomer(null);
-            setOnboardOpen(true);
-          }}
         />
       </Reveal>
 
       <Reveal variant="fadeUp" amount={0.15} delay={0.06} className="mt-6">
         <CollectionBulkUploadsPanel
           uploads={uploads}
+          isLoading={uploadsLoading}
+          error={uploadsIsError ? uploadsError?.message || 'Could not load uploads.' : ''}
+          onRetry={() => refetchUploads()}
           onSelectUpload={(upload) =>
             goToContacts({ uploadId: upload.id }, { upload })
           }
+          onAddCustomer={(upload) => {
+            setEditCustomer(null);
+            setAddUpload(upload);
+            setOnboardOpen(true);
+          }}
           onViewAll={uploads.length ? () => goToContacts() : undefined}
           onBulkUpload={handleOpenBulkUpload}
         />
@@ -199,9 +207,12 @@ export default function CollectionCustomersPage() {
         onClose={() => {
           setOnboardOpen(false);
           setEditCustomer(null);
+          setAddUpload(null);
         }}
         onSubmit={handleSubmitCustomer}
         initialData={editCustomer}
+        uploadId={addUpload?.id || null}
+        contextLabel={addUpload?.fileName || collection?.name || ''}
       />
 
       <SuccessModal

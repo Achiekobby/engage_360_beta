@@ -45,7 +45,7 @@ const COLUMNS = [
     label: 'Actions',
     hint: 'Manage',
     align: 'right',
-    className: 'min-w-[9.5rem] w-[16%]',
+    className: 'min-w-[5.5rem] w-[8%]',
   },
 ];
 
@@ -69,7 +69,7 @@ function MetricCell({ icon: Icon, value, unit }) {
   );
 }
 
-export default function CollectionTable({ collections, onDelete, onEdit, onView }) {
+export default function CollectionTable({ collections, onDelete, onEdit, onView, onAddCustomer }) {
   return (
     <div className="overflow-x-auto">
       <table className="w-full min-w-[880px] border-collapse table-fixed">
@@ -208,6 +208,7 @@ export default function CollectionTable({ collections, onDelete, onEdit, onView 
                       onDelete={onDelete}
                       onEdit={onEdit}
                       onView={onView}
+                      onAddCustomer={onAddCustomer}
                       compact
                     />
                   </div>

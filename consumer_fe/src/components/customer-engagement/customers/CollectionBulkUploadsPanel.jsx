@@ -5,12 +5,14 @@ import {
   CheckCircle2,
   Eye,
   FileSpreadsheet,
+  UserPlus,
   Loader2,
   Upload,
   Users,
 } from 'lucide-react';
 import { clsx } from 'clsx';
 import { BULK_UPLOAD_STATUS } from './collectionBulkUploadsData';
+import RowActionMenu from './RowActionMenu';
 
 const COLUMNS = [
   { key: 'file', label: 'Upload file', hint: 'XLSX only', align: 'left', className: 'min-w-[16rem] w-[34%]' },
@@ -18,7 +20,7 @@ const COLUMNS = [
   { key: 'result', label: 'Result', hint: 'Success / failed', align: 'left', className: 'min-w-[9rem] w-[16%]' },
   { key: 'status', label: 'Status', hint: 'Processing state', align: 'left', className: 'min-w-[7.5rem] w-[12%]' },
   { key: 'date', label: 'Uploaded', hint: 'Date & time', align: 'left', className: 'min-w-[11.5rem] w-[16%]' },
-  { key: 'actions', label: 'Actions', hint: 'Open', align: 'right', className: 'min-w-[9.5rem] w-[12%]' },
+  { key: 'actions', label: 'Actions', hint: 'Open', align: 'right', className: 'min-w-[5.5rem] w-[8%]' },
 ];
 
 function StatusIcon({ status }) {
@@ -36,10 +38,41 @@ function StatusIcon({ status }) {
 
 export default function CollectionBulkUploadsPanel({
   uploads,
+  isLoading = false,
+  error = '',
+  onRetry,
   onSelectUpload,
+  onAddCustomer,
   onViewAll,
   onBulkUpload,
 }) {
+  if (isLoading && !uploads.length) {
+    return (
+      <section className="rounded-sm border border-[#EEF0F4] bg-white px-5 py-12 text-center">
+        <Loader2 className="mx-auto h-6 w-6 animate-spin text-[#0F766E]" strokeWidth={2} />
+        <p className="mt-3 text-sm text-[#717171]">Loading uploads…</p>
+      </section>
+    );
+  }
+
+  if (error && !uploads.length) {
+    return (
+      <section className="rounded-sm border border-[#F5D0D0] bg-[#FFF7F7] px-5 py-12 text-center">
+        <h2 className="text-lg font-bold text-[#0B1354]">Uploads could not be loaded</h2>
+        <p className="mt-1 text-sm text-[#B42318]">{error}</p>
+        {onRetry ? (
+          <button
+            type="button"
+            onClick={onRetry}
+            className="mt-4 inline-flex cursor-pointer rounded-sm border border-[#F5D0D0] bg-white px-4 py-2 text-sm font-semibold text-[#B42318]"
+          >
+            Try again
+          </button>
+        ) : null}
+      </section>
+    );
+  }
+
   if (!uploads.length) {
     return (
       <section className="overflow-hidden rounded-sm border border-dashed border-[#C9E8E3] bg-gradient-to-br from-white via-[#F7FBFA] to-[#EEF8F6] px-5 py-12 text-center shadow-[0_4px_20px_rgba(15,118,110,0.06)] sm:px-8">
@@ -154,8 +187,16 @@ export default function CollectionBulkUploadsPanel({
                           {upload.fileName}
                         </p>
                         <p className="mt-1 truncate text-xs font-medium text-[#8B92A5]">
-                          {upload.fileSizeLabel} · {upload.uploadedBy}
+                          {upload.fileSizeLabel}
+                          {upload.storedFileName && upload.storedFileName !== upload.fileName
+                            ? ` · ${upload.storedFileName}`
+                            : ` · ${upload.uploadedBy}`}
                         </p>
+                        {upload.errorMessage ? (
+                          <p className="mt-1 truncate text-xs font-medium text-[#E53935]" title={upload.errorMessage}>
+                            {upload.errorMessage}
+                          </p>
+                        ) : null}
                       </div>
                     </div>
                   </td>
@@ -199,20 +240,35 @@ export default function CollectionBulkUploadsPanel({
                         <p className="whitespace-nowrap text-sm font-semibold text-[#0B1354]">
                           {upload.uploadedAt}
                         </p>
-                        <p className="mt-0.5 text-[11px] font-medium text-[#9AA0B0]">XLSX import</p>
+                        <p className="mt-0.5 text-[11px] font-medium text-[#9AA0B0]">
+                          {upload.processedAt ? `Processed ${upload.processedAt}` : 'XLSX import'}
+                        </p>
                       </div>
                     </div>
                   </td>
 
                   <td className="px-4 py-4 text-right last:pr-6 sm:px-5">
-                    <button
-                      type="button"
-                      onClick={() => onSelectUpload?.(upload)}
-                      className="inline-flex cursor-pointer items-center gap-1.5 whitespace-nowrap rounded-sm border border-[#E4E4E7] bg-white px-3 py-2 text-xs font-semibold text-[#0B1354] transition-all hover:border-[#0F766E]/30 hover:bg-[#F0FAF8] hover:text-[#0F766E]"
-                    >
-                      <Eye className="h-3.5 w-3.5 shrink-0" strokeWidth={2} />
-                      View contacts
-                    </button>
+                    <div className="flex justify-end">
+                      <RowActionMenu
+                        label={`Actions for ${upload.fileName}`}
+                        items={[
+                          onAddCustomer
+                            ? {
+                                key: 'add',
+                                label: 'Add customer',
+                                icon: UserPlus,
+                                onSelect: () => onAddCustomer(upload),
+                              }
+                            : null,
+                          {
+                            key: 'view',
+                            label: 'View contacts',
+                            icon: Eye,
+                            onSelect: () => onSelectUpload?.(upload),
+                          },
+                        ]}
+                      />
+                    </div>
                   </td>
                 </motion.tr>
               );

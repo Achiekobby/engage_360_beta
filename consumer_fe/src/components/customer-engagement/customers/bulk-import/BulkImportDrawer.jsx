@@ -12,7 +12,9 @@ import { useContactImportWorkflow } from '../../../../hooks/useContactImportWork
 import { useContactFields } from '../../../../hooks/useContactFields';
 import {
   createCustomContactField,
+  markConfiguredContactFields,
   rememberContactField,
+  rememberConfiguredContactFields,
   saveContactFieldsConfiguration,
 } from '../../../../services/customer-engagement/contactFields';
 import { downloadContactsExcelTemplate } from '../../../../services/customer-engagement/contactImport';
@@ -214,6 +216,11 @@ export default function BulkImportDrawer({
       await saveContactFieldsConfiguration(
         templateColumns.map((field) => field.id),
         { token, tokenType },
+      );
+      const savedKeys = templateColumns.map((field) => field.key);
+      rememberConfiguredContactFields(savedKeys);
+      queryClient.setQueryData(['contact-fields', token || 'guest'], (current) =>
+        current ? markConfiguredContactFields(current, savedKeys) : current,
       );
       const hadFile = Boolean(workflow.fileMeta);
       setSavedSignature(currentSignature);

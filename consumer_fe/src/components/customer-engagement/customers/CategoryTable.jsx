@@ -1,10 +1,11 @@
 import { motion } from 'framer-motion';
-import { Calendar, FolderOpen, Layers } from 'lucide-react';
+import { Calendar, FolderOpen, Layers, Users } from 'lucide-react';
 import CategoryActions from './CategoryActions';
 
 const COLUMNS = [
   { key: 'name', label: 'Category', className: 'min-w-[14rem]' },
   { key: 'collections', label: 'Collections', className: 'min-w-[8rem]' },
+  { key: 'contacts', label: 'Contacts', className: 'min-w-[7rem]' },
   { key: 'date', label: 'Date Created', className: 'min-w-[7rem]' },
   { key: 'actions', label: 'Actions', className: 'min-w-[10rem] text-right' },
 ];
@@ -73,6 +74,12 @@ export default function CategoryTable({
                   <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-[#0B1354]">
                     <FolderOpen className="h-4 w-4 text-[#717171]" strokeWidth={2} />
                     {collectionCount}
+                  </span>
+                </td>
+                <td className="px-4 py-4 sm:px-5">
+                  <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-[#0B1354]">
+                    <Users className="h-4 w-4 text-[#717171]" strokeWidth={2} />
+                    {Number(category.contactsCount) || 0}
                   </span>
                 </td>
                 <td className="px-4 py-4 sm:px-5">

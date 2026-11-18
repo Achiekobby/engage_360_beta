@@ -72,12 +72,6 @@ export const ONBOARD_SUCCESS = {
   actionLabel: 'Onboard More Customer',
 };
 
-export const NOTE_PUBLISHED_SUCCESS = {
-  title: 'Note Published Successfully',
-  description: 'Your note has been published and is now available for viewing.',
-  actionLabel: 'Complete',
-};
-
 export const CATEGORY_CREATED_SUCCESS = {
   title: 'Customer Category Created',
   description: 'The category is ready. Create a collection inside it to store contacts.',

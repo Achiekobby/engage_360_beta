@@ -9,12 +9,12 @@ import ContactsEmptyState from '../../components/customer-engagement/customers/C
 import ContactsTableSkeleton from '../../components/customer-engagement/customers/ContactsTableSkeleton';
 import CustomersDataTable from '../../components/customer-engagement/customers/CustomersDataTable';
 import CustomersPagination from '../../components/customer-engagement/customers/CustomersPagination';
-import OnboardCustomerDrawer from '../../components/customer-engagement/customers/OnboardCustomerDrawer';
+import OnboardCustomerDrawer, {
+  contactFromFormValues,
+} from '../../components/customer-engagement/customers/OnboardCustomerDrawer';
 import ViewCustomerDrawer from '../../components/customer-engagement/customers/ViewCustomerDrawer';
-import WriteNoteModal from '../../components/customer-engagement/customers/WriteNoteModal';
 import ActionConfirmModal from '../../components/customer-engagement/customers/ActionConfirmModal';
 import SuccessModal, {
-  NOTE_PUBLISHED_SUCCESS,
   ONBOARD_SUCCESS,
 } from '../../components/customer-engagement/customers/SuccessModal';
 import { createCollectionContact } from '../../services/customer-engagement/contacts';
@@ -80,9 +80,10 @@ export default function CollectionContactsPage() {
   const [onboardOpen, setOnboardOpen] = useState(false);
   const [editCustomer, setEditCustomer] = useState(null);
   const [viewCustomer, setViewCustomer] = useState(null);
-  const [noteCustomer, setNoteCustomer] = useState(null);
   const [successModal, setSuccessModal] = useState(null);
   const [deleteSelectedOpen, setDeleteSelectedOpen] = useState(false);
+  const [contactToDelete, setContactToDelete] = useState(null);
+  const [removedIds, setRemovedIds] = useState([]);
   const [isDeletingSelected, setIsDeletingSelected] = useState(false);
   const [localOverrides, setLocalOverrides] = useState({});
 
@@ -107,15 +108,18 @@ export default function CollectionContactsPage() {
     isInitialLoading,
     isFetching,
     isError,
+    error,
     refetch,
   } = useCollectionContacts(collectionId, filters);
 
   const customers = useMemo(
     () =>
-      fetchedContacts.map((contact) =>
-        localOverrides[contact.id] ? { ...contact, ...localOverrides[contact.id] } : contact,
-      ),
-    [fetchedContacts, localOverrides],
+      fetchedContacts
+        .filter((contact) => !removedIds.includes(contact.id))
+        .map((contact) =>
+          localOverrides[contact.id] ? { ...contact, ...localOverrides[contact.id] } : contact,
+        ),
+    [fetchedContacts, localOverrides, removedIds],
   );
 
   const uploadLabel = location.state?.upload?.fileName || null;
@@ -162,10 +166,8 @@ export default function CollectionContactsPage() {
         },
       });
     }
-    invalidateCollectionContacts(queryClient, collectionId);
     const timer = window.setTimeout(() => setImportedBanner(0), 6000);
     return () => window.clearTimeout(timer);
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- one-shot banner from route state
   }, [importedBanner]);
 
   const toggleSelect = (id) => {
@@ -184,6 +186,24 @@ export default function CollectionContactsPage() {
     );
   };
 
+  const handleToggleActive = (customer) => {
+    setLocalOverrides((prev) => ({
+      ...prev,
+      [customer.id]: {
+        ...(prev[customer.id] || {}),
+        isActive: customer.isActive === false,
+      },
+    }));
+  };
+
+  const handleConfirmDeleteContact = async () => {
+    if (!contactToDelete?.id) return;
+    setRemovedIds((prev) => [...prev, contactToDelete.id]);
+    setSelectedIds((prev) => prev.filter((id) => id !== contactToDelete.id));
+    setContactToDelete(null);
+    if (viewCustomer?.id === contactToDelete.id) setViewCustomer(null);
+  };
+
   const handleSegmentChange = (customer, segment) => {
     setLocalOverrides((prev) => ({
       ...prev,
@@ -195,24 +215,15 @@ export default function CollectionContactsPage() {
   };
 
   const handleSubmitCustomer = async (formData) => {
-    const phoneDigits = String(formData.phone || '').replace(/\D/g, '');
-    const whatsappDigits = String(formData.whatsapp || '').replace(/\D/g, '');
+    const values = formData.values || {};
+    const patch = contactFromFormValues(values);
 
     if (formData.id) {
       setLocalOverrides((prev) => ({
         ...prev,
         [formData.id]: {
           ...(prev[formData.id] || {}),
-          fullName: formData.fullName,
-          email: formData.email,
-          gender: formData.gender,
-          phone: phoneDigits,
-          whatsapp: whatsappDigits,
-          region: formData.region,
-          location: formData.location,
-          segment: formData.segment,
-          category: formData.category,
-          subCategory: formData.subCategory,
+          ...patch,
         },
       }));
       setEditCustomer(null);
@@ -222,18 +233,9 @@ export default function CollectionContactsPage() {
 
     try {
       await createCollectionContact(collectionId, {
-        first_name: String(formData.fullName || '').split(' ')[0] || '',
-        last_name: String(formData.fullName || '').split(' ').slice(1).join(' ') || '',
-        email: formData.email,
-        gender: formData.gender,
-        phone_number: phoneDigits,
-        whatsapp: whatsappDigits,
-        region: formData.region,
-        location: formData.location,
-        segment: formData.segment || 'New Customer',
-        category: formData.category,
-        sub_category: formData.subCategory,
-        uploadId: uploadId || null,
+        ...values,
+        collection_id: collectionId,
+        contact_file_id: formData.uploadId || uploadId || null,
       });
       await invalidateCollectionContacts(queryClient, collectionId);
       setOnboardOpen(false);
@@ -246,30 +248,8 @@ export default function CollectionContactsPage() {
           title: 'Add failed',
         }),
       );
+      throw submitError;
     }
-  };
-
-  const handlePublishNote = (customer, body) => {
-    const note = {
-      id: `n${Date.now()}`,
-      title: `Note ${(customer.notes?.length || 0) + 1}`,
-      date: new Date().toLocaleDateString('en-GB').replace(/\//g, '-'),
-      body,
-    };
-
-    setLocalOverrides((prev) => ({
-      ...prev,
-      [customer.id]: {
-        ...(prev[customer.id] || {}),
-        notes: [note, ...(customer.notes || [])],
-      },
-    }));
-    if (viewCustomer?.id === customer.id) {
-      setViewCustomer((prev) =>
-        prev ? { ...prev, notes: [note, ...(prev.notes || [])] } : prev,
-      );
-    }
-    setSuccessModal('note');
   };
 
   const handleConfirmDeleteSelected = async () => {
@@ -313,10 +293,6 @@ export default function CollectionContactsPage() {
           collection={collection}
           totalContacts={isInitialLoading ? null : total}
           uploadLabel={uploadLabel}
-          onAddCustomer={() => {
-            setEditCustomer(null);
-            setOnboardOpen(true);
-          }}
         />
       </Reveal>
 
@@ -419,7 +395,9 @@ export default function CollectionContactsPage() {
         {isError ? (
           <div className="rounded-sm border border-[#F5D0D0] bg-[#FFF7F7] px-5 py-10 text-center">
             <h2 className="text-lg font-bold text-[#0B1354]">We couldn&apos;t load your contacts.</h2>
-            <p className="mt-1 text-sm text-[#B42318]">Please try again.</p>
+            <p className="mt-1 text-sm text-[#B42318]">
+              {error?.message || 'Please try again.'}
+            </p>
             <button
               type="button"
               onClick={() => refetch()}
@@ -466,8 +444,9 @@ export default function CollectionContactsPage() {
               setEditCustomer(customer);
               setOnboardOpen(true);
             }}
-            onWriteNote={setNoteCustomer}
             onSegmentChange={handleSegmentChange}
+            onDelete={setContactToDelete}
+            onToggleActive={handleToggleActive}
             footer={
               <CustomersPagination
                 currentPage={page}
@@ -490,13 +469,14 @@ export default function CollectionContactsPage() {
         }}
         onSubmit={handleSubmitCustomer}
         initialData={editCustomer}
+        uploadId={uploadId || null}
+        contextLabel={uploadLabel || collection?.name || ''}
       />
 
       <ViewCustomerDrawer
         customer={viewCustomer}
         isOpen={Boolean(viewCustomer)}
         onClose={() => setViewCustomer(null)}
-        onWriteNote={setNoteCustomer}
         onEdit={(customer) => {
           setViewCustomer(null);
           setEditCustomer(customer);
@@ -504,11 +484,19 @@ export default function CollectionContactsPage() {
         }}
       />
 
-      <WriteNoteModal
-        isOpen={Boolean(noteCustomer)}
-        onClose={() => setNoteCustomer(null)}
-        customer={noteCustomer}
-        onPublish={handlePublishNote}
+      <ActionConfirmModal
+        isOpen={Boolean(contactToDelete)}
+        onClose={() => setContactToDelete(null)}
+        onConfirm={handleConfirmDeleteContact}
+        icon={Trash2}
+        tone="danger"
+        title="Delete this contact?"
+        description="This contact will be removed from the list."
+        entityLabel={contactToDelete?.fullName}
+        entityMeta={contactToDelete?.phone}
+        warning="This cannot be undone from the current screen."
+        confirmLabel="Delete contact"
+        cancelLabel="Keep contact"
       />
 
       <ActionConfirmModal
@@ -541,12 +529,6 @@ export default function CollectionContactsPage() {
         }}
       />
 
-      <SuccessModal
-        isOpen={successModal === 'note'}
-        onClose={() => setSuccessModal(null)}
-        {...NOTE_PUBLISHED_SUCCESS}
-        onAction={() => setSuccessModal(null)}
-      />
     </main>
   );
 }

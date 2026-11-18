@@ -2,7 +2,7 @@ import { motion } from 'framer-motion';
 import { Calendar, FileStack, Folder, Tag, Users } from 'lucide-react';
 import { CollectionActions } from './CollectionActions';
 
-export default function CollectionCard({ collection, index, onDelete, onEdit, onView }) {
+export default function CollectionCard({ collection, index, onDelete, onEdit, onView, onAddCustomer }) {
   const { name, category, fileCount, customerCount, dateCreated, accent, iconBg } = collection;
 
   return (
@@ -63,6 +63,7 @@ export default function CollectionCard({ collection, index, onDelete, onEdit, on
             onDelete={onDelete}
             onEdit={onEdit}
             onView={onView}
+            onAddCustomer={onAddCustomer}
             compact
           />
         </div>

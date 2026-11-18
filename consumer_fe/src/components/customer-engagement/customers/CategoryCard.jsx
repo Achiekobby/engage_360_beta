@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Calendar, FolderOpen, Layers } from 'lucide-react';
+import { Calendar, FolderOpen, Layers, Users } from 'lucide-react';
 import CategoryActions from './CategoryActions';
 
 export default function CategoryCard({
@@ -28,12 +28,19 @@ export default function CategoryCard({
           >
             <Layers className="h-6 w-6" strokeWidth={2} />
           </div>
-          <span
-            className={`inline-flex items-center gap-1 rounded-sm px-2 py-1 text-xs font-semibold ring-1 ${category.chip}`}
-          >
-            <FolderOpen className="h-3 w-3" strokeWidth={2.5} />
-            {collectionCount} {collectionCount === 1 ? 'collection' : 'collections'}
-          </span>
+          <div className="flex flex-col items-end gap-1.5">
+            <span
+              className={`inline-flex items-center gap-1 rounded-sm px-2 py-1 text-xs font-semibold ring-1 ${category.chip}`}
+            >
+              <FolderOpen className="h-3 w-3" strokeWidth={2.5} />
+              {collectionCount} {collectionCount === 1 ? 'collection' : 'collections'}
+            </span>
+            <span className="inline-flex items-center gap-1 rounded-sm bg-[#F4F5F7] px-2 py-1 text-xs font-semibold text-[#0B1354] ring-1 ring-[#E4E4E7]">
+              <Users className="h-3 w-3" strokeWidth={2.5} />
+              {Number(category.contactsCount) || 0}{' '}
+              {Number(category.contactsCount) === 1 ? 'contact' : 'contacts'}
+            </span>
+          </div>
         </div>
 
         <h3 className="mt-4 text-lg font-bold leading-snug text-[#0B1354]">{category.name}</h3>

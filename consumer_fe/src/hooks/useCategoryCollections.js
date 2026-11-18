@@ -4,7 +4,7 @@ import { getCategoryCollections } from '../services/customer-engagement/collecti
 import { mapCollectionsFromApi } from '../components/customer-engagement/customers/customersData';
 import { useAppSelector } from '../store/hooks';
 
-export const CATEGORY_COLLECTIONS_QUERY_KEY = ['category-collections'];
+export const CATEGORY_COLLECTIONS_QUERY_KEY = ['category-collections', 'counts'];
 
 export function useCategoryCollections(categoryId, category = null) {
   const token = useAppSelector((state) => state.auth.user?.token);

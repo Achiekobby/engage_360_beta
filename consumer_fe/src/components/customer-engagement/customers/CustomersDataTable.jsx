@@ -21,8 +21,9 @@ export default function CustomersDataTable({
   onToggleSelectAll,
   onView,
   onEdit,
-  onWriteNote,
   onSegmentChange,
+  onDelete,
+  onToggleActive,
   footer = null,
 }) {
   const allSelected = customers.length > 0 && selectedIds.length === customers.length;
@@ -119,8 +120,9 @@ export default function CustomersDataTable({
                       customer={customer}
                       onView={onView}
                       onEdit={onEdit}
-                      onWriteNote={onWriteNote}
                       onSegmentChange={onSegmentChange}
+                      onDelete={onDelete}
+                      onToggleActive={onToggleActive}
                     />
                   </td>
                 </tr>

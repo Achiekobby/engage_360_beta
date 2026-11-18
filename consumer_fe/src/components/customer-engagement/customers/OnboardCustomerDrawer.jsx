@@ -1,252 +1,256 @@
 import { useEffect, useMemo, useState } from 'react';
 import PhoneInput from 'react-phone-number-input';
 import SlideDrawer from './SlideDrawer';
-import { FORM_OPTIONS } from './collectionCustomersData';
+import { useContactFields } from '../../../hooks/useContactFields';
+import { fieldsForCustomerForm } from '../../../services/customer-engagement/contactFields';
+import { SEGMENT_TAGS } from './collectionCustomersData';
 
-const EMPTY_FORM = {
-  fullName: '',
-  email: '',
-  gender: '',
-  phone: '',
-  whatsapp: '',
-  region: '',
-  location: '',
-  segment: '',
-  category: '',
-  subCategory: '',
+const CHOICE_OPTIONS = {
+  gender: ['Male', 'Female', 'Other'],
+  customer_type: SEGMENT_TAGS,
 };
 
-function FieldLabel({ children, htmlFor }) {
+function FieldLabel({ children, htmlFor, required }) {
   return (
     <label htmlFor={htmlFor} className="mb-1.5 block text-sm font-medium text-[#717171]">
       {children}
+      {required ? <span className="ml-1 text-[#E53935]">*</span> : null}
     </label>
   );
 }
 
-function SelectField({ id, label, value, onChange, options, placeholder }) {
-  return (
-    <div>
-      <FieldLabel htmlFor={id}>{label}</FieldLabel>
-      <select
-        id={id}
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-        className="w-full cursor-pointer rounded-sm border border-[#E4E4E7] bg-white px-3.5 py-2.5 text-sm text-[#0B1354] outline-none transition-all focus:border-primary/40 focus:ring-2 focus:ring-primary/10"
-      >
-        <option value="">{placeholder}</option>
-        {options.map((option) => (
-          <option key={option} value={option}>
-            {option}
-          </option>
-        ))}
-      </select>
-    </div>
-  );
-}
-
-function TextField({ id, label, value, onChange, placeholder, type = 'text' }) {
-  return (
-    <div>
-      <FieldLabel htmlFor={id}>{label}</FieldLabel>
-      <input
-        id={id}
-        type={type}
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-        placeholder={placeholder}
-        className="w-full rounded-sm border border-[#E4E4E7] bg-white px-3.5 py-2.5 text-sm text-[#0B1354] outline-none transition-all placeholder:text-[#717171] focus:border-primary/40 focus:ring-2 focus:ring-primary/10"
-      />
-    </div>
-  );
-}
+const inputClass =
+  'w-full rounded-sm border border-[#E4E4E7] bg-white px-3.5 py-2.5 text-sm text-[#0B1354] outline-none transition-all placeholder:text-[#717171] focus:border-primary/40 focus:ring-2 focus:ring-primary/10';
 
 function toPhoneValue(number) {
   if (!number) return '';
-  const digits = String(number).replace(/\D/g, '');
+  const raw = String(number);
+  if (raw.startsWith('+')) return raw;
+  const digits = raw.replace(/\D/g, '');
   return digits ? `+${digits}` : '';
 }
 
-export default function OnboardCustomerDrawer({ isOpen, onClose, onSubmit, initialData = null }) {
-  const [step, setStep] = useState(1);
-  const [form, setForm] = useState(EMPTY_FORM);
+function optionValue(option) {
+  if (option && typeof option === 'object') return String(option.value ?? option.id ?? option.label ?? '');
+  return String(option ?? '');
+}
 
-  const isEdit = Boolean(initialData);
+function optionLabel(option) {
+  if (option && typeof option === 'object') return String(option.label ?? option.name ?? option.value ?? '');
+  return String(option ?? '');
+}
+
+function inputKind(field) {
+  const type = String(field.type || '').toLowerCase();
+  const key = field.key;
+  if (type === 'phone' || key === 'phone_number' || key.endsWith('_phone')) return 'phone';
+  if (type === 'email' || key === 'email') return 'email';
+  if (type === 'date' || key === 'date_of_birth') return 'date';
+  if (type === 'select' || (Array.isArray(field.options) && field.options.length) || CHOICE_OPTIONS[key]) {
+    return 'select';
+  }
+  return 'text';
+}
+
+function choiceOptions(field) {
+  if (Array.isArray(field.options) && field.options.length) return field.options;
+  return CHOICE_OPTIONS[field.key] || [];
+}
+
+export function valuesFromCustomer(customer, fields = []) {
+  if (!customer) return {};
+  const custom = customer.custom_fields || {};
+  const [firstFromName = '', ...restName] = String(customer.fullName || '').split(' ');
+  const values = {};
+
+  fields.forEach((field) => {
+    if (field.key === 'first_name') {
+      values[field.key] = customer.firstName || custom.first_name || firstFromName || '';
+      return;
+    }
+    if (field.key === 'last_name') {
+      values[field.key] = customer.lastName || custom.last_name || restName.join(' ') || '';
+      return;
+    }
+    if (field.key === 'phone_number') {
+      values[field.key] = toPhoneValue(customer.phone || custom.phone_number || '');
+      return;
+    }
+    values[field.key] =
+      customer[field.key] ||
+      custom[field.key] ||
+      (field.key === 'residential_location' ? customer.location : '') ||
+      (field.key === 'customer_type' ? customer.segment : '') ||
+      '';
+  });
+
+  return values;
+}
+
+export function contactFromFormValues(values = {}) {
+  const firstName = String(values.first_name || '').trim();
+  const lastName = String(values.last_name || '').trim();
+  const phone = String(values.phone_number || '').replace(/\D/g, '');
+
+  return {
+    firstName,
+    lastName,
+    fullName: [firstName, lastName].filter(Boolean).join(' ') || 'Unknown',
+    phone,
+    email: values.email || '',
+    gender: values.gender || '',
+    region: values.region || '',
+    location: values.residential_location || values.location || '',
+    segment: values.customer_type || '',
+    age: values.age_range || '',
+    custom_fields: { ...values },
+  };
+}
+
+export default function OnboardCustomerDrawer({
+  isOpen,
+  onClose,
+  onSubmit,
+  initialData = null,
+  contextLabel = '',
+  uploadId = null,
+}) {
+  const contactFields = useContactFields(isOpen);
+  const fields = useMemo(
+    () => fieldsForCustomerForm(contactFields.data || {
+      standard: contactFields.standard,
+      recommended: contactFields.recommended,
+      custom: contactFields.custom,
+    }),
+    [contactFields.custom, contactFields.data, contactFields.recommended, contactFields.standard],
+  );
+  const [values, setValues] = useState({});
+  const [errors, setErrors] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const isEdit = Boolean(initialData?.id);
 
   useEffect(() => {
     if (!isOpen) return;
-
-    if (initialData) {
-      setForm({
-        fullName: initialData.fullName || '',
-        email: initialData.email || '',
-        gender: initialData.gender || '',
-        phone: toPhoneValue(initialData.phone),
-        whatsapp: toPhoneValue(initialData.whatsapp),
-        region: initialData.region || '',
-        location: initialData.location || '',
-        segment: initialData.segment || '',
-        category: initialData.category || '',
-        subCategory: initialData.subCategory || '',
-      });
-    } else {
-      setForm(EMPTY_FORM);
-    }
-    setStep(1);
-  }, [isOpen, initialData]);
-
-  const subCategoryOptions = useMemo(
-    () => FORM_OPTIONS.subCategories[form.category] || [],
-    [form.category],
-  );
-
-  const handleClose = () => {
-    onClose();
-  };
+    setValues(valuesFromCustomer(initialData, fields));
+    setErrors({});
+  }, [fields, initialData, isOpen]);
 
   const update = (key, value) => {
-    setForm((prev) => {
-      const next = { ...prev, [key]: value };
-      if (key === 'category') next.subCategory = '';
-      return next;
-    });
+    setValues((current) => ({ ...current, [key]: value }));
+    setErrors((current) => ({ ...current, [key]: '' }));
   };
 
-  const handleContinue = () => {
-    if (step === 1) {
-      setStep(2);
-      return;
+  const handleSubmit = async () => {
+    const nextErrors = {};
+    fields.forEach((field) => {
+      if (!field.required) return;
+      if (!String(values[field.key] || '').trim()) nextErrors[field.key] = `Enter ${field.label}.`;
+    });
+    setErrors(nextErrors);
+    if (Object.keys(nextErrors).length || isSubmitting) return;
+
+    setIsSubmitting(true);
+    try {
+      await onSubmit?.({
+        id: initialData?.id,
+        values,
+        uploadId,
+      });
+      onClose?.();
+    } catch {
+      // The page reports the failure.
+    } finally {
+      setIsSubmitting(false);
     }
-
-    onSubmit?.({
-      ...form,
-      id: initialData?.id,
-    });
-    onClose();
   };
-
-  const stepSubtitle = step === 1 ? 'Personal information' : 'Customer Segment & Interest';
 
   return (
     <SlideDrawer
       isOpen={isOpen}
-      onClose={handleClose}
-      title={isEdit ? 'Edit Customer' : 'Onboard Customer'}
-      subtitle={stepSubtitle}
+      onClose={onClose}
+      title={isEdit ? 'Edit customer' : 'Add customer'}
+      subtitle={contextLabel || 'Fields follow the columns saved for your contacts.'}
       footer={
         <button
           type="button"
-          onClick={handleContinue}
-          className="w-full cursor-pointer rounded-sm bg-primary px-4 py-3 text-sm font-semibold text-white shadow-[0_4px_16px_rgba(58,16,205,0.25)] transition-all hover:bg-[#320EB8]"
+          onClick={handleSubmit}
+          disabled={isSubmitting || contactFields.isLoading}
+          className="w-full cursor-pointer rounded-sm bg-primary px-4 py-3 text-sm font-semibold text-white shadow-[0_4px_16px_rgba(58,16,205,0.25)] transition-all hover:bg-[#320EB8] disabled:cursor-not-allowed disabled:opacity-60"
         >
-          {step === 1 ? 'Continue' : isEdit ? 'Save Changes' : 'Add Customer'}
+          {isSubmitting ? 'Saving…' : isEdit ? 'Save changes' : 'Add customer'}
         </button>
       }
     >
-      <div className="mb-6 flex items-center justify-between gap-3">
-        <div className="h-2 flex-1 overflow-hidden rounded-full bg-[#EDE8F8]">
-          <div
-            className="h-full rounded-full bg-primary transition-all duration-500 ease-out"
-            style={{ width: step === 1 ? '50%' : '100%' }}
-          />
-        </div>
-        <span className="shrink-0 text-sm font-semibold text-primary">Step {step} of 2</span>
-      </div>
+      <p className="mb-4 text-sm text-[#717171]">
+        First name, last name, and phone number are always required. Any other column you saved is
+        included here.
+      </p>
 
-      {step === 1 ? (
-        <div className="space-y-4">
-          <TextField
-            id="fullName"
-            label="Full Name"
-            value={form.fullName}
-            onChange={(value) => update('fullName', value)}
-            placeholder="Enter Full Name"
-          />
-          <TextField
-            id="email"
-            label="Email"
-            type="email"
-            value={form.email}
-            onChange={(value) => update('email', value)}
-            placeholder="Enter Email"
-          />
-          <SelectField
-            id="gender"
-            label="Gender"
-            value={form.gender}
-            onChange={(value) => update('gender', value)}
-            options={FORM_OPTIONS.genders}
-            placeholder="Select Gender"
-          />
-          <div>
-            <FieldLabel htmlFor="phone">Phone Number</FieldLabel>
-            <PhoneInput
-              id="phone"
-              defaultCountry="GH"
-              international
-              countryCallingCodeEditable={false}
-              placeholder="8023456789"
-              value={form.phone || undefined}
-              onChange={(value) => update('phone', value ?? '')}
-              className="ce-phone-input"
-            />
-          </div>
-          <div>
-            <FieldLabel htmlFor="whatsapp">WhatsApp Number</FieldLabel>
-            <PhoneInput
-              id="whatsapp"
-              defaultCountry="GH"
-              international
-              countryCallingCodeEditable={false}
-              placeholder="8023456789"
-              value={form.whatsapp || undefined}
-              onChange={(value) => update('whatsapp', value ?? '')}
-              className="ce-phone-input"
-            />
-          </div>
-        </div>
+      {contactFields.isLoading ? (
+        <p className="text-sm font-medium text-[#0B1354]">Loading columns…</p>
       ) : (
         <div className="space-y-4">
-          <SelectField
-            id="region"
-            label="Region"
-            value={form.region}
-            onChange={(value) => update('region', value)}
-            options={FORM_OPTIONS.regions}
-            placeholder="Select Customer Region"
-          />
-          <SelectField
-            id="location"
-            label="Location"
-            value={form.location}
-            onChange={(value) => update('location', value)}
-            options={FORM_OPTIONS.locations}
-            placeholder="Select Customer Town/City"
-          />
-          <SelectField
-            id="segment"
-            label="Customer Segment"
-            value={form.segment}
-            onChange={(value) => update('segment', value)}
-            options={FORM_OPTIONS.segments}
-            placeholder="Select"
-          />
-          <SelectField
-            id="category"
-            label="Customer Category"
-            value={form.category}
-            onChange={(value) => update('category', value)}
-            options={FORM_OPTIONS.categories}
-            placeholder="Select"
-          />
-          <SelectField
-            id="subCategory"
-            label="Customer Sub-Category"
-            value={form.subCategory}
-            onChange={(value) => update('subCategory', value)}
-            options={subCategoryOptions}
-            placeholder="Select"
-          />
+          {fields.map((field) => {
+            const kind = inputKind(field);
+            const value = values[field.key] || '';
+            const error = errors[field.key];
+
+            return (
+              <div key={field.key}>
+                {kind === 'phone' ? (
+                  <>
+                    <FieldLabel htmlFor={field.key} required={field.required}>
+                      {field.label}
+                    </FieldLabel>
+                    <PhoneInput
+                      id={field.key}
+                      defaultCountry="GH"
+                      international
+                      countryCallingCodeEditable={false}
+                      placeholder="8023456789"
+                      value={value || undefined}
+                      onChange={(next) => update(field.key, next ?? '')}
+                      className="ce-phone-input"
+                    />
+                  </>
+                ) : kind === 'select' ? (
+                  <>
+                    <FieldLabel htmlFor={field.key} required={field.required}>
+                      {field.label}
+                    </FieldLabel>
+                    <select
+                      id={field.key}
+                      value={value}
+                      onChange={(event) => update(field.key, event.target.value)}
+                      className={`${inputClass} cursor-pointer`}
+                    >
+                      <option value="">Select {field.label}</option>
+                      {choiceOptions(field).map((option) => (
+                        <option key={optionValue(option)} value={optionValue(option)}>
+                          {optionLabel(option)}
+                        </option>
+                      ))}
+                    </select>
+                  </>
+                ) : (
+                  <>
+                    <FieldLabel htmlFor={field.key} required={field.required}>
+                      {field.label}
+                    </FieldLabel>
+                    <input
+                      id={field.key}
+                      type={kind === 'email' ? 'email' : kind === 'date' ? 'date' : 'text'}
+                      value={value}
+                      onChange={(event) => update(field.key, event.target.value)}
+                      placeholder={`Enter ${field.label}`}
+                      className={inputClass}
+                    />
+                  </>
+                )}
+                {error ? <p className="mt-1 text-xs font-medium text-[#E53935]">{error}</p> : null}
+              </div>
+            );
+          })}
         </div>
       )}
     </SlideDrawer>
