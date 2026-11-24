@@ -38,7 +38,7 @@ export default function SuccessModal({
       <button
         type="button"
         onClick={onClose}
-        className="absolute right-4 top-4 inline-flex h-9 w-9 cursor-pointer items-center justify-center rounded-sm text-[#717171] transition-colors hover:bg-[#F7F8FF] hover:text-[#0B1354]"
+        className="absolute right-4 top-4 z-10 inline-flex h-9 w-9 cursor-pointer items-center justify-center rounded-sm text-[#717171] transition-colors hover:bg-[#F7F8FF] hover:text-[#0B1354]"
         aria-label="Close"
       >
         <X className="h-5 w-5" strokeWidth={2} />

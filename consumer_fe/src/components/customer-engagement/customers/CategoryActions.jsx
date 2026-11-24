@@ -21,7 +21,7 @@ export default function CategoryActions({ category, onOpen, onEdit, onDelete }) 
           },
           {
             key: 'delete',
-            label: 'Delete',
+            label: 'Archive',
             icon: Trash2,
             tone: 'danger',
             onSelect: () => onDelete?.(category),

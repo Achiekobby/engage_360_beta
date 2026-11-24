@@ -17,6 +17,7 @@ export default function CollectionsView({
   onDelete,
   onEdit,
   onView,
+  onViewContacts,
   onAddCustomer,
   onAddCollection,
   emptyTitle,
@@ -115,6 +116,7 @@ export default function CollectionsView({
                 onDelete={onDelete}
                 onEdit={onEdit}
                 onView={onView}
+                onViewContacts={onViewContacts}
                 onAddCustomer={onAddCustomer}
               />
             ))}
@@ -133,6 +135,7 @@ export default function CollectionsView({
               onDelete={onDelete}
               onEdit={onEdit}
               onView={onView}
+              onViewContacts={onViewContacts}
               onAddCustomer={onAddCustomer}
             />
           </motion.div>

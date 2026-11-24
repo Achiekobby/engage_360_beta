@@ -60,20 +60,20 @@ export default function CustomersPageHeader({
           </p>
         </div>
 
-        <div className="flex w-full flex-col gap-2.5 sm:flex-row sm:flex-wrap sm:items-stretch sm:justify-end lg:w-auto">
+        <div className="flex w-full flex-row flex-wrap items-center gap-2 sm:justify-end lg:w-auto">
           {insideCategory ? (
             <>
               <PageBackButton onClick={onBack} detail="Categories" />
               <span
-                className="hidden h-auto w-px self-stretch bg-[#EEF0F4] sm:mx-0.5 sm:block"
+                className="hidden h-8 w-px bg-[#EEF0F4] sm:block"
                 aria-hidden="true"
               />
               <button
                 type="button"
                 onClick={onAddCollection}
-                className="inline-flex shrink-0 cursor-pointer items-center justify-center gap-2 rounded-sm bg-primary px-4 py-2.5 text-sm font-semibold text-white shadow-[0_4px_16px_rgba(58,16,205,0.28)] transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#320EB8] hover:shadow-[0_8px_24px_rgba(58,16,205,0.32)]"
+                className="inline-flex min-h-11 min-w-0 flex-1 cursor-pointer items-center justify-center gap-2 rounded-sm bg-primary px-3 py-2.5 text-sm font-semibold text-white shadow-[0_4px_16px_rgba(58,16,205,0.28)] transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#320EB8] hover:shadow-[0_8px_24px_rgba(58,16,205,0.32)] sm:flex-none sm:px-4"
               >
-                <Plus className="h-4 w-4" strokeWidth={2.5} />
+                <Plus className="h-4 w-4 shrink-0" strokeWidth={2.5} />
                 Add Collection
               </button>
             </>
@@ -81,7 +81,7 @@ export default function CustomersPageHeader({
             <button
               type="button"
               onClick={onAddCategory}
-              className="inline-flex shrink-0 cursor-pointer items-center justify-center gap-2 rounded-sm bg-primary px-4 py-2.5 text-sm font-semibold text-white shadow-[0_4px_16px_rgba(58,16,205,0.28)] transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#320EB8] hover:shadow-[0_8px_24px_rgba(58,16,205,0.32)]"
+              className="inline-flex min-h-11 w-full shrink-0 cursor-pointer items-center justify-center gap-2 rounded-sm bg-primary px-4 py-2.5 text-sm font-semibold text-white shadow-[0_4px_16px_rgba(58,16,205,0.28)] transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#320EB8] hover:shadow-[0_8px_24px_rgba(58,16,205,0.32)] sm:w-auto"
             >
               <Plus className="h-4 w-4" strokeWidth={2.5} />
               Customer Category

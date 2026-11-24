@@ -10,7 +10,6 @@ const TONE_STYLES = {
     wash: 'bg-[radial-gradient(circle,rgba(229,57,53,0.12)_0%,transparent_70%)]',
     confirm:
       'bg-[#E53935] text-white shadow-[0_8px_24px_rgba(229,57,53,0.28)] hover:bg-[#C62828] hover:shadow-[0_10px_28px_rgba(229,57,53,0.34)]',
-    callout: 'border-[#FECACA] bg-[#FFF7F7] text-[#B42318]',
   },
   primary: {
     bar: 'from-primary via-[#6B4FE0] to-[#5B9FD4]',
@@ -18,7 +17,6 @@ const TONE_STYLES = {
     wash: 'bg-[radial-gradient(circle,rgba(58,16,205,0.10)_0%,transparent_70%)]',
     confirm:
       'bg-primary text-white shadow-[0_8px_24px_rgba(58,16,205,0.28)] hover:bg-[#320EB8] hover:shadow-[0_10px_28px_rgba(58,16,205,0.34)]',
-    callout: 'border-[#DDD6FE] bg-[#F7F8FF] text-[#4338CA]',
   },
 };
 
@@ -72,7 +70,7 @@ export default function ActionConfirmModal({
         type="button"
         onClick={onClose}
         disabled={isLoading}
-        className="absolute right-3 top-4 inline-flex h-9 w-9 cursor-pointer items-center justify-center rounded-sm text-[#717171] transition-colors hover:bg-[#F7F8FF] hover:text-[#0B1354] disabled:cursor-not-allowed disabled:opacity-50"
+        className="absolute right-3 top-4 z-10 inline-flex h-9 w-9 cursor-pointer items-center justify-center rounded-sm text-[#717171] transition-colors hover:bg-[#F7F8FF] hover:text-[#0B1354] disabled:cursor-not-allowed disabled:opacity-50"
         aria-label="Close"
       >
         <X className="h-5 w-5" strokeWidth={2} />
@@ -103,8 +101,11 @@ export default function ActionConfirmModal({
         ) : null}
 
         {warning ? (
-          <div className={clsx('mt-4 rounded-sm border px-3.5 py-3 text-left text-xs leading-relaxed', styles.callout)}>
-            {warning}
+          <div className="mt-4 flex items-start gap-3 rounded-sm border border-[#F5D9A8] bg-[#FFF8EB] px-3.5 py-3 text-left">
+            <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-sm bg-[#FFE8C2] text-[#B45309]">
+              <AlertTriangle className="h-4 w-4" strokeWidth={2.25} aria-hidden="true" />
+            </span>
+            <p className="pt-1 text-sm font-medium leading-relaxed text-[#92400E]">{warning}</p>
           </div>
         ) : null}
 

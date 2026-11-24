@@ -6,18 +6,35 @@ import { clsx } from 'clsx';
 
 const MENU_WIDTH = 192;
 
-export default function FilterDropdownChip({ label, options, icon: Icon, align = 'right' }) {
+export default function FilterDropdownChip({
+  label,
+  options,
+  icon: Icon,
+  align = 'right',
+  isLoading = false,
+  statusMessage = '',
+  value,
+  onChange,
+}) {
   const [open, setOpen] = useState(false);
-  const [selected, setSelected] = useState(options[0]);
+  const [internalSelected, setInternalSelected] = useState(options[0]);
   const [menuStyle, setMenuStyle] = useState({ top: 0, left: 0 });
   const buttonRef = useRef(null);
   const menuRef = useRef(null);
+  const selected = value !== undefined ? value : internalSelected;
+
+  const choose = useCallback(
+    (next) => {
+      if (value === undefined) setInternalSelected(next);
+      onChange?.(next);
+    },
+    [onChange, value],
+  );
 
   useEffect(() => {
-    if (!options.includes(selected)) {
-      setSelected(options[0]);
-    }
-  }, [options, selected]);
+    if (!options.length || options.includes(selected)) return;
+    choose(options[0]);
+  }, [choose, options, selected]);
 
   const updatePosition = useCallback(() => {
     if (!buttonRef.current) return;
@@ -91,16 +108,23 @@ export default function FilterDropdownChip({ label, options, icon: Icon, align =
             width: MENU_WIDTH,
             zIndex: 9999,
           }}
-          className="overflow-hidden rounded-sm border border-[#EEF0F4] bg-white shadow-[0_12px_32px_rgba(11,19,84,0.14)]"
+          className="max-h-64 overflow-y-auto rounded-sm border border-[#EEF0F4] bg-white shadow-[0_12px_32px_rgba(11,19,84,0.14)]"
           role="menu"
         >
-          {options.map((option) => (
+          {isLoading ? (
+            <p className="px-3.5 py-3 text-sm text-[#717171]">Loading…</p>
+          ) : null}
+          {!isLoading && statusMessage ? (
+            <p className="px-3.5 py-3 text-sm text-[#717171]">{statusMessage}</p>
+          ) : null}
+          {!isLoading && !statusMessage
+            ? options.map((option) => (
             <button
               key={option}
               type="button"
               role="menuitem"
               onClick={() => {
-                setSelected(option);
+                choose(option);
                 setOpen(false);
               }}
               className={clsx(
@@ -112,7 +136,8 @@ export default function FilterDropdownChip({ label, options, icon: Icon, align =
             >
               {option}
             </button>
-          ))}
+            ))
+            : null}
         </motion.div>
       ) : null}
     </AnimatePresence>

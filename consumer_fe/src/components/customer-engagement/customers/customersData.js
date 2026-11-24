@@ -274,6 +274,13 @@ export function mapCollectionFromApi(item, index = 0, fallbackCategory = null) {
   };
 }
 
+/** Form-added contacts: collection customers minus contacts listed under the uploads. */
+export function individualContactCount(totalContacts, uploadedContacts) {
+  const total = Number(totalContacts) || 0;
+  const fromUploads = Number(uploadedContacts) || 0;
+  return Math.max(0, total - fromUploads);
+}
+
 export function mapCollectionsFromApi(list, fallbackCategory = null) {
   if (!Array.isArray(list)) return [];
   return list.map((item, index) => mapCollectionFromApi(item, index, fallbackCategory));

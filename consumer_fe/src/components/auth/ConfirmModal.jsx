@@ -47,7 +47,7 @@ export default function ConfirmModal({
         type="button"
         onClick={onClose}
         disabled={isLoading}
-        className="absolute right-4 top-4 rounded-lg p-1.5 text-[#717171] transition-colors hover:bg-[#F4F4F5] hover:text-[#0B1354] disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer"
+        className="absolute right-4 top-4 z-10 cursor-pointer rounded-lg p-1.5 text-[#717171] transition-colors hover:bg-[#F4F4F5] hover:text-[#0B1354] disabled:cursor-not-allowed disabled:opacity-50"
         aria-label="Close"
       >
         <X className="h-5 w-5" />

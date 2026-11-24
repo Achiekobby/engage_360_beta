@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import {
   CalendarDays,
   Filter,
@@ -9,12 +9,30 @@ import {
 import { DASHBOARD_FILTERS } from './customerDashboardData';
 import FilterDropdownChip from '../FilterDropdownChip';
 import { useCustomerCategories } from '../../../hooks/useCustomerCategories';
+import { useAllCollections, useCategoryCollections } from '../../../hooks/useCategoryCollections';
+
+function collectionOptionLabels(collections) {
+  const nameCounts = new Map();
+
+  collections.forEach((collection) => {
+    const name = String(collection?.name || '').trim();
+    if (!name) return;
+    nameCounts.set(name, (nameCounts.get(name) || 0) + 1);
+  });
+
+  return collections
+    .map((collection) => {
+      const name = String(collection?.name || '').trim();
+      if (!name) return '';
+      const category = String(collection?.category || '').trim();
+      if ((nameCounts.get(name) || 0) > 1 && category) return `${name} · ${category}`;
+      return name;
+    })
+    .filter(Boolean)
+    .sort((left, right) => left.localeCompare(right));
+}
 
 const STATIC_FILTER_META = {
-  Collection: {
-    icon: FolderOpen,
-    options: ['All Collections', 'VIP', 'New Leads', 'Dormant', 'High Value'],
-  },
   'Advanced Filter': {
     icon: Filter,
     options: ['All Filters', 'Active Only', 'Incomplete Profiles', 'Has Phone', 'Has Email'],
@@ -26,19 +44,59 @@ const STATIC_FILTER_META = {
 };
 
 export default function DashboardPageHeader() {
-  const { categories } = useCustomerCategories();
+  const { categories, isLoading: categoriesLoading } = useCustomerCategories();
+  const [selectedCategoryName, setSelectedCategoryName] = useState('All Categories');
+  const [selectedCollection, setSelectedCollection] = useState('All Collections');
+
+  const selectedCategory = useMemo(
+    () => categories.find((category) => category.name === selectedCategoryName) || null,
+    [categories, selectedCategoryName],
+  );
+
+  const {
+    collections: allCollections,
+    isLoading: allCollectionsLoading,
+    isError: allCollectionsError,
+  } = useAllCollections(selectedCategory ? [] : categories);
+  const {
+    collections: categoryCollections,
+    isLoading: categoryCollectionsLoading,
+    isError: categoryCollectionsError,
+  } = useCategoryCollections(selectedCategory?.id, selectedCategory);
+
+  const visibleCollections = selectedCategory ? categoryCollections : allCollections;
+  const collectionsLoading = selectedCategory
+    ? categoryCollectionsLoading
+    : categoriesLoading || allCollectionsLoading;
+  const collectionsError = selectedCategory ? categoryCollectionsError : allCollectionsError;
 
   const categoryOptions = useMemo(
     () => ['All Categories', ...categories.map((category) => category.name).filter(Boolean)],
     [categories],
   );
 
+  const collectionOptions = useMemo(
+    () => ['All Collections', ...collectionOptionLabels(visibleCollections)],
+    [visibleCollections],
+  );
+
+  const collectionStatus = useMemo(() => {
+    if (collectionsLoading || !collectionsError) {
+      if (!collectionsLoading && collectionOptions.length === 1) {
+        return selectedCategory ? 'No collections in this category' : 'No collections yet';
+      }
+      return '';
+    }
+    return 'Could not load collections';
+  }, [collectionOptions.length, collectionsError, collectionsLoading, selectedCategory]);
+
   const filterMeta = useMemo(
     () => ({
       Category: { icon: Layers, options: categoryOptions },
+      Collection: { icon: FolderOpen, options: collectionOptions },
       ...STATIC_FILTER_META,
     }),
-    [categoryOptions],
+    [categoryOptions, collectionOptions],
   );
 
   return (
@@ -76,10 +134,35 @@ export default function DashboardPageHeader() {
             const meta = filterMeta[filter];
             return (
               <FilterDropdownChip
-                key={filter === 'Category' ? `Category-${categoryOptions.length}` : filter}
+                key={
+                  filter === 'Category'
+                    ? `Category-${categoryOptions.length}`
+                    : filter === 'Collection'
+                      ? `Collection-${collectionOptions.length}`
+                      : filter
+                }
                 label={filter}
                 options={meta.options}
                 icon={meta.icon}
+                value={
+                  filter === 'Category'
+                    ? selectedCategoryName
+                    : filter === 'Collection'
+                      ? selectedCollection
+                      : undefined
+                }
+                onChange={
+                  filter === 'Category'
+                    ? (next) => {
+                        setSelectedCategoryName(next);
+                        setSelectedCollection('All Collections');
+                      }
+                    : filter === 'Collection'
+                      ? setSelectedCollection
+                      : undefined
+                }
+                isLoading={filter === 'Collection' && collectionsLoading}
+                statusMessage={filter === 'Collection' ? collectionStatus : ''}
               />
             );
           })}

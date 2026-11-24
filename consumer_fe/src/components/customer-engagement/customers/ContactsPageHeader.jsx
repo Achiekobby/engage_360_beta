@@ -6,12 +6,20 @@ export default function ContactsPageHeader({
   collection,
   totalContacts = 0,
   uploadLabel = null,
+  fromUploads = false,
 }) {
   const navigate = useNavigate();
 
-  const backToUploads = () => {
-    navigate(`/customer-engagement/customers/${collection?.id || ''}`, {
-      state: collection ? { collection, categoryId: collection.categoryId } : null,
+  const goBack = () => {
+    if (fromUploads) {
+      navigate(`/customer-engagement/customers/${collection?.id || ''}`, {
+        state: collection ? { collection, categoryId: collection.categoryId } : null,
+      });
+      return;
+    }
+
+    navigate('/customer-engagement/customers', {
+      state: collection?.categoryId ? { categoryId: collection.categoryId } : null,
     });
   };
 
@@ -66,8 +74,8 @@ export default function ContactsPageHeader({
           ) : null}
         </div>
 
-        <div className="flex w-full flex-col gap-2.5 sm:flex-row sm:flex-wrap sm:items-stretch sm:justify-end lg:w-auto">
-          <PageBackButton onClick={backToUploads} detail="Uploads" />
+        <div className="flex w-full flex-row flex-wrap items-center gap-2 sm:justify-end lg:w-auto">
+          <PageBackButton onClick={goBack} detail={fromUploads ? 'Uploads' : 'Collections'} />
         </div>
       </div>
     </header>

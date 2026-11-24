@@ -51,3 +51,58 @@ export function useCategoryCollections(categoryId, category = null) {
 export function useCategoryCollectionsClient() {
   return useQueryClient();
 }
+
+export function useAllCollections(categories = []) {
+  const token = useAppSelector((state) => state.auth.user?.token);
+  const tokenType = useAppSelector((state) => state.auth.user?.tokenType) || 'Bearer';
+  const queryClient = useQueryClient();
+  const categoryIds = categories.map((category) => category?.id).filter(Boolean);
+  const enabled = Boolean(token) && categoryIds.length > 0;
+
+  const query = useQuery({
+    queryKey: ['all-collections', categoryIds.join('|'), token || 'guest'],
+    enabled,
+    staleTime: 1000 * 60 * 5,
+    gcTime: 1000 * 60 * 30,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    retry: (failureCount, error) => {
+      if (error?.status === 429) return false;
+      return failureCount < 1;
+    },
+    queryFn: async () => {
+      const collected = [];
+      let lastError = null;
+
+      for (const category of categories) {
+        if (!category?.id) continue;
+
+        try {
+          const mapped = await queryClient.fetchQuery({
+            queryKey: [...CATEGORY_COLLECTIONS_QUERY_KEY, String(category.id), token || 'guest'],
+            staleTime: 1000 * 60 * 5,
+            queryFn: async () => {
+              const result = await getCategoryCollections(category.id, { token, tokenType });
+              return mapCollectionsFromApi(result?.data, category);
+            },
+          });
+
+          if (Array.isArray(mapped)) collected.push(...mapped);
+        } catch (error) {
+          lastError = error;
+          if (error?.status === 429) break;
+        }
+      }
+
+      if (collected.length === 0 && lastError) throw lastError;
+      return collected;
+    },
+  });
+
+  return {
+    collections: query.data || [],
+    isLoading: enabled && query.isLoading,
+    isError: query.isError,
+  };
+}

@@ -1,15 +1,16 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import { Trash2 } from 'lucide-react';
 import { Reveal } from '../../components/motion';
 import { CUSTOMER_COLLECTIONS } from '../../components/customer-engagement/customers/customersData';
 import CollectionCustomersHeader from '../../components/customer-engagement/customers/CollectionCustomersHeader';
 import CollectionBulkUploadsPanel from '../../components/customer-engagement/customers/CollectionBulkUploadsPanel';
+import ActionConfirmModal from '../../components/customer-engagement/customers/ActionConfirmModal';
 import BulkImportDrawer from '../../components/customer-engagement/customers/bulk-import/BulkImportDrawer';
-import OnboardCustomerDrawer from '../../components/customer-engagement/customers/OnboardCustomerDrawer';
-import SuccessModal, {
-  ONBOARD_SUCCESS,
-} from '../../components/customer-engagement/customers/SuccessModal';
-import { createCollectionContact } from '../../services/customer-engagement/contacts';
+import {
+  COLLECTION_UPLOADS_QUERY_KEY,
+  deleteContactUpload,
+} from '../../services/customer-engagement/contactImport';
 import {
   invalidateCollectionContacts,
   useCollectionContactsClient,
@@ -18,7 +19,9 @@ import {
   invalidateCollectionUploads,
   useCollectionUploads,
 } from '../../hooks/useCollectionUploads';
-import { useAppDispatch } from '../../store/hooks';
+import { CATEGORY_COLLECTIONS_QUERY_KEY } from '../../hooks/useCategoryCollections';
+import { invalidateContactStatistics } from '../../hooks/useContactStatistics';
+import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { notifyError, notifySuccess } from '../../utils/toast';
 
 function formatRegisteredAt() {
@@ -40,6 +43,8 @@ export default function CollectionCustomersPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const dispatch = useAppDispatch();
+  const token = useAppSelector((state) => state.auth.user?.token);
+  const tokenType = useAppSelector((state) => state.auth.user?.tokenType) || 'Bearer';
   const queryClient = useCollectionContactsClient();
 
   const collection = useMemo(() => {
@@ -49,10 +54,8 @@ export default function CollectionCustomersPage() {
   }, [collectionId, location.state]);
 
   const [bulkImportOpen, setBulkImportOpen] = useState(false);
-  const [onboardOpen, setOnboardOpen] = useState(false);
-  const [addUpload, setAddUpload] = useState(null);
-  const [editCustomer, setEditCustomer] = useState(null);
-  const [successModal, setSuccessModal] = useState(null);
+  const [uploadToDelete, setUploadToDelete] = useState(null);
+  const [isDeletingUpload, setIsDeletingUpload] = useState(false);
 
   const contactsPath = `/customer-engagement/customers/${collectionId}/contacts`;
   const {
@@ -86,11 +89,67 @@ export default function CollectionCustomersPage() {
         collection,
         categoryId: collection?.categoryId,
         ...state,
+        fromUploads: true,
       },
     });
   };
 
   const handleOpenBulkUpload = () => setBulkImportOpen(true);
+
+  const handleConfirmDeleteUpload = async () => {
+    if (!uploadToDelete?.id) return;
+    if (!token) {
+      dispatch(notifyError('Sign in to delete an upload.', { title: 'Upload not deleted' }));
+      return;
+    }
+
+    setIsDeletingUpload(true);
+    try {
+      const result = await deleteContactUpload(uploadToDelete.id, { token, tokenType });
+      queryClient.setQueryData(
+        [...COLLECTION_UPLOADS_QUERY_KEY, String(collectionId), token || 'guest'],
+        (current) =>
+          Array.isArray(current)
+            ? current.filter((item) => String(item.id) !== String(uploadToDelete.id))
+            : current,
+      );
+      if (collection?.categoryId) {
+        const removedContacts = Number(uploadToDelete.successCount) || 0;
+        queryClient.setQueryData(
+          [...CATEGORY_COLLECTIONS_QUERY_KEY, String(collection.categoryId), token || 'guest'],
+          (current) => {
+            if (!Array.isArray(current)) return current;
+            return current.map((item) => {
+              if (String(item.id) !== String(collectionId)) return item;
+              const contacts = Math.max(0, (Number(item.customersCountRaw) || 0) - removedContacts);
+              return {
+                ...item,
+                fileCount: Math.max(0, (Number(item.fileCount) || 0) - 1),
+                customersCountRaw: contacts,
+                customerCount: String(contacts),
+              };
+            });
+          },
+        );
+      }
+      await invalidateCollectionContacts(queryClient, collectionId);
+      await invalidateContactStatistics(queryClient);
+      dispatch(
+        notifySuccess(result?.message || 'Upload and associated customers deleted successfully.', {
+          title: 'Upload deleted',
+        }),
+      );
+      setUploadToDelete(null);
+    } catch (deleteError) {
+      dispatch(
+        notifyError(deleteError?.message || 'Could not delete the upload.', {
+          title: 'Upload not deleted',
+        }),
+      );
+    } finally {
+      setIsDeletingUpload(false);
+    }
+  };
 
   const handleBulkImported = async (result, validation) => {
     const uploadedAt = formatRegisteredAt();
@@ -128,30 +187,6 @@ export default function CollectionCustomersPage() {
     );
   };
 
-  const handleSubmitCustomer = async (formData) => {
-    const values = formData.values || {};
-    try {
-      await createCollectionContact(collectionId, {
-        ...values,
-        collection_id: collectionId,
-        contact_file_id: formData.uploadId || addUpload?.id || null,
-      });
-      await invalidateCollectionContacts(queryClient, collectionId);
-      setEditCustomer(null);
-      setAddUpload(null);
-      setOnboardOpen(false);
-      setSuccessModal('onboard');
-      dispatch(notifySuccess('Customer onboarded successfully.', { title: 'Success' }));
-    } catch (submitError) {
-      dispatch(
-        notifyError(submitError?.message || 'Could not add this customer.', {
-          title: 'Add failed',
-        }),
-      );
-      throw submitError;
-    }
-  };
-
   if (!collection) {
     return (
       <main className="mx-auto w-full max-w-8xl px-4 py-16 text-center sm:px-6">
@@ -185,11 +220,7 @@ export default function CollectionCustomersPage() {
           onSelectUpload={(upload) =>
             goToContacts({ uploadId: upload.id }, { upload })
           }
-          onAddCustomer={(upload) => {
-            setEditCustomer(null);
-            setAddUpload(upload);
-            setOnboardOpen(true);
-          }}
+          onDeleteUpload={setUploadToDelete}
           onViewAll={uploads.length ? () => goToContacts() : undefined}
           onBulkUpload={handleOpenBulkUpload}
         />
@@ -202,28 +233,27 @@ export default function CollectionCustomersPage() {
         onImported={handleBulkImported}
       />
 
-      <OnboardCustomerDrawer
-        isOpen={onboardOpen}
+      <ActionConfirmModal
+        isOpen={Boolean(uploadToDelete)}
         onClose={() => {
-          setOnboardOpen(false);
-          setEditCustomer(null);
-          setAddUpload(null);
+          if (isDeletingUpload) return;
+          setUploadToDelete(null);
         }}
-        onSubmit={handleSubmitCustomer}
-        initialData={editCustomer}
-        uploadId={addUpload?.id || null}
-        contextLabel={addUpload?.fileName || collection?.name || ''}
-      />
-
-      <SuccessModal
-        isOpen={successModal === 'onboard'}
-        onClose={() => setSuccessModal(null)}
-        {...ONBOARD_SUCCESS}
-        actionLabel="View Contacts"
-        onAction={() => {
-          setSuccessModal(null);
-          goToContacts();
-        }}
+        onConfirm={handleConfirmDeleteUpload}
+        icon={Trash2}
+        tone="danger"
+        title="Delete this upload?"
+        description="The upload and the customers imported from it will be deleted."
+        entityLabel={uploadToDelete?.fileName}
+        entityMeta={
+          uploadToDelete
+            ? `${uploadToDelete.successCount || 0} imported · ${uploadToDelete.failedCount || 0} failed`
+            : undefined
+        }
+        warning="This cannot be undone."
+        confirmLabel="Delete upload"
+        cancelLabel="Keep upload"
+        isLoading={isDeletingUpload}
       />
     </main>
   );

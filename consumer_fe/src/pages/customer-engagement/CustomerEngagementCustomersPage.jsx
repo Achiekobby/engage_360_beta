@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Reveal, StaggerItem, StaggerReveal } from '../../components/motion';
 import MetricCard from '../../components/customer-engagement/dashboard/MetricCard';
@@ -18,6 +19,7 @@ import SuccessModal, {
 import {
   CUSTOMERS_PAGE_METRICS,
   createCollectionEntry,
+  individualContactCount,
   mapCategoryFromApi,
   mapCollectionFromApi,
 } from '../../components/customer-engagement/customers/customersData';
@@ -46,7 +48,15 @@ import {
   useContactStatistics,
 } from '../../hooks/useContactStatistics';
 import { invalidateCollectionContacts } from '../../hooks/useCollectionContacts';
-import { createCollectionContact } from '../../services/customer-engagement/contacts';
+import {
+  COLLECTION_UPLOADS_QUERY_KEY,
+  listCollectionUploads,
+} from '../../services/customer-engagement/contactImport';
+import {
+  addContact,
+  countContactsAcrossUploads,
+} from '../../services/customer-engagement/contacts';
+import { invalidateCollectionUploads } from '../../hooks/useCollectionUploads';
 import { useAppDispatch } from '../../store/hooks';
 import { notifyError, notifySuccess } from '../../utils/toast';
 
@@ -109,6 +119,35 @@ export default function CustomerEngagementCustomersPage() {
   const collectionsErrorMessage = collectionsIsError
     ? collectionsError?.message || 'Could not load collections.'
     : '';
+
+  const collectionsWithFiles = collections.filter((collection) => Number(collection.fileCount) > 0);
+  const uploadedContactCountKey = collectionsWithFiles.map((collection) => String(collection.id)).join(',');
+
+  const uploadedContactCounts = useQuery({
+    queryKey: ['upload-contact-counts', String(activeCategoryId || 'none'), uploadedContactCountKey, token || 'guest'],
+    enabled: Boolean(token && activeCategory && uploadedContactCountKey),
+    staleTime: 1000 * 60 * 5,
+    gcTime: 1000 * 60 * 30,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    retry: false,
+    queryFn: async () => {
+      const counts = {};
+      for (const collection of collectionsWithFiles) {
+        const uploads = await queryClient.fetchQuery({
+          queryKey: [...COLLECTION_UPLOADS_QUERY_KEY, String(collection.id), token || 'guest'],
+          staleTime: 1000 * 60 * 5,
+          queryFn: () => listCollectionUploads(collection.id, { token, tokenType }),
+        });
+        counts[String(collection.id)] = await countContactsAcrossUploads(
+          (uploads || []).map((upload) => upload.id),
+          { token, tokenType },
+        );
+      }
+      return counts;
+    },
+  });
 
   const collectionCountById = useMemo(() => {
     const counts = {};
@@ -185,12 +224,35 @@ export default function CustomerEngagementCustomersPage() {
     );
   }, [categories, searchQuery]);
 
+  const collectionsWithIndividuals = useMemo(
+    () =>
+      collections.map((collection) => {
+        const total = Number(collection.customersCountRaw) || 0;
+        if (!Number(collection.fileCount)) {
+          return { ...collection, individualCount: total };
+        }
+        if (uploadedContactCounts.isPending || uploadedContactCounts.isError) {
+          return { ...collection, individualCount: null };
+        }
+        return {
+          ...collection,
+          individualCount: individualContactCount(
+            total,
+            uploadedContactCounts.data?.[String(collection.id)],
+          ),
+        };
+      }),
+    [collections, uploadedContactCounts.data, uploadedContactCounts.isError, uploadedContactCounts.isPending],
+  );
+
   const filteredCollections = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
-    if (!query) return collections;
+    if (!query) return collectionsWithIndividuals;
 
-    return collections.filter((collection) => collection.name.toLowerCase().includes(query));
-  }, [collections, searchQuery]);
+    return collectionsWithIndividuals.filter((collection) =>
+      collection.name.toLowerCase().includes(query),
+    );
+  }, [collectionsWithIndividuals, searchQuery]);
 
   const openCategory = (category) => {
     setSearchQuery('');
@@ -234,14 +296,32 @@ export default function CustomerEngagementCustomersPage() {
     if (!customerCollection?.id) return;
     const values = formData.values || {};
     try {
-      await createCollectionContact(customerCollection.id, {
-        ...values,
-        collection_id: customerCollection.id,
-      });
+      const result = await addContact(
+        { ...values, collection_id: customerCollection.id },
+        { token, tokenType },
+      );
+      setCachedCollections((prev) =>
+        prev.map((item) => {
+          if (String(item.id) !== String(customerCollection.id)) return item;
+          const contacts = (Number(item.customersCountRaw) || 0) + 1;
+          return { ...item, customersCountRaw: contacts, customerCount: String(contacts) };
+        }),
+      );
+      setCachedCategories((prev) =>
+        prev.map((item) =>
+          String(item.id) === String(customerCollection.categoryId)
+            ? { ...item, contactsCount: (Number(item.contactsCount) || 0) + 1 }
+            : item,
+        ),
+      );
       await invalidateCollectionContacts(queryClient, customerCollection.id);
       await refreshStatistics();
       setCustomerCollection(null);
-      dispatch(notifySuccess('Customer added to this collection.', { title: 'Customer added' }));
+      dispatch(
+        notifySuccess(result?.message || 'Contact added successfully.', {
+          title: 'Contact added',
+        }),
+      );
     } catch (submitError) {
       dispatch(
         notifyError(submitError?.message || 'Could not add this customer.', {
@@ -408,17 +488,28 @@ export default function CustomerEngagementCustomersPage() {
 
     setIsDeletingCategory(true);
     try {
-      const result = await deleteCategory(categoryToDelete.id, { token, tokenType });
+      const deletedId = categoryToDelete.id;
+      const result = await deleteCategory(deletedId, { token, tokenType });
       setCachedCategories((prev) =>
-        prev.filter((item) => String(item.id) !== String(categoryToDelete.id)),
+        prev.filter((item) => String(item.id) !== String(deletedId)),
       );
-      if (String(activeCategoryId) === String(categoryToDelete.id)) {
+      queryClient.removeQueries({
+        queryKey: [...CATEGORY_COLLECTIONS_QUERY_KEY, String(deletedId)],
+      });
+      if (String(activeCategoryId) === String(deletedId)) {
         closeCategory();
+      }
+      if (pendingCategory && String(pendingCategory.id) === String(deletedId)) {
+        setPendingCategory(null);
+      }
+      if (editingCategory && String(editingCategory.id) === String(deletedId)) {
+        setEditingCategory(null);
+        setCategoryDrawerOpen(false);
       }
       await refreshStatistics();
       dispatch(
-        notifySuccess(result?.message || 'Customer category deleted successfully.', {
-          title: 'Category deleted',
+        notifySuccess(result?.message || 'Category and associated records archived successfully.', {
+          title: 'Category archived',
         }),
       );
       setCategoryToDelete(null);
@@ -598,8 +689,8 @@ export default function CustomerEngagementCustomersPage() {
 
     if (!token) {
       dispatch(
-        notifyError('Sign in to delete a collection.', {
-          title: 'Collection not deleted',
+        notifyError('Sign in to archive a collection.', {
+          title: 'Collection not archived',
         }),
       );
       return;
@@ -607,9 +698,11 @@ export default function CustomerEngagementCustomersPage() {
 
     setIsDeletingCollection(true);
     try {
-      const result = await deleteCollection(collectionToDelete.id, { token, tokenType });
+      const deletedId = collectionToDelete.id;
+      const removedContacts = Number(collectionToDelete.customersCountRaw) || 0;
+      const result = await deleteCollection(deletedId, { token, tokenType });
       setCachedCollections((prev) =>
-        prev.filter((item) => String(item.id) !== String(collectionToDelete.id)),
+        prev.filter((item) => String(item.id) !== String(deletedId)),
       );
       setCachedCategories((prev) =>
         prev.map((item) =>
@@ -617,21 +710,24 @@ export default function CustomerEngagementCustomersPage() {
             ? {
                 ...item,
                 collectionsCount: Math.max(0, (item.collectionsCount || 0) - 1),
+                contactsCount: Math.max(0, (item.contactsCount || 0) - removedContacts),
               }
             : item,
         ),
       );
+      await invalidateCollectionUploads(queryClient, deletedId);
+      await invalidateCollectionContacts(queryClient, deletedId);
       await refreshStatistics();
       dispatch(
-        notifySuccess(result?.message || 'Collection deleted successfully.', {
-          title: 'Collection deleted',
+        notifySuccess(result?.message || 'Collection archived successfully.', {
+          title: 'Collection archived',
         }),
       );
       setCollectionToDelete(null);
     } catch (deleteError) {
       dispatch(
-        notifyError(deleteError?.message || 'Could not delete the collection.', {
-          title: 'Collection not deleted',
+        notifyError(deleteError?.message || 'Could not archive the collection.', {
+          title: 'Collection not archived',
         }),
       );
     } finally {
@@ -641,6 +737,12 @@ export default function CustomerEngagementCustomersPage() {
 
   const handleView = (collection) => {
     navigate(`/customer-engagement/customers/${collection.id}`, {
+      state: { collection, categoryId: collection.categoryId },
+    });
+  };
+
+  const handleViewContacts = (collection) => {
+    navigate(`/customer-engagement/customers/${collection.id}/contacts`, {
       state: { collection, categoryId: collection.categoryId },
     });
   };
@@ -738,6 +840,7 @@ export default function CustomerEngagementCustomersPage() {
               onDelete={setCollectionToDelete}
               onEdit={handleOpenEditCollection}
               onView={handleView}
+              onViewContacts={handleViewContacts}
               onAddCustomer={setCustomerCollection}
               onAddCollection={() => handleOpenCollectionDrawer(activeCategory)}
               emptyTitle={searchQuery ? 'No collections found' : 'No collections in this category'}
@@ -804,18 +907,20 @@ export default function CustomerEngagementCustomersPage() {
         onConfirm={handleConfirmDeleteCategory}
         icon={Trash2}
         tone="danger"
-        title="Delete this category?"
-        description="This removes the category from your workspace. This action cannot be undone."
+        title="Archive this category?"
+        description="The category and the collections and contacts stored in it will be archived."
         entityLabel={categoryToDelete?.name}
         entityMeta={
           categoryToDelete
             ? `${categoryToDelete.collectionsCount || 0} collection${
                 (categoryToDelete.collectionsCount || 0) === 1 ? '' : 's'
-              } linked`
+              } · ${categoryToDelete.contactsCount || 0} contact${
+                (categoryToDelete.contactsCount || 0) === 1 ? '' : 's'
+              }`
             : undefined
         }
-        warning="Collections under this category may become unavailable after deletion."
-        confirmLabel="Delete category"
+        warning="Archived records are removed from this list."
+        confirmLabel="Archive category"
         cancelLabel="Keep category"
         isLoading={isDeletingCategory}
       />
@@ -829,8 +934,8 @@ export default function CustomerEngagementCustomersPage() {
         onConfirm={handleConfirmDeleteCollection}
         icon={FolderOpen}
         tone="danger"
-        title="Delete this collection?"
-        description="Contacts stored in this collection will no longer be reachable from here."
+        title="Archive this collection?"
+        description="The collection and the contacts stored in it will be archived."
         entityLabel={collectionToDelete?.name}
         entityMeta={
           collectionToDelete
@@ -839,8 +944,8 @@ export default function CustomerEngagementCustomersPage() {
               }`
             : undefined
         }
-        warning="Delete only if you are sure this list is no longer needed."
-        confirmLabel="Delete collection"
+        warning="Archived records are removed from this list."
+        confirmLabel="Archive collection"
         cancelLabel="Keep collection"
         isLoading={isDeletingCollection}
       />

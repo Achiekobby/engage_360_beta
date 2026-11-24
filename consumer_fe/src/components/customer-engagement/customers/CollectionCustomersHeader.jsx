@@ -48,7 +48,7 @@ export default function CollectionCustomersHeader({
           </p>
         </div>
 
-        <div className="flex w-full flex-col gap-2.5 sm:flex-row sm:flex-wrap sm:items-stretch sm:justify-end lg:w-auto">
+        <div className="flex w-full flex-row flex-wrap items-center gap-2 sm:justify-end lg:w-auto">
           <PageBackButton onClick={backToCategory} detail={backDetail} />
 
           <span
@@ -56,7 +56,7 @@ export default function CollectionCustomersHeader({
             aria-hidden="true"
           />
 
-          <BulkUploadCustomersButton onClick={onBulkUpload} className="w-full sm:w-auto" />
+          <BulkUploadCustomersButton onClick={onBulkUpload} className="min-w-0 flex-1 sm:w-auto sm:flex-none" />
         </div>
       </div>
     </header>

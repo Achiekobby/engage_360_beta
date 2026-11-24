@@ -4,7 +4,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { MoreHorizontal } from 'lucide-react';
 import { clsx } from 'clsx';
 
-const MENU_WIDTH = 196;
+const MENU_WIDTH = 220;
 
 export default function RowActionMenu({ label = 'Actions', items = [] }) {
   const [open, setOpen] = useState(false);

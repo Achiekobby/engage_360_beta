@@ -244,6 +244,17 @@ export async function listCollectionUploads(collectionId, { token, tokenType } =
     .filter((upload) => upload.id);
 }
 
+/** DELETE /api/contacts/uploads/{upload_id} */
+export async function deleteContactUpload(uploadId, { token, tokenType } = {}) {
+  if (!uploadId) throw new Error('Missing upload id.');
+  if (!token) throw new Error('Sign in to delete an upload.');
+  return apiRequest(`/api/contacts/uploads/${encodeURIComponent(uploadId)}`, {
+    method: 'DELETE',
+    token,
+    tokenType,
+  });
+}
+
 export function formatFileSize(bytes = 0) {
   if (!bytes) return '0 B';
   const units = ['B', 'KB', 'MB', 'GB'];

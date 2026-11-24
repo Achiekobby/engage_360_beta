@@ -3,6 +3,12 @@ import { useLocation, useNavigate, useParams, useSearchParams } from 'react-rout
 import { Trash2 } from 'lucide-react';
 import { Reveal } from '../../components/motion';
 import { CUSTOMER_COLLECTIONS } from '../../components/customer-engagement/customers/customersData';
+import { normalizeSegment } from '../../components/customer-engagement/customers/collectionCustomersData';
+import { useContactFields } from '../../hooks/useContactFields';
+import {
+  STANDARD_FIELD_KEYS,
+  fieldsForCustomerForm,
+} from '../../services/customer-engagement/contactFields';
 import ContactsPageHeader from '../../components/customer-engagement/customers/ContactsPageHeader';
 import ContactsFiltersBar from '../../components/customer-engagement/customers/ContactsFiltersBar';
 import ContactsEmptyState from '../../components/customer-engagement/customers/ContactsEmptyState';
@@ -17,13 +23,19 @@ import ActionConfirmModal from '../../components/customer-engagement/customers/A
 import SuccessModal, {
   ONBOARD_SUCCESS,
 } from '../../components/customer-engagement/customers/SuccessModal';
-import { createCollectionContact } from '../../services/customer-engagement/contacts';
+import {
+  addContact,
+  deleteContact,
+  readCategoryName,
+  updateContact,
+} from '../../services/customer-engagement/contacts';
 import {
   invalidateCollectionContacts,
   useCollectionContacts,
   useCollectionContactsClient,
 } from '../../hooks/useCollectionContacts';
-import { useAppDispatch } from '../../store/hooks';
+import { invalidateContactStatistics } from '../../hooks/useContactStatistics';
+import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { notifyError, notifySuccess } from '../../utils/toast';
 
 const PAGE_SIZE_OPTIONS = [25, 50, 100];
@@ -45,6 +57,8 @@ export default function CollectionContactsPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const dispatch = useAppDispatch();
+  const token = useAppSelector((state) => state.auth.user?.token);
+  const tokenType = useAppSelector((state) => state.auth.user?.tokenType) || 'Bearer';
   const queryClient = useCollectionContactsClient();
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -83,6 +97,7 @@ export default function CollectionContactsPage() {
   const [successModal, setSuccessModal] = useState(null);
   const [deleteSelectedOpen, setDeleteSelectedOpen] = useState(false);
   const [contactToDelete, setContactToDelete] = useState(null);
+  const [isDeletingContact, setIsDeletingContact] = useState(false);
   const [removedIds, setRemovedIds] = useState([]);
   const [isDeletingSelected, setIsDeletingSelected] = useState(false);
   const [localOverrides, setLocalOverrides] = useState({});
@@ -112,14 +127,40 @@ export default function CollectionContactsPage() {
     refetch,
   } = useCollectionContacts(collectionId, filters);
 
+  const contactFields = useContactFields(true);
+  const extraColumns = useMemo(() => {
+    const seen = new Set(STANDARD_FIELD_KEYS);
+    return fieldsForCustomerForm({
+      standard: contactFields.standard,
+      recommended: contactFields.recommended,
+      custom: contactFields.custom,
+    }).filter((field) => {
+      if (!field?.key || seen.has(field.key)) return false;
+      seen.add(field.key);
+      return true;
+    });
+  }, [contactFields.custom, contactFields.recommended, contactFields.standard]);
+
+  const categoryName = readCategoryName(collection?.category);
+
   const customers = useMemo(
     () =>
       fetchedContacts
         .filter((contact) => !removedIds.includes(contact.id))
-        .map((contact) =>
-          localOverrides[contact.id] ? { ...contact, ...localOverrides[contact.id] } : contact,
-        ),
-    [fetchedContacts, localOverrides, removedIds],
+        .map((contact) => {
+          const withOverride = localOverrides[contact.id]
+            ? { ...contact, ...localOverrides[contact.id] }
+            : contact;
+          return {
+            ...withOverride,
+            category: readCategoryName(withOverride.category) || categoryName,
+            collectionName:
+              readCategoryName(withOverride.collectionName) ||
+              (collection?.name && collection.name !== 'Collection' ? collection.name : ''),
+            segment: normalizeSegment(withOverride.segment),
+          };
+        }),
+    [categoryName, collection?.name, fetchedContacts, localOverrides, removedIds],
   );
 
   const uploadLabel = location.state?.upload?.fileName || null;
@@ -186,22 +227,75 @@ export default function CollectionContactsPage() {
     );
   };
 
-  const handleToggleActive = (customer) => {
+  const applyContactPatch = (contactId, patch) => {
     setLocalOverrides((prev) => ({
       ...prev,
-      [customer.id]: {
-        ...(prev[customer.id] || {}),
-        isActive: customer.isActive === false,
-      },
+      [contactId]: { ...(prev[contactId] || {}), ...patch },
     }));
+    if (viewCustomer?.id === contactId) {
+      setViewCustomer((prev) => (prev ? { ...prev, ...patch } : prev));
+    }
+  };
+
+  const handleToggleActive = async (customer) => {
+    if (!token) {
+      dispatch(notifyError('Sign in to update a contact.', { title: 'Contact not updated' }));
+      return;
+    }
+    const isActive = customer.isActive === false ? 1 : 0;
+    try {
+      const result = await updateContact(customer.id, { is_active: isActive }, { token, tokenType });
+      applyContactPatch(customer.id, { isActive: isActive === 1 });
+      await invalidateCollectionContacts(queryClient, collectionId);
+      dispatch(
+        notifySuccess(
+          result?.message ||
+            (isActive
+              ? 'Do not disturb cleared for this contact.'
+              : 'Contact set to Do not disturb.'),
+          { title: isActive ? 'Do not disturb cleared' : 'Do not disturb' },
+        ),
+      );
+    } catch (updateError) {
+      dispatch(
+        notifyError(updateError?.message || 'Could not update this contact.', {
+          title: 'Contact not updated',
+        }),
+      );
+    }
   };
 
   const handleConfirmDeleteContact = async () => {
     if (!contactToDelete?.id) return;
-    setRemovedIds((prev) => [...prev, contactToDelete.id]);
-    setSelectedIds((prev) => prev.filter((id) => id !== contactToDelete.id));
-    setContactToDelete(null);
-    if (viewCustomer?.id === contactToDelete.id) setViewCustomer(null);
+    if (!token) {
+      dispatch(notifyError('Sign in to delete a contact.', { title: 'Contact not deleted' }));
+      return;
+    }
+
+    const deletedId = contactToDelete.id;
+    setIsDeletingContact(true);
+    try {
+      const result = await deleteContact(deletedId, { token, tokenType });
+      setRemovedIds((prev) => (prev.includes(deletedId) ? prev : [...prev, deletedId]));
+      setSelectedIds((prev) => prev.filter((id) => id !== deletedId));
+      if (viewCustomer?.id === deletedId) setViewCustomer(null);
+      await invalidateCollectionContacts(queryClient, collectionId);
+      await invalidateContactStatistics(queryClient);
+      dispatch(
+        notifySuccess(result?.message || 'Contact deleted successfully.', {
+          title: 'Contact deleted',
+        }),
+      );
+      setContactToDelete(null);
+    } catch (deleteError) {
+      dispatch(
+        notifyError(deleteError?.message || 'Could not delete this contact.', {
+          title: 'Contact not deleted',
+        }),
+      );
+    } finally {
+      setIsDeletingContact(false);
+    }
   };
 
   const handleSegmentChange = (customer, segment) => {
@@ -218,35 +312,42 @@ export default function CollectionContactsPage() {
     const values = formData.values || {};
     const patch = contactFromFormValues(values);
 
-    if (formData.id) {
-      setLocalOverrides((prev) => ({
-        ...prev,
-        [formData.id]: {
-          ...(prev[formData.id] || {}),
-          ...patch,
-        },
-      }));
-      setEditCustomer(null);
-      setOnboardOpen(false);
-      return;
-    }
-
     try {
-      await createCollectionContact(collectionId, {
-        ...values,
-        collection_id: collectionId,
-        contact_file_id: formData.uploadId || uploadId || null,
-      });
+      if (formData.id) {
+        const result = await updateContact(formData.id, values, { token, tokenType });
+        applyContactPatch(formData.id, patch);
+        await invalidateCollectionContacts(queryClient, collectionId);
+        setEditCustomer(null);
+        setOnboardOpen(false);
+        dispatch(
+          notifySuccess(result?.message || 'Contact updated successfully.', {
+            title: 'Contact updated',
+          }),
+        );
+        return;
+      }
+
+      const result = await addContact(
+        { ...values, collection_id: collectionId },
+        { token, tokenType },
+      );
       await invalidateCollectionContacts(queryClient, collectionId);
+      await invalidateContactStatistics(queryClient);
       setOnboardOpen(false);
       setEditCustomer(null);
       setSuccessModal('onboard');
-      dispatch(notifySuccess('Customer onboarded successfully.', { title: 'Success' }));
+      dispatch(
+        notifySuccess(result?.message || 'Contact added successfully.', {
+          title: 'Contact added',
+        }),
+      );
     } catch (submitError) {
       dispatch(
-        notifyError(submitError?.message || 'Could not add this customer.', {
-          title: 'Add failed',
-        }),
+        notifyError(
+          submitError?.message ||
+            (formData.id ? 'Could not update this contact.' : 'Could not add this customer.'),
+          { title: formData.id ? 'Contact not updated' : 'Add failed' },
+        ),
       );
       throw submitError;
     }
@@ -293,6 +394,7 @@ export default function CollectionContactsPage() {
           collection={collection}
           totalContacts={isInitialLoading ? null : total}
           uploadLabel={uploadLabel}
+          fromUploads={Boolean(location.state?.fromUploads || uploadId)}
         />
       </Reveal>
 
@@ -436,6 +538,7 @@ export default function CollectionContactsPage() {
         ) : showTable ? (
           <CustomersDataTable
             customers={customers}
+            extraColumns={extraColumns}
             selectedIds={selectedIds}
             onToggleSelect={toggleSelect}
             onToggleSelectAll={toggleSelectAll}
@@ -486,12 +589,16 @@ export default function CollectionContactsPage() {
 
       <ActionConfirmModal
         isOpen={Boolean(contactToDelete)}
-        onClose={() => setContactToDelete(null)}
+        onClose={() => {
+          if (isDeletingContact) return;
+          setContactToDelete(null);
+        }}
         onConfirm={handleConfirmDeleteContact}
         icon={Trash2}
         tone="danger"
         title="Delete this contact?"
-        description="This contact will be removed from the list."
+        description="This contact will be removed from its collection and any upload it belongs to."
+        isLoading={isDeletingContact}
         entityLabel={contactToDelete?.fullName}
         entityMeta={contactToDelete?.phone}
         warning="This cannot be undone from the current screen."

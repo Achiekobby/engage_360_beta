@@ -98,7 +98,8 @@ export async function updateCategory(
 }
 
 export async function deleteCategory(categoryId, { token, tokenType } = {}) {
-  const result = await apiRequest(`/api/categories/${categoryId}`, {
+  if (!categoryId) throw new Error('Missing category id.');
+  const result = await apiRequest(`/api/categories/${encodeURIComponent(categoryId)}`, {
     method: 'DELETE',
     token,
     tokenType,

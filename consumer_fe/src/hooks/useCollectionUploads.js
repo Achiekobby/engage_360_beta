@@ -13,7 +13,9 @@ export function useCollectionUploads(collectionId) {
   const query = useQuery({
     queryKey: [...COLLECTION_UPLOADS_QUERY_KEY, String(collectionId || 'none'), token || 'guest'],
     enabled,
-    staleTime: 1000 * 30,
+    staleTime: 1000 * 60 * 5,
+    gcTime: 1000 * 60 * 30,
+    refetchOnMount: false,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
     retry: (failureCount, error) => {
@@ -31,11 +33,16 @@ export function useCollectionUploads(collectionId) {
 
 export function invalidateCollectionUploads(queryClient, collectionId) {
   if (!queryClient) return Promise.resolve();
-  return queryClient.invalidateQueries({
-    queryKey: collectionId
-      ? [...COLLECTION_UPLOADS_QUERY_KEY, String(collectionId)]
-      : COLLECTION_UPLOADS_QUERY_KEY,
-  });
+  const uploadsKey = collectionId
+    ? [...COLLECTION_UPLOADS_QUERY_KEY, String(collectionId)]
+    : COLLECTION_UPLOADS_QUERY_KEY;
+  const contactCountKey = collectionId
+    ? ['upload-contact-counts', String(collectionId)]
+    : ['upload-contact-counts'];
+  return Promise.all([
+    queryClient.invalidateQueries({ queryKey: uploadsKey }),
+    queryClient.invalidateQueries({ queryKey: contactCountKey }),
+  ]);
 }
 
 export function useCollectionUploadsClient() {

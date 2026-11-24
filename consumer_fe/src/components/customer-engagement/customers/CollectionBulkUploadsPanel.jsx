@@ -5,8 +5,8 @@ import {
   CheckCircle2,
   Eye,
   FileSpreadsheet,
-  UserPlus,
   Loader2,
+  Trash2,
   Upload,
   Users,
 } from 'lucide-react';
@@ -42,7 +42,7 @@ export default function CollectionBulkUploadsPanel({
   error = '',
   onRetry,
   onSelectUpload,
-  onAddCustomer,
+  onDeleteUpload,
   onViewAll,
   onBulkUpload,
 }) {
@@ -252,20 +252,21 @@ export default function CollectionBulkUploadsPanel({
                       <RowActionMenu
                         label={`Actions for ${upload.fileName}`}
                         items={[
-                          onAddCustomer
-                            ? {
-                                key: 'add',
-                                label: 'Add customer',
-                                icon: UserPlus,
-                                onSelect: () => onAddCustomer(upload),
-                              }
-                            : null,
                           {
                             key: 'view',
                             label: 'View contacts',
                             icon: Eye,
                             onSelect: () => onSelectUpload?.(upload),
                           },
+                          onDeleteUpload
+                            ? {
+                                key: 'delete',
+                                label: 'Delete',
+                                icon: Trash2,
+                                tone: 'danger',
+                                onSelect: () => onDeleteUpload(upload),
+                              }
+                            : null,
                         ]}
                       />
                     </div>

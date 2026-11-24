@@ -2,11 +2,12 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react
 import { createPortal } from 'react-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
+  Bell,
+  BellOff,
   ChevronRight,
   Edit3,
   Eye,
   MoreHorizontal,
-  Power,
   Tag,
   Trash2,
 } from 'lucide-react';
@@ -30,7 +31,7 @@ export default function CustomerActionMenu({
   const updatePosition = useCallback(() => {
     if (!buttonRef.current) return;
     const rect = buttonRef.current.getBoundingClientRect();
-    const menuWidth = 220;
+    const menuWidth = 248;
     const gap = 8;
     const estimatedHeight = segmentOpen ? 280 : 240;
     const spaceBelow = window.innerHeight - rect.bottom - gap;
@@ -109,7 +110,7 @@ export default function CustomerActionMenu({
             top: placement.openUp ? undefined : placement.top,
             bottom: placement.openUp ? placement.bottom : undefined,
             left: placement.left,
-            width: 220,
+            width: 248,
             maxHeight: placement.maxHeight,
             zIndex: 9999,
           }}
@@ -122,8 +123,8 @@ export default function CustomerActionMenu({
                 { label: 'View', icon: Eye, action: () => { onView(customer); close(); }, danger: false },
                 { label: 'Edit', icon: Edit3, action: () => { onEdit(customer); close(); }, danger: false },
                 {
-                  label: customer.isActive === false ? 'Activate' : 'Deactivate',
-                  icon: Power,
+                  label: customer.isActive === false ? 'Clear Do not disturb' : 'Set to Do not disturb',
+                  icon: customer.isActive === false ? Bell : BellOff,
                   action: () => { onToggleActive?.(customer); close(); },
                   danger: false,
                 },
@@ -175,6 +176,22 @@ export default function CustomerActionMenu({
                 Segment Tag
               </button>
               <div className="max-h-56 overflow-y-auto py-1">
+                <button
+                  type="button"
+                  role="menuitem"
+                  onClick={() => {
+                    onSegmentChange(customer, '');
+                    close();
+                  }}
+                  className={clsx(
+                    'flex w-full cursor-pointer px-3.5 py-2 text-left text-sm transition-colors hover:bg-[#F7F8FF]',
+                    customer.segment
+                      ? 'text-[#717171]'
+                      : 'font-semibold text-primary',
+                  )}
+                >
+                  No tag
+                </button>
                 {SEGMENT_TAGS.map((tag) => (
                   <button
                     key={tag}

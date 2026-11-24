@@ -1,4 +1,4 @@
-import { Eye, Pencil, Trash2, UserPlus } from 'lucide-react';
+import { FileStack, Pencil, Trash2, UserPlus, Users } from 'lucide-react';
 import RowActionMenu from './RowActionMenu';
 
 export function CollectionActions({
@@ -6,6 +6,7 @@ export function CollectionActions({
   onDelete,
   onEdit,
   onView,
+  onViewContacts,
   onAddCustomer,
 }) {
   return (
@@ -21,11 +22,19 @@ export function CollectionActions({
                 onSelect: () => onAddCustomer(collection),
               }
             : null,
+          onViewContacts
+            ? {
+                key: 'contacts',
+                label: 'View contacts',
+                icon: Users,
+                onSelect: () => onViewContacts(collection),
+              }
+            : null,
           onView
             ? {
                 key: 'view',
-                label: 'View',
-                icon: Eye,
+                label: 'View bulk uploads',
+                icon: FileStack,
                 onSelect: () => onView(collection),
               }
             : null,
@@ -39,7 +48,7 @@ export function CollectionActions({
             : null,
           {
             key: 'delete',
-            label: 'Delete',
+            label: 'Archive',
             icon: Trash2,
             tone: 'danger',
             onSelect: () => onDelete?.(collection),

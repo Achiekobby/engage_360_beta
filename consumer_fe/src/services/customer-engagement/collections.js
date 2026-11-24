@@ -57,7 +57,8 @@ export async function updateCollection(
 }
 
 export async function deleteCollection(collectionId, { token, tokenType } = {}) {
-  return apiRequest(`/api/collections/${collectionId}`, {
+  if (!collectionId) throw new Error('Missing collection id.');
+  return apiRequest(`/api/contacts/uploads/${encodeURIComponent(collectionId)}`, {
     method: 'DELETE',
     token,
     tokenType,
